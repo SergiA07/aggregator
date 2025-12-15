@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Investment account (broker accounts)
+model Account {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id") // Supabase auth.users.id
+  broker      String   // degiro, trade-republic, interactive-brokers, etc.
+  accountId   String   @map("account_id") // External account identifier
+  accountName String?  @map("account_name")
+  currency    String   @default("EUR")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  positions    Position[]
+  transactions Transaction[]
+
+  @@unique([userId, broker, accountId])
+  @@map("accounts")
+}
+
+// Securities (stocks, ETFs, bonds, etc.) - shared across users
+model Security {
+  id           String  @id @default(uuid())
+  symbol       String  // Ticker symbol
+  isin         String? @unique // International Securities Identification Number
+  name         String
+  securityType String  @map("security_type") // stock, etf, bond, fund, etc.
+  currency     String  @default("EUR")
+  exchange     String? // Exchange where traded
+  sector       String?
+  industry     String?
+  country      String?
+
+  positions    Position[]
+  transactions Transaction[]
+  priceHistory PriceHistory[]
+
+  @@map("securities")
+}
+
+// Transactions (buy, sell, dividend, etc.)
+model Transaction {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  accountId  String   @map("account_id")
+  securityId String   @map("security_id")
+  date       DateTime
+  type       String   // buy, sell, dividend, split, transfer
+  quantity   Decimal  @db.Decimal(18, 8)
+  price      Decimal  @db.Decimal(18, 8)
+  amount     Decimal  @db.Decimal(18, 2) // Total amount (quantity * price)
+  fees       Decimal  @default(0) @db.Decimal(18, 2)
+  currency   String   @default("EUR")
+  notes      String?
+  externalId String?  @map("external_id") // ID from broker for deduplication
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  security Security @relation(fields: [securityId], references: [id])
+
+  @@unique([userId, accountId, externalId])
+  @@map("transactions")
+}
+
+// Current positions (holdings)
+model Position {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  accountId     String   @map("account_id")
+  securityId    String   @map("security_id")
+  quantity      Decimal  @db.Decimal(18, 8)
+  avgCost       Decimal  @map("avg_cost") @db.Decimal(18, 8) // Average cost per share
+  totalCost     Decimal  @map("total_cost") @db.Decimal(18, 2)
+  marketPrice   Decimal? @map("market_price") @db.Decimal(18, 8)
+  marketValue   Decimal? @map("market_value") @db.Decimal(18, 2)
+  unrealizedPnl Decimal? @map("unrealized_pnl") @db.Decimal(18, 2)
+  currency      String   @default("EUR")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  security Security @relation(fields: [securityId], references: [id])
+
+  @@unique([userId, accountId, securityId])
+  @@map("positions")
+}
+
+// Bank accounts
+model BankAccount {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  iban        String?
+  bankName    String    @map("bank_name")
+  accountName String?   @map("account_name")
+  currency    String    @default("EUR")
+  balance     Decimal   @default(0) @db.Decimal(18, 2)
+  lastSynced  DateTime? @map("last_synced")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  transactions BankTransaction[]
+
+  @@unique([userId, iban])
+  @@map("bank_accounts")
+}
+
+// Bank transactions
+model BankTransaction {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  bankAccountId String   @map("bank_account_id")
+  date          DateTime
+  description   String
+  amount        Decimal  @db.Decimal(18, 2)
+  balance       Decimal? @db.Decimal(18, 2) // Balance after transaction
+  category      String?
+  reference     String? // External reference for deduplication
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bankAccountId, date, amount, description])
+  @@map("bank_transactions")
+}
+
+// Price history - shared across users
+model PriceHistory {
+  id         String   @id @default(uuid())
+  securityId String   @map("security_id")
+  date       DateTime @db.Date
+  open       Decimal? @db.Decimal(18, 8)
+  high       Decimal? @db.Decimal(18, 8)
+  low        Decimal? @db.Decimal(18, 8)
+  close      Decimal  @db.Decimal(18, 8)
+  volume     BigInt?
+
+  security Security @relation(fields: [securityId], references: [id], onDelete: Cascade)
+
+  @@unique([securityId, date])
+  @@map("price_history")
+}
