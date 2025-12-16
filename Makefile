@@ -50,8 +50,9 @@ setup:
 
 dev: kill-ports
 	@trap 'kill 0' EXIT; \
-	turbo dev --filter=@repo/api --filter=@repo/web & \
-	cd apps/python-service && uv run uvicorn main:app --reload --port 8000
+	bun run dev:api & \
+	bun run dev:web & \
+	bun run dev:python
 
 dev-api:
 	bun run dev:api

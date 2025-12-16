@@ -15,9 +15,11 @@
     "@tanstack/react-query": "5.90.12",
     "@tanstack/react-router": "1.141.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "@repo/shared-types": "workspace:*"
   },
   "devDependencies": {
+    "@repo/config": "workspace:*",
     "@tailwindcss/vite": "4.1.18",
     "@types/node": "24.10.1",
     "@types/react": "19.2.5",

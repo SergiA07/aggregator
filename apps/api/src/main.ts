@@ -1,7 +1,7 @@
-// ESM default imports for Fastify plugins
 import compress from '@fastify/compress';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -60,6 +60,21 @@ async function bootstrap() {
   // Enable graceful shutdown hooks
   // This ensures the app cleanly closes DB connections, finishes requests, etc.
   app.enableShutdownHooks();
+
+  // Enable global validation pipe for DTO validation
+  // whitelist: strips properties not in DTO
+  // forbidNonWhitelisted: throws error on unknown properties
+  // transform: auto-converts types (string "123" -> number 123)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   // Swagger/OpenAPI setup
   const config = new DocumentBuilder()

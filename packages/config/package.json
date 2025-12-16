@@ -1,0 +1,11 @@
+{
+  "name": "@repo/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nestjs": "./typescript/nestjs.json",
+    "./typescript/react": "./typescript/react.json",
+    "./biome": "./biome/base.json"
+  }
+}
