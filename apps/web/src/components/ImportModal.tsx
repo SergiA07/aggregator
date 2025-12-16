@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
-import { api } from '../lib/api';
 import type { ImportResult } from '../lib/api';
+import { api } from '../lib/api';
 
 interface ImportModalProps {
   isOpen: boolean;

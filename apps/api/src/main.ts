@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const multipart = require('@fastify/multipart');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const cors = require('@fastify/cors');
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {

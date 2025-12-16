@@ -1,4 +1,4 @@
-import { BaseParser, type ParseResult, type ParsedTransaction } from './base-parser';
+import { BaseParser, type ParsedTransaction, type ParseResult } from './base-parser';
 
 /**
  * Parser for Trade Republic CSV transaction exports

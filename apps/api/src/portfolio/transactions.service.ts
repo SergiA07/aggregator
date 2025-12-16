@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Prisma } from '@repo/database';
-import type { Transaction } from '@repo/database';
+import type { Prisma, Transaction } from '@repo/database';
 import { DatabaseService } from '../database';
 
 export interface TransactionFilters {

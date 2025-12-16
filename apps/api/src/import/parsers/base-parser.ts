@@ -126,14 +126,14 @@ export abstract class BaseParser {
 
         if (match[1].length === 4) {
           // Year first format
-          year = Number.parseInt(match[1]);
-          month = Number.parseInt(match[2]) - 1;
-          day = Number.parseInt(match[3]);
+          year = Number.parseInt(match[1], 10);
+          month = Number.parseInt(match[2], 10) - 1;
+          day = Number.parseInt(match[3], 10);
         } else {
           // Day first format
-          day = Number.parseInt(match[1]);
-          month = Number.parseInt(match[2]) - 1;
-          year = Number.parseInt(match[3]);
+          day = Number.parseInt(match[1], 10);
+          month = Number.parseInt(match[2], 10) - 1;
+          year = Number.parseInt(match[3], 10);
         }
 
         const date = new Date(year, month, day);

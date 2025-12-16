@@ -2,8 +2,8 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 import { useState } from 'react';
 import { ImportModal, PositionsTable, TransactionsTable } from './components';
 import { useAuth } from './hooks/useAuth';
-import { api } from './lib/api';
 import type { Account } from './lib/api';
+import { api } from './lib/api';
 
 const queryClient = new QueryClient();
 

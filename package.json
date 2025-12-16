@@ -21,7 +21,7 @@
     "db:studio": "bun --filter=@repo/database prisma studio"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.3.9",
     "@types/bun": "latest",
     "turbo": "2.6.3",
     "typescript": "5.9.3"
