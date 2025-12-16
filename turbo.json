@@ -1,113 +1,45 @@
 {
   "$schema": "https://turbo.build/schema.json",
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // GLOBAL CONFIGURATION
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  // Files that affect ALL tasks - changes here invalidate ALL caches
-  // Think of this as "if any of these change, rebuild everything"
-  "globalDependencies": [
-    ".env", // Environment variables file
-    "tsconfig.json", // Root TypeScript config (all packages extend this)
-    "biome.json" // Linter/formatter config (affects lint task)
-  ],
-
-  // Environment variables that affect ALL task hashes
-  // Moving from per-task "env" to global because these affect multiple tasks
-  // Supports wildcards: "VITE_*" matches all VITE_ prefixed vars
+  "globalDependencies": [".env", "tsconfig.json", "biome.json"],
   "globalEnv": [
-    "NODE_ENV", // Affects build output (development vs production)
-    "DATABASE_URL", // Database connection (affects db tasks + API)
-    "SUPABASE_URL", // Auth service URL
+    "NODE_ENV",
+    "DATABASE_URL",
+    "SUPABASE_URL",
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_SECRET_KEY",
-    "PYTHON_SERVICE_URL", // Python microservice URL
-    "VITE_*" // All Vite env vars (VITE_API_URL, etc.)
+    "PYTHON_SERVICE_URL",
+    "VITE_*"
   ],
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // TASK DEFINITIONS
-  // ─────────────────────────────────────────────────────────────────────────────
-
   "tasks": {
-    // ═══════════════════════════════════════════════════════════════════════════
-    // BUILD TASK
-    // ═══════════════════════════════════════════════════════════════════════════
     "build": {
-      // "^build" = Run build in all DEPENDENCIES first (topological order)
-      // Example: @repo/api depends on @repo/database
-      //          → database builds first, then api builds
       "dependsOn": ["^build"],
-
-      // Files to CACHE after build completes
-      // Turbo saves these and restores them on cache hit (no rebuild needed)
-      "outputs": [
-        "dist/**", // NestJS/Vite build output
-        "build/**", // Alternative build folder (some tools use this)
-        ".next/**", // Next.js build output (if you add Next.js later)
-        "!.next/cache/**" // Exclude Next.js internal cache (too large, changes often)
-      ],
-
-      // Files that trigger a rebuild when changed
-      // More specific = better cache hits (unchanged files won't trigger rebuild)
+      "outputs": ["dist/**", "build/**", ".next/**", "!.next/cache/**"],
       "inputs": [
-        "src/**", // Source code
-        "package.json", // Dependencies changed = rebuild
-        "tsconfig.json", // TypeScript config
-        "tsconfig.*.json", // Extended TS configs (tsconfig.build.json)
-        "vite.config.ts", // Vite config (web app)
-        "nest-cli.json" // NestJS config (api)
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "vite.config.ts",
+        "nest-cli.json"
       ]
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DEV TASK (Development Server)
-    // ═══════════════════════════════════════════════════════════════════════════
     "dev": {
-      // NEVER cache dev servers - they're long-running processes
       "cache": false,
-
-      // Mark as persistent = this task runs until you stop it
-      // Turbo knows not to wait for it to "complete"
       "persistent": true
-
-      // Note: env vars removed - now in globalEnv
-      // This task inherits all globalEnv variables automatically
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // LINT TASK
-    // ═══════════════════════════════════════════════════════════════════════════
     "lint": {
-      // NO dependsOn needed! Linting checks SOURCE files, not build output
-      // Old config had "^build" which was unnecessary and slow
-
-      // What files trigger re-lint when changed
       "inputs": [
-        "src/**/*.ts", // TypeScript files
-        "src/**/*.tsx", // React components
-        "src/**/*.js", // JavaScript files
-        "src/**/*.jsx", // React JSX files
-        "src/**/*.css", // CSS files (Biome can lint CSS)
-        "$TURBO_DEFAULT$" // Include package.json, tsconfig, etc.
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        "src/**/*.css",
+        "$TURBO_DEFAULT$"
       ],
-
-      // Lint produces no output files - it just logs to console
-      // Empty array = task completes but nothing to cache/restore
       "outputs": []
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // TYPE-CHECK TASK
-    // ═══════════════════════════════════════════════════════════════════════════
     "type-check": {
-      // Depends on database package being built first
-      // Because API imports types from @repo/database
-      // The generated Prisma client must exist for type-check to pass
       "dependsOn": ["@repo/database#build"],
-
-      // What files trigger re-check
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -115,75 +47,26 @@
         "tsconfig.*.json",
         "$TURBO_DEFAULT$"
       ],
-
-      // tsc --noEmit produces no output files
       "outputs": []
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // TEST TASK
-    // ═══════════════════════════════════════════════════════════════════════════
     "test": {
-      // Tests might import from dependencies, so build them first
       "dependsOn": ["^build"],
-
-      // What triggers re-test
-      "inputs": [
-        "src/**", // Source code changes
-        "test/**", // Test file changes
-        "jest.config.*", // Jest configuration
-        "$TURBO_DEFAULT$"
-      ],
-
-      // Cache test results and coverage reports
-      "outputs": [
-        "coverage/**" // Jest coverage output
-      ]
+      "inputs": ["src/**", "test/**", "jest.config.*", "$TURBO_DEFAULT$"],
+      "outputs": ["coverage/**"]
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // E2E TEST TASK
-    // ═══════════════════════════════════════════════════════════════════════════
     "test:e2e": {
-      // E2E tests need everything built first
       "dependsOn": ["^build"],
-
-      "inputs": [
-        "test/**", // E2E test files
-        "src/**", // App code being tested
-        "$TURBO_DEFAULT$"
-      ],
-
+      "inputs": ["test/**", "src/**", "$TURBO_DEFAULT$"],
       "outputs": []
     },
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DATABASE TASKS
-    // ═══════════════════════════════════════════════════════════════════════════
     "db:generate": {
-      // NEVER cache - generates Prisma client based on current schema
-      // Schema might be same but DB state could differ
       "cache": false,
-
-      // What triggers regeneration
-      "inputs": [
-        "prisma/schema.prisma" // Only the schema file matters
-      ],
-
-      // Generated Prisma client output
-      "outputs": [
-        "src/generated/**" // Where Prisma generates the client
-      ]
-    },
-
-    "db:push": {
-      // NEVER cache - pushes schema to actual database
-      // This is a side-effect operation (changes external DB)
-      "cache": false,
-
       "inputs": ["prisma/schema.prisma"],
-
-      // No outputs - changes are in the database, not files
+      "outputs": ["src/generated/**"]
+    },
+    "db:push": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"],
       "outputs": []
     }
   }
