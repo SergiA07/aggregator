@@ -1,8 +1,4 @@
-import {
-  BaseParser,
-  ParseResult,
-  ParsedTransaction,
-} from './base-parser';
+import { BaseParser, type ParseResult, type ParsedTransaction } from './base-parser';
 
 /**
  * Parser for DeGiro CSV transaction exports
@@ -93,30 +89,30 @@ export class DegiroParser extends BaseParser {
       const row = normalizedRecords[i];
 
       try {
-        const quantity = this.parseNumber(row['Quantity']);
+        const quantity = this.parseNumber(row.Quantity);
 
         // Skip rows without essential data (empty rows, separators, etc.)
-        if (!row['Product'] || !row['Date'] || quantity === 0) {
+        if (!row.Product || !row.Date || quantity === 0) {
           continue;
         }
 
-        const date = this.parseDate(row['Date']);
+        const date = this.parseDate(row.Date);
         if (!date) {
-          errors.push(`Row ${i + 1}: Invalid date format "${row['Date']}"`);
+          errors.push(`Row ${i + 1}: Invalid date format "${row.Date}"`);
           continue;
         }
 
-        const price = this.parseNumber(row['Price']);
-        const value = this.parseNumber(row['Value'] || row['Local Value']);
+        const price = this.parseNumber(row.Price);
+        const value = this.parseNumber(row.Value || row['Local Value']);
         const fees = Math.abs(this.parseNumber(row['Transaction Costs']));
-        const isin = this.normalizeIsin(row['ISIN']);
+        const isin = this.normalizeIsin(row.ISIN);
 
         const transaction: ParsedTransaction = {
           date,
           type: this.detectTransactionType(quantity),
-          symbol: this.extractSymbol(row['Product'], isin),
+          symbol: this.extractSymbol(row.Product, isin),
           isin,
-          name: row['Product'],
+          name: row.Product,
           quantity: Math.abs(quantity),
           price: Math.abs(price),
           amount: Math.abs(value || quantity * price),
@@ -127,9 +123,7 @@ export class DegiroParser extends BaseParser {
 
         transactions.push(transaction);
       } catch (error) {
-        errors.push(
-          `Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 

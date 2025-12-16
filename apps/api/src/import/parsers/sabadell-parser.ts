@@ -48,10 +48,7 @@ export class SabadellParser extends BaseParser {
 
   canParse(content: string, filename?: string): boolean {
     // Check filename
-    if (
-      filename?.toLowerCase().includes('sabadell') ||
-      filename?.toLowerCase().includes('banc')
-    ) {
+    if (filename?.toLowerCase().includes('sabadell') || filename?.toLowerCase().includes('banc')) {
       return true;
     }
 
@@ -84,8 +81,7 @@ export class SabadellParser extends BaseParser {
   parseBankTransactions(content: string): BankParseResult {
     // Detect format
     const firstLine = content.split('\n')[0];
-    const isPipeDelimited =
-      firstLine.includes('|') && firstLine.split('|').length >= 5;
+    const isPipeDelimited = firstLine.includes('|') && firstLine.split('|').length >= 5;
 
     if (isPipeDelimited) {
       return this.parsePipeFormat(content);
@@ -133,9 +129,7 @@ export class SabadellParser extends BaseParser {
 
         transactions.push(transaction);
       } catch (error) {
-        errors.push(
-          `Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -186,27 +180,24 @@ export class SabadellParser extends BaseParser {
         }
 
         const valueDate = this.parseDate(row['Value Date']) || undefined;
-        const amount = this.parseNumber(row['Amount']);
-        const balance = row['Balance'] ? this.parseNumber(row['Balance']) : undefined;
+        const amount = this.parseNumber(row.Amount);
+        const balance = row.Balance ? this.parseNumber(row.Balance) : undefined;
         const reference =
-          [row['Reference 1'], row['Reference 2']].filter(Boolean).join(' ') ||
-          undefined;
+          [row['Reference 1'], row['Reference 2']].filter(Boolean).join(' ') || undefined;
 
         const transaction: ParsedBankTransaction = {
           date,
           valueDate,
-          description: row['Description'] || 'Unknown',
+          description: row.Description || 'Unknown',
           amount,
           balance,
           reference,
-          category: this.categorizeTransaction(row['Description']),
+          category: this.categorizeTransaction(row.Description),
         };
 
         transactions.push(transaction);
       } catch (error) {
-        errors.push(
-          `Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 

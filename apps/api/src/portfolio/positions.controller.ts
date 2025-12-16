@@ -1,7 +1,7 @@
-import { Controller, Get, Param, UseGuards, Inject } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Inject, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { User } from '@supabase/supabase-js';
-import { SupabaseAuthGuard, CurrentUser } from '../auth';
+import { CurrentUser, SupabaseAuthGuard } from '../auth';
 import { PositionsService } from './positions.service';
 
 @ApiTags('Positions')
@@ -25,10 +25,7 @@ export class PositionsController {
 
   @Get('account/:accountId')
   @ApiOperation({ summary: 'Get positions by account' })
-  async getPositionsByAccount(
-    @CurrentUser() user: User,
-    @Param('accountId') accountId: string,
-  ) {
+  async getPositionsByAccount(@CurrentUser() user: User, @Param('accountId') accountId: string) {
     return this.positionsService.findByAccount(user.id, accountId);
   }
 }

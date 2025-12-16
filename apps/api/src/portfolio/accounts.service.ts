@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { DatabaseService } from '../database';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Account } from '@repo/database';
+import { DatabaseService } from '../database';
 
 @Injectable()
 export class AccountsService {
@@ -35,7 +35,7 @@ export class AccountsService {
   }
 
   async update(
-    userId: string,
+    _userId: string,
     id: string,
     data: { accountName?: string; currency?: string },
   ): Promise<Account> {
@@ -48,7 +48,7 @@ export class AccountsService {
     });
   }
 
-  async delete(userId: string, id: string): Promise<void> {
+  async delete(_userId: string, id: string): Promise<void> {
     await this.db.account.delete({
       where: { id },
     });

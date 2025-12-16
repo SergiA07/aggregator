@@ -1,8 +1,4 @@
-import {
-  BaseParser,
-  ParseResult,
-  ParsedTransaction,
-} from './base-parser';
+import { BaseParser, type ParseResult, type ParsedTransaction } from './base-parser';
 
 /**
  * Parser for Trade Republic CSV transaction exports
@@ -41,10 +37,7 @@ export class TradeRepublicParser extends BaseParser {
 
   canParse(content: string, filename?: string): boolean {
     // Check filename
-    if (
-      filename?.toLowerCase().includes('trade') ||
-      filename?.toLowerCase().includes('republic')
-    ) {
+    if (filename?.toLowerCase().includes('trade') || filename?.toLowerCase().includes('republic')) {
       return true;
     }
 
@@ -128,16 +121,12 @@ export class TradeRepublicParser extends BaseParser {
           price: Math.abs(calculatedPrice),
           amount: Math.abs(calculatedValue),
           fees: 0, // Trade Republic often includes fees separately
-          currency:
-            this.getColumnValue(row, columnMap.currency) ||
-            this.getCurrencyFromIsin(isin),
+          currency: this.getColumnValue(row, columnMap.currency) || this.getCurrencyFromIsin(isin),
         };
 
         transactions.push(transaction);
       } catch (error) {
-        errors.push(
-          `Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
+        errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -177,10 +166,7 @@ export class TradeRepublicParser extends BaseParser {
     };
   }
 
-  private getColumnValue(
-    row: Record<string, string>,
-    column: string | undefined,
-  ): string {
+  private getColumnValue(row: Record<string, string>, column: string | undefined): string {
     return column ? row[column] || '' : '';
   }
 

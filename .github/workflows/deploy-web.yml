@@ -1,10 +1,10 @@
 name: Deploy Web
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'apps/web/**'
   workflow_dispatch:
 
 jobs:
@@ -13,17 +13,37 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    # Only deploy if CI passed
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for Web changes
+        id: changes
+        if: github.event_name == 'workflow_run'
+        run: |
+          # Get the list of changed files from the triggering commit
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.workflow_run.head_sha }}^..${{ github.event.workflow_run.head_sha }} 2>/dev/null || echo "")
+          if echo "$CHANGED_FILES" | grep -qE '^apps/web/'; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: oven-sh/setup-bun@v2
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
         with:
           bun-version: latest
 
       - name: Install dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
         run: bun install
 
       - name: Build
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
         run: bun run build --filter=@repo/web
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
@@ -31,6 +51,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Deploy to Cloudflare Pages
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

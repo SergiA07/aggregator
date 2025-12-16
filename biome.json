@@ -31,6 +31,9 @@
     "formatter": {
       "quoteStyle": "single",
       "semicolons": "always"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   },
   "files": {

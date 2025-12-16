@@ -1,23 +1,23 @@
+import type { MultipartFile } from '@fastify/multipart';
 import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  UseGuards,
-  Req,
   BadRequestException,
+  Body,
+  Controller,
+  Get,
   Inject,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { User } from '@supabase/supabase-js';
 import type { FastifyRequest } from 'fastify';
-import type { MultipartFile } from '@fastify/multipart';
 
 // Extend FastifyRequest to include multipart file method
 interface FastifyMultipartRequest extends FastifyRequest {
   file: () => Promise<MultipartFile | undefined>;
 }
-import { SupabaseAuthGuard, CurrentUser } from '../auth';
+import { CurrentUser, SupabaseAuthGuard } from '../auth';
 import { ImportService } from './import.service';
 
 interface ImportFileBody {
@@ -38,7 +38,7 @@ export class ImportController {
   @ApiOperation({ summary: 'Get list of supported brokers' })
   getSupportedBrokers() {
     return {
-      investment: this.importService.getSupportedBrokers().filter(b => b !== 'sabadell'),
+      investment: this.importService.getSupportedBrokers().filter((b) => b !== 'sabadell'),
       bank: ['sabadell'],
     };
   }
@@ -66,12 +66,7 @@ export class ImportController {
       return this.importService.importBankCSV(user.id, body.content, body.filename);
     }
 
-    return this.importService.importCSV(
-      user.id,
-      body.content,
-      body.filename,
-      body.broker,
-    );
+    return this.importService.importCSV(user.id, body.content, body.filename, body.broker);
   }
 
   @Post('upload')
@@ -88,10 +83,7 @@ export class ImportController {
       },
     },
   })
-  async importFile(
-    @CurrentUser() user: User,
-    @Req() req: FastifyMultipartRequest,
-  ) {
+  async importFile(@CurrentUser() user: User, @Req() req: FastifyMultipartRequest) {
     const data = await req.file();
 
     if (!data) {
@@ -122,11 +114,6 @@ export class ImportController {
       return this.importService.importBankCSV(user.id, content, filename);
     }
 
-    return this.importService.importCSV(
-      user.id,
-      content,
-      filename,
-      broker,
-    );
+    return this.importService.importCSV(user.id, content, filename, broker);
   }
 }

@@ -1,7 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { DatabaseService } from '../database';
-import { Prisma } from '@repo/database';
+import { Inject, Injectable } from '@nestjs/common';
+import type { Prisma } from '@repo/database';
 import type { Transaction } from '@repo/database';
+import { DatabaseService } from '../database';
 
 export interface TransactionFilters {
   accountId?: string;
@@ -15,10 +15,7 @@ export interface TransactionFilters {
 export class TransactionsService {
   constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
-  async findByUser(
-    userId: string,
-    filters?: TransactionFilters,
-  ): Promise<Transaction[]> {
+  async findByUser(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {
     const where: Prisma.TransactionWhereInput = { userId };
 
     if (filters?.accountId) {
@@ -99,7 +96,7 @@ export class TransactionsService {
   }
 
   async update(
-    userId: string,
+    _userId: string,
     id: string,
     data: {
       date?: Date;
@@ -122,7 +119,7 @@ export class TransactionsService {
     });
   }
 
-  async delete(userId: string, id: string): Promise<void> {
+  async delete(_userId: string, id: string): Promise<void> {
     await this.db.transaction.delete({
       where: { id },
     });

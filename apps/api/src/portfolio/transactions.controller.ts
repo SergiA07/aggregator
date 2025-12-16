@@ -1,19 +1,19 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  Inject,
+  NotFoundException,
+  Param,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
   Query,
   UseGuards,
-  NotFoundException,
-  Inject,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { User } from '@supabase/supabase-js';
-import { SupabaseAuthGuard, CurrentUser } from '../auth';
+import { CurrentUser, SupabaseAuthGuard } from '../auth';
 import { TransactionsService } from './transactions.service';
 
 class CreateTransactionDto {
@@ -46,7 +46,9 @@ class UpdateTransactionDto {
 @Controller('transactions')
 @UseGuards(SupabaseAuthGuard)
 export class TransactionsController {
-  constructor(@Inject(TransactionsService) private readonly transactionsService: TransactionsService) {}
+  constructor(
+    @Inject(TransactionsService) private readonly transactionsService: TransactionsService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all transactions for current user' })
@@ -75,10 +77,7 @@ export class TransactionsController {
   @Get('stats')
   @ApiOperation({ summary: 'Get transaction statistics' })
   @ApiQuery({ name: 'accountId', required: false })
-  async getStats(
-    @CurrentUser() user: User,
-    @Query('accountId') accountId?: string,
-  ) {
+  async getStats(@CurrentUser() user: User, @Query('accountId') accountId?: string) {
     return this.transactionsService.getStats(user.id, accountId);
   }
 
@@ -94,10 +93,7 @@ export class TransactionsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new transaction' })
-  async createTransaction(
-    @CurrentUser() user: User,
-    @Body() dto: CreateTransactionDto,
-  ) {
+  async createTransaction(@CurrentUser() user: User, @Body() dto: CreateTransactionDto) {
     return this.transactionsService.create(user.id, {
       ...dto,
       date: new Date(dto.date),

@@ -47,12 +47,7 @@ export abstract class BaseParser {
       encoding?: BufferEncoding;
     } = {},
   ): Record<string, string>[] {
-    const {
-      delimiter = ',',
-      skipLines = 0,
-      columns = true,
-      relaxColumnCount = true,
-    } = options;
+    const { delimiter = ',', skipLines = 0, columns = true, relaxColumnCount = true } = options;
 
     // Skip lines if needed
     let processedContent = content;
@@ -69,7 +64,7 @@ export abstract class BaseParser {
         relax_column_count: relaxColumnCount,
         trim: true,
       });
-    } catch (error) {
+    } catch (_error) {
       // Try different encodings if parsing fails
       return [];
     }
@@ -99,8 +94,8 @@ export abstract class BaseParser {
       cleaned = cleaned.replace(/,/g, '');
     }
 
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    const num = Number.parseFloat(cleaned);
+    return Number.isNaN(num) ? 0 : num;
   }
 
   protected parseDate(value: string | undefined): Date | null {
@@ -125,22 +120,24 @@ export abstract class BaseParser {
     for (const format of formats) {
       const match = cleaned.match(format);
       if (match) {
-        let year: number, month: number, day: number;
+        let year: number;
+        let month: number;
+        let day: number;
 
         if (match[1].length === 4) {
           // Year first format
-          year = parseInt(match[1]);
-          month = parseInt(match[2]) - 1;
-          day = parseInt(match[3]);
+          year = Number.parseInt(match[1]);
+          month = Number.parseInt(match[2]) - 1;
+          day = Number.parseInt(match[3]);
         } else {
           // Day first format
-          day = parseInt(match[1]);
-          month = parseInt(match[2]) - 1;
-          year = parseInt(match[3]);
+          day = Number.parseInt(match[1]);
+          month = Number.parseInt(match[2]) - 1;
+          year = Number.parseInt(match[3]);
         }
 
         const date = new Date(year, month, day);
-        if (!isNaN(date.getTime())) {
+        if (!Number.isNaN(date.getTime())) {
           return date;
         }
       }
@@ -148,7 +145,7 @@ export abstract class BaseParser {
 
     // Try ISO format as fallback
     const isoDate = new Date(cleaned);
-    return isNaN(isoDate.getTime()) ? null : isoDate;
+    return Number.isNaN(isoDate.getTime()) ? null : isoDate;
   }
 
   protected normalizeIsin(isin: string | undefined): string | undefined {
@@ -181,12 +178,7 @@ export abstract class BaseParser {
     ) {
       return 'sell';
     }
-    if (
-      type.includes('buy') ||
-      type.includes('kauf') ||
-      type.includes('compra') ||
-      quantity > 0
-    ) {
+    if (type.includes('buy') || type.includes('kauf') || type.includes('compra') || quantity > 0) {
       return 'buy';
     }
 
@@ -229,9 +221,7 @@ export abstract class BaseParser {
    */
   protected calculatePositions(transactions: ParsedTransaction[]): ParsedPosition[] {
     // Sort transactions by date (oldest first)
-    const sorted = [...transactions].sort(
-      (a, b) => a.date.getTime() - b.date.getTime(),
-    );
+    const sorted = [...transactions].sort((a, b) => a.date.getTime() - b.date.getTime());
 
     const positionMap = new Map<
       string,

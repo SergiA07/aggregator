@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { DatabaseService } from '../database';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Security } from '@repo/database';
+import { DatabaseService } from '../database';
 
 @Injectable()
 export class SecuritiesService {

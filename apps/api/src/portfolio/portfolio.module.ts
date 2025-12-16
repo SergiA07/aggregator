@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth';
+import { DatabaseModule } from '../database';
 import { AccountsController } from './accounts.controller';
 import { AccountsService } from './accounts.service';
 import { PositionsController } from './positions.controller';
 import { PositionsService } from './positions.service';
-import { TransactionsController } from './transactions.controller';
-import { TransactionsService } from './transactions.service';
 import { SecuritiesController } from './securities.controller';
 import { SecuritiesService } from './securities.service';
-import { DatabaseModule } from '../database';
-import { AuthModule } from '../auth';
+import { TransactionsController } from './transactions.controller';
+import { TransactionsService } from './transactions.service';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
@@ -18,17 +18,7 @@ import { AuthModule } from '../auth';
     TransactionsController,
     SecuritiesController,
   ],
-  providers: [
-    AccountsService,
-    PositionsService,
-    TransactionsService,
-    SecuritiesService,
-  ],
-  exports: [
-    AccountsService,
-    PositionsService,
-    TransactionsService,
-    SecuritiesService,
-  ],
+  providers: [AccountsService, PositionsService, TransactionsService, SecuritiesService],
+  exports: [AccountsService, PositionsService, TransactionsService, SecuritiesService],
 })
 export class PortfolioModule {}

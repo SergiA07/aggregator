@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { DatabaseService } from '../database';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Position } from '@repo/database';
+import { DatabaseService } from '../database';
 
 @Injectable()
 export class PositionsService {
@@ -30,18 +30,9 @@ export class PositionsService {
   async getSummary(userId: string) {
     const positions = await this.findByUser(userId);
 
-    const totalValue = positions.reduce(
-      (sum, p) => sum + (p.marketValue?.toNumber() ?? 0),
-      0,
-    );
-    const totalCost = positions.reduce(
-      (sum, p) => sum + p.totalCost.toNumber(),
-      0,
-    );
-    const totalPnl = positions.reduce(
-      (sum, p) => sum + (p.unrealizedPnl?.toNumber() ?? 0),
-      0,
-    );
+    const totalValue = positions.reduce((sum, p) => sum + (p.marketValue?.toNumber() ?? 0), 0);
+    const totalCost = positions.reduce((sum, p) => sum + p.totalCost.toNumber(), 0);
+    const totalPnl = positions.reduce((sum, p) => sum + (p.unrealizedPnl?.toNumber() ?? 0), 0);
 
     return {
       totalValue,

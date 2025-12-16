@@ -1,18 +1,18 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  Inject,
+  NotFoundException,
+  Param,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
   UseGuards,
-  NotFoundException,
-  Inject,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { User } from '@supabase/supabase-js';
-import { SupabaseAuthGuard, CurrentUser } from '../auth';
+import { CurrentUser, SupabaseAuthGuard } from '../auth';
 import { AccountsService } from './accounts.service';
 
 class CreateAccountDto {

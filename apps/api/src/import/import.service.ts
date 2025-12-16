@@ -1,14 +1,12 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database';
 import {
-  BaseParser,
-  ParseResult,
-  ParsedTransaction,
-  ParsedPosition,
+  type BankParseResult,
+  type BaseParser,
   DegiroParser,
-  TradeRepublicParser,
+  type ParseResult,
   SabadellParser,
-  BankParseResult,
+  TradeRepublicParser,
 } from './parsers';
 
 export interface ImportResult {
@@ -90,10 +88,7 @@ export class ImportService {
     return this.importBankData(userId, result);
   }
 
-  private async importParsedData(
-    userId: string,
-    parseResult: ParseResult,
-  ): Promise<ImportResult> {
+  private async importParsedData(userId: string, parseResult: ParseResult): Promise<ImportResult> {
     const errors: string[] = [...parseResult.errors];
     let transactionsImported = 0;
     let positionsCreated = 0;
@@ -111,9 +106,7 @@ export class ImportService {
       try {
         const securityId = securityMap.get(tx.isin || tx.symbol);
         if (!securityId) {
-          errors.push(
-            `Could not find security for transaction: ${tx.symbol} (${tx.isin})`,
-          );
+          errors.push(`Could not find security for transaction: ${tx.symbol} (${tx.isin})`);
           continue;
         }
 
@@ -241,10 +234,7 @@ export class ImportService {
     let transactionsImported = 0;
 
     // Get or create bank account
-    const bankAccount = await this.getOrCreateBankAccount(
-      userId,
-      parseResult.bankName,
-    );
+    const bankAccount = await this.getOrCreateBankAccount(userId, parseResult.bankName);
 
     // Import transactions
     for (const tx of parseResult.transactions) {
@@ -304,10 +294,7 @@ export class ImportService {
     };
   }
 
-  private async getOrCreateAccount(
-    userId: string,
-    broker: string,
-  ) {
+  private async getOrCreateAccount(userId: string, broker: string) {
     const existing = await this.db.account.findFirst({
       where: { userId, broker },
     });
