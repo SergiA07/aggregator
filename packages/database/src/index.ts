@@ -1,15 +1,15 @@
 // Re-export Prisma client
-export { prisma, PrismaClient } from './client.js';
+export { PrismaClient, prisma } from './client.js';
 
 // Re-export all Prisma types from generated client
 export type {
   Account,
-  Security,
-  Transaction,
-  Position,
   BankAccount,
   BankTransaction,
+  Position,
   PriceHistory,
+  Security,
+  Transaction,
 } from './generated/prisma/client.js';
 
 // Export Prisma namespace for advanced types
