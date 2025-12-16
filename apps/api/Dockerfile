@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1
 
+# Cache buster - change this value to force a fresh build
+ARG CACHEBUST=1
+
 # Stage 1: Prune monorepo for minimal Docker context
 FROM oven/bun:1 AS pruner
 
