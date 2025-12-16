@@ -5,13 +5,14 @@ FROM oven/bun:1 AS pruner
 
 WORKDIR /app
 
-# Install turbo globally (use canary for bun lockfile fix)
-RUN bun add -g turbo@canary
+# Install turbo globally
+RUN bun add -g turbo@2.6.3
 
 # Copy entire monorepo
 COPY . .
 
 # Prune to only @repo/api and its dependencies
+# Creates: out/json/ (package.jsons + lockfile), out/full/ (source), out/bun.lock
 RUN turbo prune @repo/api --docker
 
 # Stage 2: Install dependencies
@@ -19,15 +20,11 @@ FROM oven/bun:1 AS installer
 
 WORKDIR /app
 
-# Copy pruned package.json files (for caching)
+# Copy pruned package.json files AND lockfile (both are in out/json/)
 COPY --from=pruner /app/out/json/ .
 
-# Copy lockfile from full output (required for bun install)
-COPY --from=pruner /app/out/full/bun.lock ./bun.lock
-
 # Install ALL dependencies (dev + prod) for building
-# Note: --frozen-lockfile may fail with turbo prune + bun, use regular install
-RUN bun install
+RUN bun install --frozen-lockfile
 
 # Stage 3: Build the application
 FROM oven/bun:1 AS builder
@@ -37,7 +34,7 @@ WORKDIR /app
 # Copy installed dependencies
 COPY --from=installer /app/node_modules ./node_modules
 
-# Copy pruned source code (includes lockfile)
+# Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 
 # Generate Prisma client
@@ -51,14 +48,11 @@ FROM oven/bun:1 AS prod-deps
 
 WORKDIR /app
 
-# Copy pruned package.json files
+# Copy pruned package.json files AND lockfile
 COPY --from=pruner /app/out/json/ .
 
-# Copy lockfile
-COPY --from=pruner /app/out/full/bun.lock ./bun.lock
-
 # Install production dependencies only
-RUN bun install --production
+RUN bun install --frozen-lockfile --production
 
 # Stage 5: Production runtime
 FROM oven/bun:1-alpine AS runner
