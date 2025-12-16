@@ -7,8 +7,8 @@ export async function fetchWithAuth(endpoint: string, options?: RequestInit) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const headers: HeadersInit = {
-    ...options?.headers,
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
   };
 
   // Only set Content-Type for non-FormData requests
@@ -17,7 +17,8 @@ export async function fetchWithAuth(endpoint: string, options?: RequestInit) {
   }
 
   if (session?.access_token) {
-    headers.Authorization = `Bearer ${session.access_token}`;
+    // biome-ignore lint/complexity/useLiteralKeys: Using bracket notation for consistency with Content-Type
+    headers['Authorization'] = `Bearer ${session.access_token}`;
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
