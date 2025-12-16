@@ -9,6 +9,7 @@ COPY turbo.json ./
 
 # Copy workspace packages
 COPY packages/database/package.json ./packages/database/
+COPY packages/shared-types/package.json ./packages/shared-types/
 COPY apps/api/package.json ./apps/api/
 
 # Install dependencies
@@ -16,6 +17,7 @@ RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY packages/database ./packages/database
+COPY packages/shared-types ./packages/shared-types
 COPY apps/api ./apps/api
 COPY tsconfig.json ./
 
