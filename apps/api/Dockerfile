@@ -1,10 +1,7 @@
-# Build stage
-FROM node:24-alpine AS builder
+# Build stage - using official bun image
+FROM oven/bun:1 AS builder
 
 WORKDIR /app
-
-# Install bun
-RUN npm install -g bun
 
 # Copy root package files
 COPY package.json bun.lockb ./
@@ -29,12 +26,9 @@ RUN cd packages/database && bun run db:generate
 RUN cd apps/api && bun run build
 
 # Production stage
-FROM node:24-alpine AS runner
+FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
-
-# Install bun for runtime
-RUN npm install -g bun
 
 # Copy built assets
 COPY --from=builder /app/node_modules ./node_modules
@@ -52,4 +46,4 @@ EXPOSE 3333
 
 WORKDIR /app/apps/api
 
-CMD ["node", "dist/main.js"]
+CMD ["bun", "run", "dist/main.js"]
