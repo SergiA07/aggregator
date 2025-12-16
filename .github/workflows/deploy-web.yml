@@ -51,6 +51,15 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache bun dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
         run: bun install
