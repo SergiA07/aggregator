@@ -14,16 +14,24 @@ COPY . .
 # Prune to only @repo/api and its dependencies
 RUN turbo prune @repo/api --docker
 
-# Stage 2: Install dependencies and build
+# Stage 2: Install dependencies
+FROM oven/bun:1 AS installer
+
+WORKDIR /app
+
+# Copy pruned package.json files
+COPY --from=pruner /app/out/json/ .
+
+# Install ALL dependencies (dev + prod) for building
+RUN bun install --frozen-lockfile
+
+# Stage 3: Build the application
 FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
-# Copy pruned package.json files (for dependency caching)
-COPY --from=pruner /app/out/json/ .
-
-# Install dependencies (this layer is cached unless package.json changes)
-RUN bun install --frozen-lockfile
+# Copy installed dependencies
+COPY --from=installer /app/node_modules ./node_modules
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
@@ -34,7 +42,18 @@ RUN cd packages/database && bun run db:generate
 # Build the API
 RUN cd apps/api && bun run build
 
-# Stage 3: Production runtime
+# Stage 4: Production dependencies only
+FROM oven/bun:1 AS prod-deps
+
+WORKDIR /app
+
+# Copy pruned package.json files
+COPY --from=pruner /app/out/json/ .
+
+# Install production dependencies only
+RUN bun install --frozen-lockfile --production
+
+# Stage 5: Production runtime
 FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
@@ -42,11 +61,14 @@ WORKDIR /app
 # Security: run as non-root user
 USER bun
 
-# Copy only production artifacts
-COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
-COPY --from=builder --chown=bun:bun /app/packages/database/node_modules ./packages/database/node_modules
+# Copy production node_modules
+COPY --from=prod-deps --chown=bun:bun /app/node_modules ./node_modules
+
+# Copy Prisma generated client
 COPY --from=builder --chown=bun:bun /app/packages/database/src/generated ./packages/database/src/generated
 COPY --from=builder --chown=bun:bun /app/packages/database/package.json ./packages/database/
+
+# Copy API build output
 COPY --from=builder --chown=bun:bun /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=bun:bun /app/apps/api/package.json ./apps/api/
 
