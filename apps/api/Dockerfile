@@ -52,8 +52,9 @@ WORKDIR /app
 # Copy pruned package.json files AND lockfile
 COPY --from=pruner /app/out/json/ .
 
-# Install production dependencies only (v2)
-RUN bun install --production
+# Install production dependencies only
+# --ignore-scripts prevents the root "prepare" script from running husky
+RUN bun install --production --ignore-scripts
 
 # Stage 5: Production runtime
 FROM oven/bun:1-alpine AS runner
