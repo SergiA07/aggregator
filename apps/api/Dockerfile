@@ -24,7 +24,9 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 
 # Install ALL dependencies (dev + prod) for building
-RUN bun install --frozen-lockfile
+# Note: --frozen-lockfile is omitted due to Bun+Turbo prune compatibility issue
+# The lockfile is still used to ensure consistent versions
+RUN bun install
 
 # Stage 3: Build the application
 FROM oven/bun:1 AS builder
@@ -52,7 +54,8 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 
 # Install production dependencies only
-RUN bun install --frozen-lockfile --production
+# Note: --frozen-lockfile is omitted due to Bun+Turbo prune compatibility issue
+RUN bun install --production
 
 # Stage 5: Production runtime
 FROM oven/bun:1-alpine AS runner
