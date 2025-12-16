@@ -67,9 +67,9 @@ USER bun
 # Copy production node_modules
 COPY --from=prod-deps --chown=bun:bun /app/node_modules ./node_modules
 
-# Copy Prisma generated client
-COPY --from=builder --chown=bun:bun /app/packages/database/src/generated ./packages/database/src/generated
-COPY --from=builder --chown=bun:bun /app/packages/database/package.json ./packages/database/
+# Copy @repo/database workspace package (required for module resolution)
+# Includes src/index.ts, src/client.ts, and generated Prisma client
+COPY --from=builder --chown=bun:bun /app/packages/database ./packages/database
 
 # Copy API build output
 COPY --from=builder --chown=bun:bun /app/apps/api/dist ./apps/api/dist
