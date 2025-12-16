@@ -13,7 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '../../../auth';
 import { AccountsService } from '../../application/services';
-import { CreateAccountDto, UpdateAccountDto } from '../dto';
+import type { CreateAccountDto, UpdateAccountDto } from '../dto';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()

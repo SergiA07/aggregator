@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@repo/database';
-import { DatabaseService } from '../../../../shared/database';
+import type { DatabaseService } from '../../../../shared/database';
 import type {
   CreateTransactionData,
   ITransactionRepository,
@@ -14,7 +14,10 @@ import type {
 export class TransactionRepository implements ITransactionRepository {
   constructor(private readonly db: DatabaseService) {}
 
-  async findByUser(userId: string, filters?: TransactionFilters): Promise<TransactionWithRelations[]> {
+  async findByUser(
+    userId: string,
+    filters?: TransactionFilters,
+  ): Promise<TransactionWithRelations[]> {
     const where: Prisma.TransactionWhereInput = { userId };
 
     if (filters?.accountId) {

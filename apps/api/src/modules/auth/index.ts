@@ -1,14 +1,12 @@
 // Domain interfaces
-export * from './domain/interfaces';
 
 // Module
 export * from './auth.module';
-
-// Guard (uses interface)
-export * from './presentation/auth.guard';
-
+export * from './domain/interfaces';
 // Service (concrete implementation)
 export * from './infrastructure/supabase.service';
+// Guard (uses interface)
+export * from './presentation/auth.guard';
 
 // Decorator
 export * from './presentation/user.decorator';

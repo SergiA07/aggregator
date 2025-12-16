@@ -14,7 +14,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '../../../auth';
 import { SecuritiesService } from '../../application/services';
-import { CreateSecurityDto, UpdateSecurityDto } from '../dto';
+import type { CreateSecurityDto, UpdateSecurityDto } from '../dto';
 
 @ApiTags('Securities')
 @ApiBearerAuth()

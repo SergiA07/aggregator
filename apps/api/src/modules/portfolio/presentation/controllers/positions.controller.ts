@@ -24,7 +24,10 @@ export class PositionsController {
 
   @Get('account/:accountId')
   @ApiOperation({ summary: 'Get positions by account' })
-  async getPositionsByAccount(@CurrentUser() user: AuthUser, @Param('accountId') accountId: string) {
+  async getPositionsByAccount(
+    @CurrentUser() user: AuthUser,
+    @Param('accountId') accountId: string,
+  ) {
     return this.positionsService.findByAccount(user.id, accountId);
   }
 }

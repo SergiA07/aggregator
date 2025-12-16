@@ -16,7 +16,10 @@ export class TransactionsService {
     private readonly transactionRepository: ITransactionRepository,
   ) {}
 
-  async findByUser(userId: string, filters?: TransactionFilters): Promise<TransactionWithRelations[]> {
+  async findByUser(
+    userId: string,
+    filters?: TransactionFilters,
+  ): Promise<TransactionWithRelations[]> {
     return this.transactionRepository.findByUser(userId, filters);
   }
 
@@ -28,7 +31,11 @@ export class TransactionsService {
     return this.transactionRepository.create(userId, data);
   }
 
-  async update(_userId: string, id: string, data: UpdateTransactionData): Promise<TransactionWithRelations> {
+  async update(
+    _userId: string,
+    id: string,
+    data: UpdateTransactionData,
+  ): Promise<TransactionWithRelations> {
     return this.transactionRepository.update(id, data);
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Account } from '@repo/database';
-import { DatabaseService } from '../../../../shared/database';
+import type { DatabaseService } from '../../../../shared/database';
 import type {
   CreateAccountData,
   IAccountRepository,

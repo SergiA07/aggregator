@@ -1,11 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../shared/database';
-import {
-  type BaseParser,
-  DegiroParser,
-  type ParseResult,
-  TradeRepublicParser,
-} from '../parsers';
+import { type BaseParser, DegiroParser, type ParseResult, TradeRepublicParser } from '../parsers';
 
 export interface ImportResult {
   success: boolean;
@@ -25,10 +20,7 @@ export interface ImportResult {
  */
 @Injectable()
 export class ImportTransactionsUseCase {
-  private readonly parsers: BaseParser[] = [
-    new DegiroParser(),
-    new TradeRepublicParser(),
-  ];
+  private readonly parsers: BaseParser[] = [new DegiroParser(), new TradeRepublicParser()];
 
   constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 

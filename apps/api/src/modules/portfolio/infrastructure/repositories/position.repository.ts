@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../../../../shared/database';
+import type { DatabaseService } from '../../../../shared/database';
 import type { IPositionRepository, PositionWithRelations } from './position.repository.interface';
 
 @Injectable()

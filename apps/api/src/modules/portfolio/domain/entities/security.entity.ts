@@ -93,7 +93,12 @@ export class SecurityEntity {
   static inferType(name: string): SecurityType {
     const lower = name.toLowerCase();
 
-    if (lower.includes('etf') || lower.includes('ishares') || lower.includes('vanguard') || lower.includes('spdr')) {
+    if (
+      lower.includes('etf') ||
+      lower.includes('ishares') ||
+      lower.includes('vanguard') ||
+      lower.includes('spdr')
+    ) {
       return 'etf';
     }
     if (lower.includes('bond') || lower.includes('treasury') || lower.includes('gilt')) {
