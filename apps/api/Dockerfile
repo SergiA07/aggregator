@@ -1,5 +1,5 @@
-# Build stage - using GHCR mirror to avoid Docker Hub CDN issues
-FROM ghcr.io/oven-sh/bun:1 AS builder
+# Build stage - Debian for better native dependency support (Prisma)
+FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
@@ -25,8 +25,8 @@ RUN cd packages/database && bun run db:generate
 # Build the API
 RUN cd apps/api && bun run build
 
-# Production stage
-FROM ghcr.io/oven-sh/bun:1-alpine AS runner
+# Production stage - Alpine for smaller image size
+FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
 
