@@ -1,8 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# Cache buster - change this value to force a fresh build
-ARG CACHEBUST=1
-
 # Stage 1: Prune monorepo for minimal Docker context
 FROM oven/bun:1 AS pruner
 
@@ -27,8 +24,7 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 
 # Install ALL dependencies (dev + prod) for building
-# Note: --frozen-lockfile is omitted due to Bun+Turbo prune compatibility issue
-# The lockfile is still used to ensure consistent versions
+# --frozen-lockfile removed due to Bun+Turbo prune compatibility (v2)
 RUN bun install
 
 # Stage 3: Build the application
@@ -56,8 +52,7 @@ WORKDIR /app
 # Copy pruned package.json files AND lockfile
 COPY --from=pruner /app/out/json/ .
 
-# Install production dependencies only
-# Note: --frozen-lockfile is omitted due to Bun+Turbo prune compatibility issue
+# Install production dependencies only (v2)
 RUN bun install --production
 
 # Stage 5: Production runtime
