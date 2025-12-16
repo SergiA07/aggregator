@@ -1,5 +1,5 @@
 // Re-export Prisma client
-export { prisma, PrismaClient } from './client';
+export { prisma, PrismaClient } from './client.js';
 
 // Re-export all Prisma types from generated client
 export type {

@@ -35,6 +35,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return prisma.priceHistory;
   }
 
+  get bankAccount() {
+    return prisma.bankAccount;
+  }
+
+  get bankTransaction() {
+    return prisma.bankTransaction;
+  }
+
   // Expose $transaction for multi-model operations
   $transaction: PrismaClientType['$transaction'] = prisma.$transaction.bind(prisma);
 }
