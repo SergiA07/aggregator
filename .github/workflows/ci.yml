@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for Turborepo to compare with base branch
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -19,8 +21,23 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Lint
-        run: bun run lint
+      # Determine the base ref for comparison
+      - name: Set base ref
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "ref=origin/${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=HEAD~1" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Type check
-        run: bun run type-check
+      # Turborepo automatically includes dependents when a package changes
+      # e.g., changing shared-types will also lint/typecheck api and web
+      - name: Lint affected packages
+        run: bunx turbo lint --filter=...[${{ steps.base.outputs.ref }}]
+
+      - name: Type check affected packages
+        run: bunx turbo type-check --filter=...[${{ steps.base.outputs.ref }}]
+
+      - name: Test affected packages
+        run: bunx turbo test --filter=...[${{ steps.base.outputs.ref }}]
