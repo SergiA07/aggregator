@@ -17,7 +17,7 @@ export async function fetchWithAuth(endpoint: string, options?: RequestInit) {
   }
 
   if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
+    headers.Authorization = `Bearer ${session.access_token}`;
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -106,7 +106,11 @@ export const api = {
   // Accounts
   getAccounts: (): Promise<Account[]> => fetchWithAuth('/accounts'),
   getAccount: (id: string): Promise<Account> => fetchWithAuth(`/accounts/${id}`),
-  createAccount: (data: { broker: string; accountId: string; accountName?: string }): Promise<Account> =>
+  createAccount: (data: {
+    broker: string;
+    accountId: string;
+    accountName?: string;
+  }): Promise<Account> =>
     fetchWithAuth('/accounts', { method: 'POST', body: JSON.stringify(data) }),
   deleteAccount: (id: string) => fetchWithAuth(`/accounts/${id}`, { method: 'DELETE' }),
 
@@ -154,7 +158,11 @@ export const api = {
     type?: 'investment' | 'bank';
   }): Promise<ImportResult> =>
     fetchWithAuth('/import/csv', { method: 'POST', body: JSON.stringify(data) }),
-  uploadFile: async (file: File, broker?: string, type?: 'investment' | 'bank'): Promise<ImportResult> => {
+  uploadFile: async (
+    file: File,
+    broker?: string,
+    type?: 'investment' | 'bank',
+  ): Promise<ImportResult> => {
     const formData = new FormData();
     formData.append('file', file);
     if (broker) formData.append('broker', broker);

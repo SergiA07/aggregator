@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { api } from '../lib/api';
 import type { Transaction } from '../lib/api';
-import { useState } from 'react';
 
 function formatCurrency(value: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('en-US', {
@@ -37,12 +37,17 @@ interface TransactionsTableProps {
 export function TransactionsTable({ accountId, limit }: TransactionsTableProps) {
   const [typeFilter, setTypeFilter] = useState<string>('');
 
-  const { data: transactions, isLoading, error } = useQuery({
+  const {
+    data: transactions,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['transactions', accountId, typeFilter],
-    queryFn: () => api.getTransactions({
-      accountId,
-      type: typeFilter || undefined,
-    }),
+    queryFn: () =>
+      api.getTransactions({
+        accountId,
+        type: typeFilter || undefined,
+      }),
   });
 
   if (isLoading) {
@@ -75,8 +80,11 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
     <div className="bg-slate-800 rounded-lg overflow-hidden">
       {/* Filters */}
       <div className="p-4 border-b border-slate-700 flex items-center gap-4">
-        <label className="text-sm text-slate-400">Filter by type:</label>
+        <label htmlFor="type-filter" className="text-sm text-slate-400">
+          Filter by type:
+        </label>
         <select
+          id="type-filter"
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
           className="bg-slate-700 border border-slate-600 rounded-md px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -89,7 +97,10 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
         </select>
         <span className="text-sm text-slate-500">
           {displayedTransactions.length} transaction{displayedTransactions.length !== 1 ? 's' : ''}
-          {limit && transactions && transactions.length > limit && ` (showing ${limit} of ${transactions.length})`}
+          {limit &&
+            transactions &&
+            transactions.length > limit &&
+            ` (showing ${limit} of ${transactions.length})`}
         </span>
       </div>
 
@@ -115,16 +126,16 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
                   {formatDate(tx.date)}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium uppercase ${TYPE_COLORS[tx.type] || TYPE_COLORS.other}`}>
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium uppercase ${TYPE_COLORS[tx.type] || TYPE_COLORS.other}`}
+                  >
                     {tx.type}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <span className="font-medium text-white">{tx.security.symbol}</span>
                 </td>
-                <td className="px-4 py-3 text-slate-300 max-w-xs truncate">
-                  {tx.security.name}
-                </td>
+                <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{tx.security.name}</td>
                 <td className="px-4 py-3 text-right text-white">
                   {tx.quantity.toLocaleString('en-US', { maximumFractionDigits: 4 })}
                 </td>

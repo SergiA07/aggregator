@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRef, useState } from 'react';
 import { api } from '../lib/api';
 import type { ImportResult } from '../lib/api';
 
@@ -58,12 +58,9 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
   const importMutation = useMutation({
     mutationFn: async () => {
       if (importMethod === 'file' && selectedFile) {
-        return api.uploadFile(
-          selectedFile,
-          selectedBroker || undefined,
-          importType,
-        );
-      } else if (importMethod === 'paste' && pastedContent) {
+        return api.uploadFile(selectedFile, selectedBroker || undefined, importType);
+      }
+      if (importMethod === 'paste' && pastedContent) {
         return api.importCSV({
           content: pastedContent,
           broker: selectedBroker || undefined,
@@ -113,9 +110,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
 
   if (!isOpen) return null;
 
-  const brokers = importType === 'investment'
-    ? ['degiro', 'trade-republic']
-    : ['sabadell'];
+  const brokers = importType === 'investment' ? ['degiro', 'trade-republic'] : ['sabadell'];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -124,11 +119,24 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <h2 className="text-xl font-semibold text-white">Import Data</h2>
           <button
+            type="button"
             onClick={handleClose}
             className="text-slate-400 hover:text-white transition-colors"
+            aria-label="Close modal"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -138,8 +146,12 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
           {result ? (
             // Result view
             <div className="space-y-4">
-              <div className={`p-4 rounded-lg ${result.success ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}>
-                <h3 className={`font-semibold ${result.success ? 'text-green-400' : 'text-red-400'}`}>
+              <div
+                className={`p-4 rounded-lg ${result.success ? 'bg-green-900/50 border border-green-700' : 'bg-red-900/50 border border-red-700'}`}
+              >
+                <h3
+                  className={`font-semibold ${result.success ? 'text-green-400' : 'text-red-400'}`}
+                >
                   {result.success ? 'Import Successful!' : 'Import Completed with Errors'}
                 </h3>
                 <p className="text-slate-300 mt-1">Broker: {result.broker}</p>
@@ -166,8 +178,8 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     Warnings ({result.errors.length})
                   </h4>
                   <ul className="text-sm text-slate-300 space-y-1 max-h-32 overflow-y-auto">
-                    {result.errors.slice(0, 10).map((error, i) => (
-                      <li key={i}>• {error}</li>
+                    {result.errors.slice(0, 10).map((error) => (
+                      <li key={error}>• {error}</li>
                     ))}
                     {result.errors.length > 10 && (
                       <li className="text-slate-400">...and {result.errors.length - 10} more</li>
@@ -177,6 +189,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
               )}
 
               <button
+                type="button"
                 onClick={handleClose}
                 className="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-colors"
               >
@@ -187,12 +200,13 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
             // Import form
             <>
               {/* Import Type Toggle */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+              <fieldset>
+                <legend className="block text-sm font-medium text-slate-300 mb-2">
                   Import Type
-                </label>
+                </legend>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => {
                       setImportType('investment');
                       setSelectedBroker('');
@@ -206,6 +220,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     Investment Account
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setImportType('bank');
                       setSelectedBroker('sabadell');
@@ -219,18 +234,19 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     Bank Account
                   </button>
                 </div>
-              </div>
+              </fieldset>
 
               {/* Broker Selection */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+              <fieldset>
+                <legend className="block text-sm font-medium text-slate-300 mb-2">
                   Select Broker/Bank
-                </label>
+                </legend>
                 <div className="grid grid-cols-2 gap-3">
                   {brokers.map((broker) => {
                     const info = BROKER_INFO[broker as keyof typeof BROKER_INFO];
                     return (
                       <button
+                        type="button"
                         key={broker}
                         onClick={() => setSelectedBroker(broker)}
                         className={`p-4 rounded-lg text-left transition-colors ${
@@ -245,27 +261,35 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     );
                   })}
                 </div>
-              </div>
+              </fieldset>
 
               {/* Instructions */}
               {selectedBroker && (
                 <div className="bg-slate-700/50 rounded-lg p-4">
-                  <h4 className="font-medium text-white mb-2">How to export from {BROKER_INFO[selectedBroker as keyof typeof BROKER_INFO]?.name}:</h4>
+                  <h4 className="font-medium text-white mb-2">
+                    How to export from{' '}
+                    {BROKER_INFO[selectedBroker as keyof typeof BROKER_INFO]?.name}:
+                  </h4>
                   <ol className="text-sm text-slate-300 space-y-1">
-                    {BROKER_INFO[selectedBroker as keyof typeof BROKER_INFO]?.instructions.map((step, i) => (
-                      <li key={i}>{i + 1}. {step}</li>
-                    ))}
+                    {BROKER_INFO[selectedBroker as keyof typeof BROKER_INFO]?.instructions.map(
+                      (step, i) => (
+                        <li key={step}>
+                          {i + 1}. {step}
+                        </li>
+                      ),
+                    )}
                   </ol>
                 </div>
               )}
 
               {/* Import Method Toggle */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+              <fieldset>
+                <legend className="block text-sm font-medium text-slate-300 mb-2">
                   Import Method
-                </label>
+                </legend>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => setImportMethod('file')}
                     className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                       importMethod === 'file'
@@ -276,6 +300,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     Upload File
                   </button>
                   <button
+                    type="button"
                     onClick={() => setImportMethod('paste')}
                     className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                       importMethod === 'paste'
@@ -286,7 +311,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     Paste CSV
                   </button>
                 </div>
-              </div>
+              </fieldset>
 
               {/* File Upload or Paste Area */}
               {importMethod === 'file' ? (
@@ -297,10 +322,12 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                     onChange={handleFileChange}
                     accept=".csv,.txt"
                     className="hidden"
+                    id="file-upload"
                   />
-                  <div
+                  <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                    className={`w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                       selectedFile
                         ? 'border-primary-500 bg-primary-900/20'
                         : 'border-slate-600 hover:border-slate-500'
@@ -308,22 +335,44 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
                   >
                     {selectedFile ? (
                       <div>
-                        <svg className="w-12 h-12 mx-auto text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          className="w-12 h-12 mx-auto text-primary-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
                         <p className="mt-2 text-white font-medium">{selectedFile.name}</p>
                         <p className="text-sm text-slate-400">Click to change file</p>
                       </div>
                     ) : (
                       <div>
-                        <svg className="w-12 h-12 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        <svg
+                          className="w-12 h-12 mx-auto text-slate-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
                         </svg>
                         <p className="mt-2 text-white">Click to upload CSV file</p>
                         <p className="text-sm text-slate-400">or drag and drop</p>
                       </div>
                     )}
-                  </div>
+                  </button>
                 </div>
               ) : (
                 <div>
@@ -345,6 +394,7 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
 
               {/* Import Button */}
               <button
+                type="button"
                 onClick={handleImport}
                 disabled={importMutation.isPending || (!selectedFile && !pastedContent)}
                 className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-md transition-colors"

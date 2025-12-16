@@ -27,7 +27,11 @@ function formatPercent(value: number | undefined | null): string {
 }
 
 export function PositionsTable() {
-  const { data: positions, isLoading, error } = useQuery({
+  const {
+    data: positions,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['positions'],
     queryFn: api.getPositions,
   });
@@ -80,10 +84,12 @@ export function PositionsTable() {
           </thead>
           <tbody className="divide-y divide-slate-700">
             {positions.map((position: Position) => {
-              const pnlPercent = position.totalCost > 0
-                ? ((position.unrealizedPnl || 0) / position.totalCost) * 100
-                : 0;
-              const pnlColor = (position.unrealizedPnl || 0) >= 0 ? 'text-green-400' : 'text-red-400';
+              const pnlPercent =
+                position.totalCost > 0
+                  ? ((position.unrealizedPnl || 0) / position.totalCost) * 100
+                  : 0;
+              const pnlColor =
+                (position.unrealizedPnl || 0) >= 0 ? 'text-green-400' : 'text-red-400';
 
               return (
                 <tr key={position.id} className="hover:bg-slate-700/30 transition-colors">
@@ -125,17 +131,21 @@ export function PositionsTable() {
           </tbody>
           <tfoot>
             <tr className="bg-slate-700/50 font-medium">
-              <td colSpan={5} className="px-4 py-3 text-slate-300">Total</td>
-              <td className="px-4 py-3 text-right text-white">
-                {formatCurrency(totalValue)}
+              <td colSpan={5} className="px-4 py-3 text-slate-300">
+                Total
               </td>
-              <td className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <td className="px-4 py-3 text-right text-white">{formatCurrency(totalValue)}</td>
+              <td
+                className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+              >
                 {formatCurrency(totalPnl)}
               </td>
-              <td className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <td
+                className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+              >
                 {formatPercent(totalCost > 0 ? (totalPnl / totalCost) * 100 : 0)}
               </td>
-              <td></td>
+              <td />
             </tr>
           </tfoot>
         </table>

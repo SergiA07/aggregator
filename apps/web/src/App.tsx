@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { ImportModal, PositionsTable, TransactionsTable } from './components';
 import { useAuth } from './hooks/useAuth';
 import { api } from './lib/api';
 import type { Account } from './lib/api';
-import { useState } from 'react';
-import { ImportModal, PositionsTable, TransactionsTable } from './components';
 
 const queryClient = new QueryClient();
 
@@ -33,13 +33,14 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
       <div className="bg-slate-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold text-white mb-6 text-center">
-          Portfolio Aggregator
-        </h1>
+        <h1 className="text-2xl font-bold text-white mb-6 text-center">Portfolio Aggregator</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -48,8 +49,11 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
+              Password
+            </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -100,16 +104,29 @@ function Dashboard() {
           <h1 className="text-xl font-bold text-white">Portfolio Aggregator</h1>
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={() => setIsImportOpen(true)}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-colors flex items-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
               Import
             </button>
             <span className="text-slate-400">{user?.email}</span>
             <button
+              type="button"
               onClick={signOut}
               className="px-3 py-1 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-colors"
             >
@@ -125,6 +142,7 @@ function Dashboard() {
           <nav className="flex gap-1">
             {(['overview', 'positions', 'transactions'] as TabType[]).map((tab) => (
               <button
+                type="button"
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-3 font-medium capitalize transition-colors ${
@@ -163,7 +181,11 @@ function Dashboard() {
               />
               <SummaryCard
                 title="P&L %"
-                value={summaryLoading ? '...' : `${((summary?.pnlPercentage ?? 0) >= 0 ? '+' : '')}${(summary?.pnlPercentage ?? 0).toFixed(2)}%`}
+                value={
+                  summaryLoading
+                    ? '...'
+                    : `${(summary?.pnlPercentage ?? 0) >= 0 ? '+' : ''}${(summary?.pnlPercentage ?? 0).toFixed(2)}%`
+                }
                 color={(summary?.pnlPercentage ?? 0) >= 0 ? 'green' : 'red'}
               />
             </div>
@@ -173,6 +195,7 @@ function Dashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Investment Accounts</h2>
                 <button
+                  type="button"
                   onClick={() => setIsImportOpen(true)}
                   className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
                 >
@@ -183,12 +206,26 @@ function Dashboard() {
                 <p className="text-slate-400">Loading accounts...</p>
               ) : !accounts || accounts.length === 0 ? (
                 <div className="text-center py-8">
-                  <svg className="w-12 h-12 mx-auto text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <svg
+                    className="w-12 h-12 mx-auto text-slate-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
                   <p className="text-slate-400 mt-2">No accounts yet</p>
-                  <p className="text-sm text-slate-500">Import a CSV from your broker to get started</p>
+                  <p className="text-sm text-slate-500">
+                    Import a CSV from your broker to get started
+                  </p>
                   <button
+                    type="button"
                     onClick={() => setIsImportOpen(true)}
                     className="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-colors"
                   >
@@ -198,7 +235,10 @@ function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {accounts.map((account: Account) => (
-                    <div key={account.id} className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600/50 transition-colors">
+                    <div
+                      key={account.id}
+                      className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600/50 transition-colors"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary-600/20 flex items-center justify-center">
                           <span className="text-primary-400 font-bold text-sm">
@@ -206,8 +246,12 @@ function Dashboard() {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-white capitalize">{account.broker.replace('-', ' ')}</p>
-                          <p className="text-sm text-slate-400">{account.accountName || 'Main Account'}</p>
+                          <p className="font-medium text-white capitalize">
+                            {account.broker.replace('-', ' ')}
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            {account.accountName || 'Main Account'}
+                          </p>
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-slate-600 flex justify-between text-sm">
@@ -227,6 +271,7 @@ function Dashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-white">Top Positions</h2>
                   <button
+                    type="button"
                     onClick={() => setActiveTab('positions')}
                     className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
                   >
@@ -241,6 +286,7 @@ function Dashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-white">Recent Transactions</h2>
                   <button
+                    type="button"
                     onClick={() => setActiveTab('transactions')}
                     className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
                   >
@@ -258,7 +304,8 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">All Positions</h2>
               <div className="text-sm text-slate-400">
-                {summary?.positionCount ?? 0} position{(summary?.positionCount ?? 0) !== 1 ? 's' : ''}
+                {summary?.positionCount ?? 0} position
+                {(summary?.positionCount ?? 0) !== 1 ? 's' : ''}
               </div>
             </div>
             <PositionsTable />
