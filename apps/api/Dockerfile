@@ -1,5 +1,5 @@
-# Build stage - using official bun image
-FROM oven/bun:1 AS builder
+# Build stage - using GHCR mirror to avoid Docker Hub CDN issues
+FROM ghcr.io/oven-sh/bun:1 AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN cd packages/database && bun run db:generate
 RUN cd apps/api && bun run build
 
 # Production stage
-FROM oven/bun:1-alpine AS runner
+FROM ghcr.io/oven-sh/bun:1-alpine AS runner
 
 WORKDIR /app
 
