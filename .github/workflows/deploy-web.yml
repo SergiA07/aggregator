@@ -24,13 +24,26 @@ jobs:
       - name: Check for Web changes
         id: changes
         if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Get the list of changed files from the triggering commit
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.workflow_run.head_sha }}^..${{ github.event.workflow_run.head_sha }} 2>/dev/null || echo "")
+          # Get changed files across all commits in the push (last 20 commits max)
+          CHANGED_FILES=$(gh api /repos/${{ github.repository }}/compare/${{ github.event.workflow_run.head_sha }}~20...${{ github.event.workflow_run.head_sha }} --jq '.files[].filename' 2>/dev/null || echo "")
+
+          # Fallback if compare fails
+          if [ -z "$CHANGED_FILES" ]; then
+            CHANGED_FILES=$(gh api /repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_sha }} --jq '.files[].filename')
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
           if echo "$CHANGED_FILES" | grep -qE '^apps/web/'; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ Web changes detected - will deploy"
           else
             echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No web changes - skipping deploy"
           fi
 
       - uses: oven-sh/setup-bun@v2
