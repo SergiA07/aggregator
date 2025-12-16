@@ -1,0 +1,64 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+.next
+**/.next
+out
+**/out
+
+# Development files
+.git
+.gitignore
+**/.gitignore
+
+# IDE
+.vscode
+.idea
+**/*.swp
+**/*.swo
+
+# Environment files (use secrets in CI)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Documentation
+*.md
+!README.md
+docs
+
+# Test files
+**/*.spec.ts
+**/*.test.ts
+**/test
+**/tests
+**/__tests__
+coverage
+**/coverage
+
+# Turborepo
+.turbo
+**/.turbo
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Python service (not needed for API)
+apps/python-service
+
+# Web app (not needed for API)
+apps/web
+
+# CI/CD
+.github
+.husky
+
+# Claude
+.claude

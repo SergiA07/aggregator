@@ -1,27 +1,32 @@
 # syntax=docker/dockerfile:1
 
-# Build stage
+# Stage 1: Prune monorepo for minimal Docker context
+FROM oven/bun:1 AS pruner
+
+WORKDIR /app
+
+# Install turbo globally
+RUN bun add -g turbo
+
+# Copy entire monorepo
+COPY . .
+
+# Prune to only @repo/api and its dependencies
+RUN turbo prune @repo/api --docker
+
+# Stage 2: Install dependencies and build
 FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
-# Copy root package files first (better layer caching)
-COPY package.json bun.lock ./
-COPY turbo.json ./
+# Copy pruned package.json files (for dependency caching)
+COPY --from=pruner /app/out/json/ .
 
-# Copy workspace package.json files
-COPY packages/database/package.json ./packages/database/
-COPY packages/shared-types/package.json ./packages/shared-types/
-COPY apps/api/package.json ./apps/api/
-
-# Install all dependencies (including devDependencies for build)
+# Install dependencies (this layer is cached unless package.json changes)
 RUN bun install --frozen-lockfile
 
-# Copy source code
-COPY packages/database ./packages/database
-COPY packages/shared-types ./packages/shared-types
-COPY apps/api ./apps/api
-COPY tsconfig.json ./
+# Copy pruned source code
+COPY --from=pruner /app/out/full/ .
 
 # Generate Prisma client
 RUN cd packages/database && bun run db:generate
@@ -29,7 +34,7 @@ RUN cd packages/database && bun run db:generate
 # Build the API
 RUN cd apps/api && bun run build
 
-# Production stage - minimal image
+# Stage 3: Production runtime
 FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
@@ -37,7 +42,7 @@ WORKDIR /app
 # Security: run as non-root user
 USER bun
 
-# Copy only what's needed for production
+# Copy only production artifacts
 COPY --from=builder --chown=bun:bun /app/node_modules ./node_modules
 COPY --from=builder --chown=bun:bun /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder --chown=bun:bun /app/packages/database/src/generated ./packages/database/src/generated
@@ -53,7 +58,7 @@ EXPOSE 3333
 
 WORKDIR /app/apps/api
 
-# Healthcheck
+# Healthcheck for container orchestration
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3333/health || exit 1
 
