@@ -14,12 +14,7 @@
       "Bash(git branch:*)",
       "Bash(npx tsc:*)"
     ],
-    "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Edit(.env)",
-      "Edit(.env.*)"
-    ]
+    "deny": ["Read(.env)", "Read(.env.*)", "Edit(.env)", "Edit(.env.*)"]
   },
   "hooks": {
     "PostToolUse": [

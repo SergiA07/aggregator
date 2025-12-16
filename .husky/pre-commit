@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Run lint-staged (Biome lint + format on staged files)
+bunx lint-staged || exit 1
+
+# Run type-check on affected packages
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# Determine which packages need type-checking
+needs_api=$(echo "$staged_files" | grep -q '^apps/api/' && echo "1" || echo "")
+needs_web=$(echo "$staged_files" | grep -q '^apps/web/' && echo "1" || echo "")
+needs_database=$(echo "$staged_files" | grep -q '^packages/database/' && echo "1" || echo "")
+needs_shared=$(echo "$staged_files" | grep -q '^packages/shared-types/' && echo "1" || echo "")
+
+# Run type-check for affected packages
+if [ -n "$needs_api" ] || [ -n "$needs_database" ] || [ -n "$needs_shared" ]; then
+  echo "🔍 Type-checking @repo/api..."
+  bunx tsc --noEmit -p apps/api/tsconfig.json || exit 1
+fi
+
+if [ -n "$needs_web" ] || [ -n "$needs_shared" ]; then
+  echo "🔍 Type-checking @repo/web..."
+  bunx tsc --noEmit -p apps/web/tsconfig.app.json || exit 1
+fi
+
+echo "✅ Pre-commit checks passed"

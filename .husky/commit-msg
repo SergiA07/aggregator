@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# Run commitlint first
+bunx commitlint --edit "$1" || exit 1
+
+# Extract scope from commit message
+commit_msg=$(cat "$1")
+scope=$(echo "$commit_msg" | head -1 | sed -n 's/^[a-z]*(\([^)]*\)):.*/\1/p')
+
+# Get staged files
+staged_files=$(git diff --cached --name-only)
+
+# If no scope provided, check if changes are in root only
+if [ -z "$scope" ]; then
+  non_root_files=$(echo "$staged_files" | grep -E '^(apps|packages)/' || true)
+  if [ -n "$non_root_files" ]; then
+    echo "❌ Commit scope required when modifying apps/ or packages/"
+    echo ""
+    echo "Files changed:"
+    echo "$non_root_files" | head -5
+    echo ""
+    echo "Please use a scope: feat(api): ..., fix(web): ..., etc."
+    exit 1
+  fi
+  exit 0
+fi
+
+# Map scopes to paths
+case "$scope" in
+  api)         expected_path="apps/api" ;;
+  web)         expected_path="apps/web" ;;
+  python)      expected_path="apps/python-service" ;;
+  database)    expected_path="packages/database" ;;
+  shared-types) expected_path="packages/shared-types" ;;
+  config)      expected_path="packages/config" ;;
+  deps|turbo|root|ci) exit 0 ;;  # These scopes can touch any files
+  *) echo "❌ Unknown scope: $scope"; exit 1 ;;
+esac
+
+# Check if all staged files match the expected path (or are root files)
+mismatched_files=$(echo "$staged_files" | grep -E '^(apps|packages)/' | grep -v "^$expected_path/" || true)
+
+if [ -n "$mismatched_files" ]; then
+  echo "❌ Scope mismatch: '$scope' but changes include files outside $expected_path/"
+  echo ""
+  echo "Mismatched files:"
+  echo "$mismatched_files" | head -5
+  echo ""
+  echo "Options:"
+  echo "  1. Split into separate commits per scope"
+  echo "  2. Use 'root' scope for cross-cutting changes"
+  exit 1
+fi

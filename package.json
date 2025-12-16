@@ -18,11 +18,17 @@
     "test:e2e": "turbo test:e2e",
     "db:generate": "turbo db:generate",
     "db:push": "turbo db:push",
-    "db:studio": "bun --filter=@repo/database prisma studio"
+    "db:studio": "bun --filter=@repo/database prisma studio",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.9",
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "@commitlint/types": "^20.2.0",
     "@types/bun": "latest",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "turbo": "2.6.3",
     "typescript": "5.9.3"
   },
