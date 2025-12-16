@@ -49,7 +49,9 @@ setup:
 	@echo "Setup complete! Run 'make dev' to start development servers."
 
 dev: kill-ports
-	bun run dev
+	@trap 'kill 0' EXIT; \
+	turbo dev --filter=@repo/api --filter=@repo/web & \
+	cd apps/python-service && uv run uvicorn main:app --reload --port 8000
 
 dev-api:
 	bun run dev:api

@@ -7,11 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "predev": "lsof -ti:3333,5173,8000 | xargs kill -9 2>/dev/null || true",
-    "dev": "concurrently -n api,web,python -c blue,green,yellow \"turbo dev --filter=@repo/api\" \"turbo dev --filter=@repo/web\" \"cd apps/python-service && $HOME/.local/bin/uv run uvicorn main:app --reload --port 8000\"",
+    "dev": "make dev",
     "dev:api": "turbo dev --filter=@repo/api",
     "dev:web": "turbo dev --filter=@repo/web",
-    "dev:python": "cd apps/python-service && $HOME/.local/bin/uv run uvicorn main:app --reload --port 8000",
+    "dev:python": "cd apps/python-service && uv run uvicorn main:app --reload --port 8000",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
@@ -24,7 +23,6 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/bun": "latest",
-    "concurrently": "^9.2.1",
     "turbo": "^2.6.3",
     "typescript": "^5.9.3"
   },
