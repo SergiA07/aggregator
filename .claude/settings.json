@@ -12,7 +12,9 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "SlashCommand(/check)",
+      "SlashCommand(/review)"
     ],
     "deny": ["Read(.env)", "Read(.env.*)", "Edit(.env)", "Edit(.env.*)"]
   },
