@@ -61,7 +61,11 @@ export interface ITransactionRepository {
   findByUser(userId: string, filters?: TransactionFilters): Promise<TransactionWithRelations[]>;
   findOne(userId: string, id: string): Promise<TransactionWithRelations | null>;
   create(userId: string, data: CreateTransactionData): Promise<TransactionWithRelations>;
-  update(id: string, data: UpdateTransactionData): Promise<TransactionWithRelations>;
-  delete(id: string): Promise<void>;
+  update(
+    userId: string,
+    id: string,
+    data: UpdateTransactionData,
+  ): Promise<TransactionWithRelations>;
+  delete(userId: string, id: string): Promise<void>;
   getStats(userId: string, accountId?: string): Promise<TransactionStats>;
 }

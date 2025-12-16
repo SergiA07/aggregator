@@ -42,16 +42,16 @@ export class AccountRepository implements IAccountRepository {
     });
   }
 
-  async update(id: string, data: UpdateAccountData): Promise<Account> {
+  async update(userId: string, id: string, data: UpdateAccountData): Promise<Account> {
     return this.db.account.update({
-      where: { id },
+      where: { id, userId },
       data,
     });
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(userId: string, id: string): Promise<void> {
     await this.db.account.delete({
-      where: { id },
+      where: { id, userId },
     });
   }
 }

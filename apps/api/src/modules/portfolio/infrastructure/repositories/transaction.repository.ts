@@ -82,9 +82,13 @@ export class TransactionRepository implements ITransactionRepository {
     });
   }
 
-  async update(id: string, data: UpdateTransactionData): Promise<TransactionWithRelations> {
+  async update(
+    userId: string,
+    id: string,
+    data: UpdateTransactionData,
+  ): Promise<TransactionWithRelations> {
     return this.db.transaction.update({
-      where: { id },
+      where: { id, userId },
       data,
       include: {
         account: true,
@@ -93,9 +97,9 @@ export class TransactionRepository implements ITransactionRepository {
     });
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(userId: string, id: string): Promise<void> {
     await this.db.transaction.delete({
-      where: { id },
+      where: { id, userId },
     });
   }
 

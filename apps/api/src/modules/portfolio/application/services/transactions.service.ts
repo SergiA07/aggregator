@@ -32,15 +32,15 @@ export class TransactionsService {
   }
 
   async update(
-    _userId: string,
+    userId: string,
     id: string,
     data: UpdateTransactionData,
   ): Promise<TransactionWithRelations> {
-    return this.transactionRepository.update(id, data);
+    return this.transactionRepository.update(userId, id, data);
   }
 
-  async delete(_userId: string, id: string): Promise<void> {
-    return this.transactionRepository.delete(id);
+  async delete(userId: string, id: string): Promise<void> {
+    return this.transactionRepository.delete(userId, id);
   }
 
   async getStats(userId: string, accountId?: string): Promise<TransactionStats> {
