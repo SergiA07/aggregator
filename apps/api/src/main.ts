@@ -1,5 +1,6 @@
 import compress from '@fastify/compress';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -55,6 +56,11 @@ async function bootstrap() {
     limits: {
       fileSize: 10 * 1024 * 1024, // 10MB max file size
     },
+  });
+
+  // Security headers (X-XSS-Protection, X-Frame-Options, etc.)
+  await app.register(helmet as Parameters<typeof app.register>[0], {
+    contentSecurityPolicy: false, // Disable CSP for API (no HTML served)
   });
 
   // Enable graceful shutdown hooks
