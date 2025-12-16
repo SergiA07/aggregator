@@ -428,11 +428,11 @@ CREATE POLICY "Service role manage securities" ON securities
 | Variable | Used By | Purpose |
 |----------|---------|---------|
 | `SUPABASE_URL` | API | Supabase endpoint |
-| `SUPABASE_SERVICE_ROLE_KEY` | API | Backend auth operations |
+| `SUPABASE_SECRET_KEY` | API | Backend auth operations |
 | `DATABASE_URL` | API | Direct Prisma connection |
 | `PYTHON_SERVICE_URL` | API | Python service discovery |
 | `VITE_SUPABASE_URL` | Web | Frontend auth |
-| `VITE_SUPABASE_ANON_KEY` | Web | Frontend auth (public) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Web | Frontend auth (public) |
 | `VITE_API_URL` | Web | API endpoint |
 
 ---

@@ -17,12 +17,12 @@
       "env": [
         "DEV_MODE",
         "SUPABASE_URL",
-        "SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_PUBLISHABLE_KEY",
+        "SUPABASE_SECRET_KEY",
         "DATABASE_URL",
         "PYTHON_SERVICE_URL",
         "VITE_SUPABASE_URL",
-        "VITE_SUPABASE_ANON_KEY",
+        "VITE_SUPABASE_PUBLISHABLE_KEY",
         "VITE_API_URL",
         "VITE_DEV_MODE"
       ]

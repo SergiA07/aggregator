@@ -78,7 +78,7 @@ import { createClient } from '@supabase/supabase-js';
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 ```
 
@@ -109,7 +109,7 @@ export class SupabaseService {
   constructor() {
     this.supabase = createClient(
       process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY  // Service role can verify tokens
+      process.env.SUPABASE_SECRET_KEY  // Secret key can verify tokens
     );
   }
 
@@ -243,17 +243,17 @@ This creates a **double layer of security**:
 
 # Backend (NestJS)
 SUPABASE_URL="http://localhost:54321"
-SUPABASE_SERVICE_ROLE_KEY="eyJ..."  # Can verify tokens, bypass RLS
+SUPABASE_SECRET_KEY="eyJ..."  # Can verify tokens, bypass RLS
 DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
 
 # Frontend (React/Vite)
 VITE_SUPABASE_URL="http://localhost:54321"
-VITE_SUPABASE_ANON_KEY="eyJ..."     # Public key, limited permissions
+VITE_SUPABASE_PUBLISHABLE_KEY="eyJ..."     # Public key, limited permissions
 ```
 
 **Key difference:**
-- `ANON_KEY`: Public, used in frontend, respects RLS policies
-- `SERVICE_ROLE_KEY`: Secret, used in backend only, can bypass RLS
+- `PUBLISHABLE_KEY`: Public, used in frontend, respects RLS policies
+- `SECRET_KEY`: Secret, used in backend only, can bypass RLS
 
 ---
 
@@ -323,8 +323,8 @@ Started supabase local development setup.
       Studio URL: http://localhost:54323
     Inbucket URL: http://localhost:54324
       JWT secret: super-secret-jwt-token-with-at-least-32-characters
-        anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ publishable key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      secret key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    S3 Access Key: ...
    S3 Secret Key: ...
        S3 Region: local
@@ -392,8 +392,8 @@ In your project dashboard, go to **Settings > API**:
 ```bash
 # Production .env values
 SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co"
-SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+SUPABASE_SECRET_KEY="sb_secret_..."
 
 # Database connection (Settings > Database)
 DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres"

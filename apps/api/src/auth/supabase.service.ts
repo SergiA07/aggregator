@@ -7,7 +7,7 @@ export class SupabaseService {
 
   constructor() {
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = process.env.SUPABASE_SECRET_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       // In dev mode, we can skip Supabase client initialization
@@ -15,7 +15,7 @@ export class SupabaseService {
         console.warn('Supabase credentials not set, running in dev mode without auth');
         return;
       }
-      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set');
+      throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY must be set');
     }
 
     this.client = createClient(supabaseUrl, supabaseKey);

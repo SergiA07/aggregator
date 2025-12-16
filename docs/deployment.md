@@ -2,7 +2,7 @@
 
 This guide covers deploying the Portfolio Aggregator to production using:
 - **Cloudflare Pages** - React frontend (free, unlimited bandwidth)
-- **Fly.io** - NestJS API + Python service (free tier available)
+- **Railway** - NestJS API + Python service (free tier: $5 trial credits)
 - **Supabase** - Hosted PostgreSQL database + Auth (already configured)
 - **GitHub Actions** - Automated CI/CD (free for public repos)
 
@@ -18,17 +18,17 @@ This guide covers deploying the Portfolio Aggregator to production using:
 ## Prerequisites
 
 1. **Accounts needed:**
+   - [Railway account](https://railway.com) (free trial, no credit card required)
    - [Cloudflare account](https://dash.cloudflare.com/sign-up) (free)
-   - [Fly.io account](https://fly.io/app/sign-up) (free tier: 3 shared VMs)
    - [Supabase account](https://supabase.com) (you likely already have this)
 
 2. **CLI tools:**
    ```bash
-   # Install Fly.io CLI
-   curl -L https://fly.io/install.sh | sh
+   # Install Railway CLI
+   npm install -g @railway/cli
 
-   # Login to Fly.io
-   fly auth login
+   # Login to Railway
+   railway login
    ```
 
 ---
@@ -38,9 +38,10 @@ This guide covers deploying the Portfolio Aggregator to production using:
 If you're still using local Supabase, create a hosted project:
 
 1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Note down your credentials:
+2. Note down your credentials (Settings → API → API Keys):
    - **Project URL**: `https://your-project.supabase.co`
-   - **Anon Key**: Found in Settings → API
+   - **Publishable Key** (`sb_publishable_...`): For frontend
+   - **Secret Key** (`sb_secret_...`): For backend (click eye icon to reveal)
    - **Database URL**: Found in Settings → Database → Connection string (URI)
 
 3. Push your schema to production:
@@ -52,85 +53,68 @@ If you're still using local Supabase, create a hosted project:
 
 ---
 
-## Step 2: Deploy API to Fly.io
+## Step 2: Deploy API to Railway
 
-### 2.1 Create the Fly.io app
-
-```bash
-cd apps/api
-
-# Create the app (first time only)
-fly launch --no-deploy
-
-# When prompted:
-# - App name: portfolio-api (or your preferred name)
-# - Region: Choose closest to you (e.g., mad for Madrid)
-# - Don't set up PostgreSQL (we use Supabase)
-# - Don't set up Redis
-```
-
-### 2.2 Set environment variables
+### 2.1 Create a Railway project
 
 ```bash
-# Set your production secrets
-fly secrets set DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres"
-fly secrets set SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
-fly secrets set SUPABASE_ANON_KEY="your-anon-key"
-fly secrets set SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+# Login if you haven't
+railway login
+
+# Create a new project
+railway init
+# Project name: portfolio-aggregator
 ```
 
-### 2.3 Deploy
+### 2.2 Create the API service
 
-```bash
-# Deploy from the monorepo root (Dockerfile needs access to packages/)
-cd ../..
-fly deploy --config apps/api/fly.toml
+1. Go to [railway.com/dashboard](https://railway.com/dashboard)
+2. Open your project
+3. Click **+ New** → **GitHub Repo** → Select your repo
+4. Configure the service:
+   - **Name**: `portfolio-api`
+   - **Root Directory**: `apps/api`
+   - **Build Command**: `bun install && bun run build`
+   - **Start Command**: `bun run start:prod`
+
+### 2.3 Set environment variables
+
+In Railway dashboard → your service → **Variables**:
+
+```
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
+PORT=3333
+NODE_ENV=production
 ```
 
-### 2.4 Verify deployment
+### 2.4 Generate a domain
 
-```bash
-# Check app status
-fly status -a portfolio-api
+In Railway → your service → **Settings** → **Networking** → **Generate Domain**
 
-# View logs
-fly logs -a portfolio-api
-
-# Test the health endpoint
-curl https://portfolio-api.fly.dev/health
-```
-
-Your API will be available at: `https://portfolio-api.fly.dev`
+Your API will be available at: `https://portfolio-api-production.up.railway.app`
 
 ---
 
-## Step 3: Deploy Python Service to Fly.io
+## Step 3: Deploy Python Service to Railway
 
-### 3.1 Create the Fly.io app
+### 3.1 Add the Python service
 
-```bash
-cd apps/python-service
-
-# Create the app
-fly launch --no-deploy
-
-# App name: portfolio-python
-# Region: Same as API
-```
+1. In the same Railway project, click **+ New** → **GitHub Repo**
+2. Select your repo again
+3. Configure:
+   - **Name**: `portfolio-python`
+   - **Root Directory**: `apps/python-service`
 
 ### 3.2 Set environment variables (if any)
 
-```bash
-fly secrets set SOME_SECRET="value"
-```
+Add any secrets your Python service needs in the Variables tab.
 
-### 3.3 Deploy
+### 3.3 Generate a domain
 
-```bash
-fly deploy
-```
-
-Your Python service will be available at: `https://portfolio-python.fly.dev`
+Your Python service will be available at: `https://portfolio-python-production.up.railway.app`
 
 ---
 
@@ -155,9 +139,9 @@ Your Python service will be available at: `https://portfolio-python.fly.dev`
 In Cloudflare Pages → Settings → Environment variables:
 
 ```
-VITE_API_URL=https://portfolio-api.fly.dev
+VITE_API_URL=https://portfolio-api-production.up.railway.app
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
 ### 4.3 Deploy
@@ -185,10 +169,7 @@ app.enableCors({
 });
 ```
 
-Redeploy the API after making changes:
-```bash
-fly deploy --config apps/api/fly.toml
-```
+Redeploy the API after making changes.
 
 ---
 
@@ -199,29 +180,17 @@ fly deploy --config apps/api/fly.toml
 2. Add your domain (e.g., `app.yourdomain.com`)
 3. Follow DNS configuration instructions
 
-### Fly.io
-```bash
-# Add custom domain
-fly certs create api.yourdomain.com -a portfolio-api
-
-# Add the CNAME record shown to your DNS
-```
+### Railway
+1. Go to your service → Settings → Networking → Custom Domain
+2. Add your domain and follow the DNS instructions
 
 ---
 
 ## Monitoring & Logs
 
-### Fly.io
-```bash
-# Real-time logs
-fly logs -a portfolio-api
-
-# SSH into container (for debugging)
-fly ssh console -a portfolio-api
-
-# Check metrics
-fly status -a portfolio-api
-```
+### Railway
+- View logs in Railway Dashboard → your service → **Logs**
+- Monitor resource usage in the **Metrics** tab
 
 ### Cloudflare Pages
 - View build logs in Cloudflare Dashboard → Pages → your project → Deployments
@@ -233,29 +202,25 @@ fly status -a portfolio-api
 | Service | Free Tier | Paid (if exceeded) |
 |---------|-----------|-------------------|
 | **Cloudflare Pages** | Unlimited bandwidth, 500 builds/mo | N/A |
-| **Fly.io** | 3 shared VMs, 160GB transfer | ~$2-5/mo per extra VM |
+| **Railway** | $5 trial credits (30 days), then free tier or $5/mo Hobby | Usage-based |
 | **Supabase** | 500MB DB, 2GB bandwidth, 50k auth users | $25/mo Pro plan |
 
-**Total for hobby project: $0/month** (within free tiers)
+**Total for hobby project: $0-5/month** (within free tiers)
 
 ---
 
 ## Troubleshooting
 
 ### API not starting
-```bash
-# Check logs
-fly logs -a portfolio-api
-
-# Common issues:
-# - Missing env vars: fly secrets list
-# - Build failed: Check Dockerfile paths
-```
+- Check logs in Railway dashboard
+- Common issues:
+  - Missing env vars: Check Variables tab
+  - Build failed: Check build logs
 
 ### Database connection issues
-- Ensure DATABASE_URL is set correctly in Fly secrets
+- Ensure DATABASE_URL is set correctly in Railway Variables
 - Check Supabase dashboard for connection limits
-- Verify IP allowlist in Supabase (Settings → Database → Connection Pooling)
+- Verify IP allowlist in Supabase (Settings → Database)
 
 ### CORS errors
 - Add your production domain to the CORS origin list
@@ -270,19 +235,25 @@ fly logs -a portfolio-api
 
 ## Automated Deployment with GitHub Actions
 
-The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically deploys all services when you push to `main`.
+The project includes GitHub Actions workflows that automatically deploy services when you push to `main`.
+
+### Workflows
+
+| Workflow | Trigger | Deploys |
+|----------|---------|---------|
+| `ci.yml` | All pushes/PRs | Lint + Type check |
+| `deploy-api.yml` | Changes to `apps/api/**` or `packages/database/**` | API to Railway |
+| `deploy-python.yml` | Changes to `apps/python-service/**` | Python to Railway |
+| `deploy-web.yml` | Changes to `apps/web/**` | Web to Cloudflare |
 
 ### One-Time Setup
 
 #### 1. Get your API tokens
 
-**Fly.io:**
-```bash
-# Generate a deploy token
-fly tokens create deploy -x 999999h
-
-# Copy the token (starts with FlyV1...)
-```
+**Railway:**
+1. Go to [railway.com/account/tokens](https://railway.com/account/tokens)
+2. Create a new token
+3. Copy the token
 
 **Cloudflare:**
 1. Go to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
@@ -296,32 +267,26 @@ Go to your repo → Settings → Secrets and variables → Actions
 **Secrets (sensitive):**
 | Secret Name | Value |
 |-------------|-------|
-| `FLY_API_TOKEN` | Your Fly.io deploy token |
+| `RAILWAY_TOKEN` | Your Railway API token |
 | `CLOUDFLARE_API_TOKEN` | Your Cloudflare API token |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable key (`sb_publishable_...`) |
 
 **Variables (non-sensitive):**
 | Variable Name | Value |
 |---------------|-------|
-| `VITE_API_URL` | `https://portfolio-api.fly.dev` |
+| `VITE_API_URL` | `https://portfolio-api-production.up.railway.app` |
 | `VITE_SUPABASE_URL` | `https://your-project.supabase.co` |
 
-#### 3. Initial deployment
+#### 3. Link Railway services
 
-Before GitHub Actions can deploy, you need to create the Fly.io apps once:
+Before GitHub Actions can deploy, link your services in Railway:
 
 ```bash
-# Create API app
-cd apps/api
-fly launch --no-deploy --name portfolio-api --region mad
+# In your project root
+railway link
 
-# Set secrets
-fly secrets set DATABASE_URL="..." SUPABASE_URL="..." SUPABASE_ANON_KEY="..."
-
-# Create Python app
-cd ../python-service
-fly launch --no-deploy --name portfolio-python --region mad
+# Select your project and service when prompted
 ```
 
 #### 4. Deploy!
@@ -335,31 +300,34 @@ git push origin main
 
 GitHub Actions will:
 1. ✅ Run lint and type checks
-2. ✅ Deploy API to Fly.io
-3. ✅ Deploy Python service to Fly.io
-4. ✅ Build and deploy Web to Cloudflare Pages
+2. ✅ Deploy API to Railway (if API files changed)
+3. ✅ Deploy Python service to Railway (if Python files changed)
+4. ✅ Build and deploy Web to Cloudflare Pages (if web files changed)
 
 ### Workflow Overview
 
 ```
 Push to main
     │
-    ▼
-┌─────────┐
-│  Test   │ ─── Lint + Type check
-└────┬────┘
-     │
-     ├──────────────┬──────────────┐
-     ▼              ▼              ▼
-┌─────────┐  ┌───────────┐  ┌─────────┐
-│   API   │  │  Python   │  │   Web   │
-│ Fly.io  │  │  Fly.io   │  │  CF Pages│
-└─────────┘  └───────────┘  └─────────┘
+    ├──────────────────────────────────────────┐
+    │                                          │
+    ▼                                          ▼
+┌─────────┐                            (Path-filtered)
+│   CI    │ ─── Lint + Type check             │
+└─────────┘                                    │
+                                               │
+         ┌────────────────┬────────────────────┤
+         │                │                    │
+         ▼                ▼                    ▼
+   ┌──────────┐    ┌───────────┐       ┌──────────┐
+   │   API    │    │  Python   │       │   Web    │
+   │ Railway  │    │  Railway  │       │ CF Pages │
+   └──────────┘    └───────────┘       └──────────┘
 ```
 
 ### Manual Trigger
 
 You can also trigger deployments manually:
 1. Go to Actions tab in GitHub
-2. Select "Deploy" workflow
+2. Select the workflow you want to run
 3. Click "Run workflow"
