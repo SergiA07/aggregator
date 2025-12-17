@@ -1,0 +1,15 @@
+# Cloudflare Workers with Static Assets configuration
+# Docs: https://developers.cloudflare.com/workers/static-assets/
+
+name = "aggregator"
+compatibility_date = "2024-12-01"
+
+# Enable workers.dev subdomain (aggregator.<account>.workers.dev)
+workers_dev = true
+
+[assets]
+# Build output directory (Vite outputs to ./dist)
+directory = "./dist"
+
+# SPA routing: serve index.html for any route that doesn't match a static file
+not_found_handling = "single-page-application"
