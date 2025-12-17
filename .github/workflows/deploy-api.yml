@@ -47,6 +47,5 @@ jobs:
       - name: Deploy to Railway
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: railway up --service aggregator
-        working-directory: apps/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
