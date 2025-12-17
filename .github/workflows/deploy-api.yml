@@ -17,41 +17,35 @@ jobs:
        github.event.workflow_run.head_branch == 'main')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check for API/Database changes
         id: changes
         if: github.event_name == 'workflow_run'
-        env:
-          GH_TOKEN: ${{ github.token }}
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            apps/api/**
+            packages/database/**
+
+      - name: Log change detection result
+        if: github.event_name == 'workflow_run'
         run: |
-          # Get all commits from the CI workflow run
-          COMMITS=$(gh api /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} --jq '.head_commit.id')
-
-          # Get changed files across all commits in the push (last 20 commits max)
-          CHANGED_FILES=$(gh api /repos/${{ github.repository }}/compare/${{ github.event.workflow_run.head_sha }}~20...${{ github.event.workflow_run.head_sha }} --jq '.files[].filename' 2>/dev/null || echo "")
-
-          # Fallback if compare fails
-          if [ -z "$CHANGED_FILES" ]; then
-            CHANGED_FILES=$(gh api /repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_sha }} --jq '.files[].filename')
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          if echo "$CHANGED_FILES" | grep -qE '^(apps/api/|packages/database/)'; then
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          if [ "${{ steps.changes.outputs.any_changed }}" == "true" ]; then
             echo "✅ API or database changes detected - will deploy"
+            echo "Changed files:"
+            echo "${{ steps.changes.outputs.all_changed_files }}"
           else
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
             echo "⏭️ No API or database changes - skipping deploy"
           fi
 
       - name: Install Railway CLI
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.should_deploy == 'true'
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: railway up --service aggregator
         working-directory: apps/api
         env:

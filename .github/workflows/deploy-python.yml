@@ -1,22 +1,50 @@
 name: Deploy Python
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'apps/python-service/**'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy if CI passed
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Python changes
+        id: changes
+        if: github.event_name == 'workflow_run'
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            apps/python-service/**
+
+      - name: Log change detection result
+        if: github.event_name == 'workflow_run'
+        run: |
+          if [ "${{ steps.changes.outputs.any_changed }}" == "true" ]; then
+            echo "✅ Python service changes detected - will deploy"
+            echo "Changed files:"
+            echo "${{ steps.changes.outputs.all_changed_files }}"
+          else
+            echo "⏭️ No Python service changes - skipping deploy"
+          fi
 
       - name: Install Railway CLI
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: railway up --service portfolio-python
         working-directory: apps/python-service
         env:
