@@ -6,7 +6,7 @@
   },
   "deploy": {
     "runtime": "V2",
-    "region": "eu-west",
+    "region": "europe-west4-drams3a",
     "numReplicas": 1,
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",
