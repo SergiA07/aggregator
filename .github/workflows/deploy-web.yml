@@ -26,7 +26,7 @@ jobs:
       - name: Check for Web changes
         id: changes
         if: github.event_name == 'workflow_run'
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             apps/web/src/**
