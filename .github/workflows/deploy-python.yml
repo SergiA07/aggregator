@@ -26,7 +26,12 @@ jobs:
         uses: tj-actions/changed-files@v45
         with:
           files: |
-            apps/python-service/**
+            apps/python-service/**/*.py
+            apps/python-service/pyproject.toml
+            apps/python-service/requirements*.txt
+            apps/python-service/Dockerfile
+          files_ignore: |
+            **/*.md
 
       - name: Log change detection result
         if: github.event_name == 'workflow_run'

@@ -26,8 +26,14 @@ jobs:
         uses: tj-actions/changed-files@v45
         with:
           files: |
-            apps/api/**
+            apps/api/src/**
+            apps/api/package.json
+            apps/api/tsconfig*.json
+            apps/api/nest-cli.json
+            apps/api/Dockerfile
             packages/database/**
+          files_ignore: |
+            **/*.md
 
       - name: Log change detection result
         if: github.event_name == 'workflow_run'

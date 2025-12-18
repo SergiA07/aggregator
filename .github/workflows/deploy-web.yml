@@ -29,7 +29,16 @@ jobs:
         uses: tj-actions/changed-files@v45
         with:
           files: |
-            apps/web/**
+            apps/web/src/**
+            apps/web/public/**
+            apps/web/package.json
+            apps/web/tsconfig*.json
+            apps/web/vite.config.ts
+            apps/web/tailwind.config.*
+            apps/web/index.html
+            apps/web/wrangler.*
+          files_ignore: |
+            **/*.md
 
       - name: Log change detection result
         if: github.event_name == 'workflow_run'
