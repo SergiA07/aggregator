@@ -1,19 +1,19 @@
+import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
-import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  // ─────────────────────────────────────────────────────────────────────────────
-  // ENVIRONMENT
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Allows imports like '@/lib/api' instead of '../../../lib/api'
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   // Points to monorepo root where .env files live
   // Without this, Vite would only look for .env in apps/web/
   envDir: '../../',
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PLUGINS
-  // ─────────────────────────────────────────────────────────────────────────────
   plugins: [
     // SWC-based React plugin (20x faster than Babel)
     // SWC is a Rust-based compiler that replaces Babel for transforming JSX/TSX
@@ -63,10 +63,6 @@ export default defineConfig({
       },
     }),
   ],
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DEV SERVER
-  // ─────────────────────────────────────────────────────────────────────────────
   server: {
     port: 5173,
     strictPort: true, // Fail if port is taken (don't auto-increment)
@@ -76,10 +72,6 @@ export default defineConfig({
       clientFiles: ['./src/main.tsx', './src/App.tsx', './src/components/*.tsx'],
     },
   },
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // BUILD (Production)
-  // ─────────────────────────────────────────────────────────────────────────────
   build: {
     // Target modern browsers only (smaller, faster code)
     // 'esnext' means latest ECMAScript features, no legacy transforms
@@ -105,13 +97,19 @@ export default defineConfig({
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // DEPENDENCY OPTIMIZATION
-  // ─────────────────────────────────────────────────────────────────────────────
   optimizeDeps: {
     // Pre-bundle these dependencies on dev server startup
     // Vite converts CommonJS deps to ESM and bundles them for faster loading
     // Without this, Vite discovers deps lazily which causes waterfall requests
     include: ['react', 'react-dom', '@tanstack/react-query', '@tanstack/react-router'],
+  },
+
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/__tests__/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
   },
 });
