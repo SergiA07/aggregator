@@ -22,12 +22,18 @@ Launch **three parallel agents** to review different areas:
    - Test coverage
 
 3. **Frontend Agent** - Review:
-   - React patterns and hooks usage
-   - State management (TanStack Query)
-   - Routing (TanStack Router)
-   - Component structure and reusability
-   - Type safety
-   - Performance (bundle size, lazy loading)
+   - Feature-first architecture (features map 1:1 to routes)
+   - Component organization:
+     - `components/ui/` - Shadcn primitives (should not be edited)
+     - `components/composed/` - Custom compositions
+     - `components/layout/` - App layout
+     - `features/*/components/` - Feature-specific
+   - TanStack Router patterns (thin routes, `beforeLoad` for auth)
+   - TanStack Query patterns (query keys, cache invalidation, error handling)
+   - State management (TanStack Query for server, Zustand for client preferences)
+   - React 19 patterns (useActionState for simple forms, useFormStatus for pending)
+   - Type safety and path aliases (`@/*`)
+   - Test coverage (co-located unit tests, `__tests__/` for integration)
 
 ## Output Format
 
