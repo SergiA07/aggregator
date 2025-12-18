@@ -113,11 +113,15 @@ bun run dev
 
 | Technology | Purpose |
 |------------|---------|
-| **React 19** | UI framework |
-| **Vite** | Build tool and dev server |
-| **TanStack Router** | Type-safe routing |
-| **TanStack React Query** | Server state management |
-| **Tailwind CSS** | Utility-first styling |
+| **React 19** | UI framework with Compiler, Actions, useOptimistic |
+| **Vite 7** | Build tool and dev server |
+| **TanStack Router** | Type-safe file-based routing |
+| **TanStack Query v5** | Server state management |
+| **Zustand** | Client state management (preferences) |
+| **Shadcn/ui** | UI component library |
+| **Tailwind CSS v4** | Utility-first styling |
+| **Sonner** | Toast notifications |
+| **Vitest + MSW** | Unit and integration testing |
 | **PWA Plugin** | Offline support and installability |
 
 ### Python Service (apps/python-service)
@@ -177,14 +181,30 @@ my-aggregator-monorepo/
 │   │
 │   ├── web/                    # React frontend
 │   │   ├── src/
+│   │   │   ├── assets/         # Build-processed images, fonts, icons
+│   │   │   ├── routes/         # TanStack Router file-based routes
+│   │   │   │   ├── __root.tsx
+│   │   │   │   ├── login.tsx
+│   │   │   │   └── _authenticated/
+│   │   │   ├── features/       # Feature modules (1:1 with routes)
+│   │   │   │   ├── auth/
+│   │   │   │   ├── dashboard/
+│   │   │   │   ├── positions/
+│   │   │   │   ├── transactions/
+│   │   │   │   └── accounts/
+│   │   │   ├── components/
+│   │   │   │   ├── ui/         # Shadcn primitives
+│   │   │   │   ├── composed/   # Custom compositions
+│   │   │   │   └── layout/     # Header, Sidebar, PageLayout
 │   │   │   ├── hooks/
-│   │   │   │   └── useAuth.ts  # Auth state management
+│   │   │   │   └── api/        # TanStack Query hooks
+│   │   │   ├── stores/         # Zustand stores
 │   │   │   ├── lib/
 │   │   │   │   ├── api.ts      # API client
 │   │   │   │   └── supabase.ts # Supabase client
-│   │   │   ├── App.tsx         # Main component
-│   │   │   └── main.tsx        # Entry point
-│   │   ├── tailwind.config.js
+│   │   │   ├── utils/          # Shared utilities
+│   │   │   ├── types/          # TypeScript types
+│   │   │   └── __tests__/      # Shared test utilities
 │   │   └── vite.config.ts
 │   │
 │   └── python-service/         # FastAPI service
@@ -203,6 +223,11 @@ my-aggregator-monorepo/
 │   ├── config.toml             # Local dev config
 │   └── migrations/
 │       └── 00001_enable_rls.sql
+│
+├── e2e/                        # Playwright E2E tests
+│   ├── tests/
+│   ├── fixtures/
+│   └── playwright.config.ts
 │
 ├── .env                        # Environment variables
 ├── .env.example                # Template
@@ -265,31 +290,80 @@ The main backend service handling all business logic.
 
 ### Web (React) - Port 5173
 
-The frontend dashboard application.
+The frontend dashboard application using a feature-first architecture.
+
+#### Architecture
+
+```
+src/
+├── routes/           # TanStack Router (file-based)
+├── features/         # Business domains (1:1 with routes)
+│   ├── auth/
+│   ├── dashboard/
+│   ├── positions/
+│   ├── transactions/
+│   └── accounts/
+├── components/
+│   ├── ui/          # Shadcn primitives (DO NOT EDIT)
+│   ├── composed/    # Custom compositions
+│   └── layout/      # Header, Sidebar, PageLayout
+├── hooks/api/       # TanStack Query hooks
+├── stores/          # Zustand stores
+└── __tests__/       # Shared test utilities
+```
 
 #### Features
 
 - **Authentication**: Email/password login via Supabase
 - **Dashboard**: Portfolio summary with value, cost, P&L
-- **Accounts Grid**: Visual cards for each broker account
+- **Sidebar Navigation**: Dashboard, Positions, Transactions, Accounts
+- **Tabs within Pages**: Sub-views (e.g., Positions → All | Stocks | ETFs)
 - **Dark Theme**: Slate color palette
 - **PWA**: Installable with offline support
 
-#### Key Files
+#### Key Patterns
 
-- [App.tsx](apps/web/src/App.tsx) - Main component with auth flow
-- [useAuth.ts](apps/web/src/hooks/useAuth.ts) - Auth state hook
-- [api.ts](apps/web/src/lib/api.ts) - Authenticated API client
-- [supabase.ts](apps/web/src/lib/supabase.ts) - Supabase client init
+| Pattern | Implementation |
+|---------|----------------|
+| **Routing** | TanStack Router (file-based) |
+| **Server State** | TanStack Query v5 |
+| **Client State** | Zustand with localStorage persist |
+| **API Mutations** | TanStack Query `useMutation` |
+| **Simple Forms** | React 19 `useActionState` |
+| **UI Components** | Shadcn/ui primitives + custom compositions |
+| **Notifications** | Sonner toasts via global QueryCache callbacks |
 
 #### State Management
 
 ```
-React Query (TanStack Query)
-├── positions-summary    # Cached portfolio totals
-├── accounts            # Cached accounts list
-└── positions           # Cached positions list
+TanStack Query (Server State)
+├── ['positions']       # Cached positions list
+├── ['transactions']    # Cached transactions list
+├── ['accounts']        # Cached accounts list
+└── ['positions-summary'] # Cached portfolio totals
+
+Zustand (Client State)
+└── usePreferences
+    ├── sidebarCollapsed
+    ├── theme
+    └── tablePageSize
 ```
+
+#### Testing Strategy
+
+| Test Type | Location | Runner |
+|-----------|----------|--------|
+| Unit tests | Co-located (`*.spec.ts`) | Vitest |
+| Integration tests | `features/<feature>/__tests__/` | Vitest + MSW |
+| E2E tests | `/e2e/` (monorepo root) | Playwright |
+
+#### React 19 Features Used
+
+- **React Compiler**: Auto-optimization (no manual memo/useCallback)
+- **`use()` hook**: Cleaner context reading
+- **`useOptimistic`**: Optimistic UI updates
+- **`useActionState`**: Form state for login/settings
+- **`useFormStatus`**: Pending states in submit buttons
 
 ---
 

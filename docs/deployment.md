@@ -130,9 +130,11 @@ Your Python service will be available at: `https://portfolio-python-production.u
 | Setting | Value |
 |---------|-------|
 | Framework preset | Vite |
-| Build command | `cd apps/web && bun install && bun run build` |
+| Build command | `bun install && bun run build:web` |
 | Build output directory | `apps/web/dist` |
 | Root directory | `/` |
+
+> **Note**: The web app uses TanStack Router with file-based routing. The build generates `routeTree.gen.ts` automatically via the Vite plugin.
 
 ### 4.2 Set environment variables
 
