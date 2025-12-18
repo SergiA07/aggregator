@@ -1,5 +1,7 @@
 # Code Style Guidelines
 
+Shared conventions that apply to both API and Web apps.
+
 ## Formatting (Biome)
 
 This project uses **Biome** for linting and formatting. Never use ESLint or Prettier.
@@ -52,7 +54,9 @@ bunx biome check src/  # Check specific directory
 - Use `.ts` for all TypeScript files (not `.tsx` in API)
 - Use `.tsx` only for React components in web app
 
-## NestJS Specific
+## API-Specific (apps/api)
+
+### File Suffixes
 
 - Suffix controllers with `.controller.ts`
 - Suffix services with `.service.ts`
@@ -61,6 +65,41 @@ bunx biome check src/  # Check specific directory
 - Suffix entities with `.entity.ts`
 - Suffix guards with `.guard.ts`
 - Suffix decorators with `.decorator.ts`
+
+## Web-Specific (apps/web)
+
+### File Naming
+
+- Components: kebab-case file (`submit-button.tsx`), PascalCase export (`SubmitButton`)
+- Hooks: kebab-case file (`use-positions.ts`), camelCase export (`usePositions`)
+- Stores: kebab-case file (`preferences.ts`), camelCase export (`usePreferences`)
+
+### Path Aliases
+
+Use `@/*` for imports instead of relative paths:
+
+```typescript
+// Preferred
+import { Button } from '@/components/ui/button';
+import { PositionsTable } from '@/features/positions';
+
+// Avoid deep relative imports
+import { Button } from '../../../components/ui/button';
+```
+
+### Component Exports
+
+- Use named exports (not default exports)
+- One component per file for major components
+- Co-locate small helper components in the same file
+
+```typescript
+// Preferred
+export function PositionsTable() { ... }
+
+// Avoid
+export default function PositionsTable() { ... }
+```
 
 ## Unused Code
 
