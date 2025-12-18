@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Position } from '../lib/api';
-import { api } from '../lib/api';
+import type { Position } from '@/lib/api';
+import { api } from '@/lib/api';
 
 function formatCurrency(value: number | undefined | null, currency = 'EUR'): string {
   if (value === undefined || value === null) return '-';

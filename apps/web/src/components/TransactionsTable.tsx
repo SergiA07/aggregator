@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import type { Transaction } from '../lib/api';
-import { api } from '../lib/api';
+import type { Transaction } from '@/lib/api';
+import { api } from '@/lib/api';
 
 function formatCurrency(value: number, currency = 'EUR'): string {
   return new Intl.NumberFormat('en-US', {
