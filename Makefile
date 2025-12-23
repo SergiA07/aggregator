@@ -1,9 +1,9 @@
 # Portfolio Aggregator Monorepo
 # Run 'make help' to see available commands
 
-.PHONY: help setup dev dev-api dev-web dev-python clean clean-all \
-        build lint type-check test db-generate db-push db-reset db-studio \
-        kill-ports logs
+.PHONY: help setup dev dev-api dev-web dev-mock dev-python clean clean-all \
+        build lint type-check test test-browser e2e e2e-ui e2e-debug \
+        db-generate db-push db-reset db-studio kill-ports logs
 
 # Default target - show help
 help:
@@ -14,13 +14,18 @@ help:
 	@echo "  make dev         - Start all services (API, Web, Python)"
 	@echo "  make dev-api     - Start only the API server"
 	@echo "  make dev-web     - Start only the Web frontend"
+	@echo "  make dev-mock    - Start Web with mocked API (no backend needed)"
 	@echo "  make dev-python  - Start only the Python service"
 	@echo ""
 	@echo "Quality:"
 	@echo "  make build       - Build all packages"
 	@echo "  make lint        - Run linter on all packages"
 	@echo "  make type-check  - Run TypeScript type checking"
-	@echo "  make test        - Run tests"
+	@echo "  make test        - Run jsdom tests (fast)"
+	@echo "  make test-browser - Run browser tests (real Chromium)"
+	@echo "  make e2e         - Run E2E tests (headless)"
+	@echo "  make e2e-ui      - Run E2E tests with interactive UI"
+	@echo "  make e2e-debug   - Run E2E tests in debug mode"
 	@echo ""
 	@echo "Database:"
 	@echo "  make db-generate - Generate Prisma client"
@@ -60,6 +65,9 @@ dev-api:
 dev-web:
 	bun run dev:web
 
+dev-mock:
+	bun run --filter @repo/web dev:mock
+
 dev-python:
 	bun run dev:python
 
@@ -78,6 +86,18 @@ type-check:
 
 test:
 	bun run test
+
+test-browser:
+	bun run --filter @repo/web test:browser
+
+e2e:
+	bun run e2e
+
+e2e-ui:
+	bun run e2e:ui
+
+e2e-debug:
+	bun run e2e:debug
 
 # =============================================================================
 # Database

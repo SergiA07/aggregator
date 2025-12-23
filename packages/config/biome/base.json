@@ -55,7 +55,9 @@
       "!**/.turbo",
       "!**/coverage",
       "!**/*.gen.ts",
-      "!**/generated"
+      "!**/generated",
+      "!**/mockServiceWorker.js",
+      "!**/*.d.ts"
     ]
   }
 }

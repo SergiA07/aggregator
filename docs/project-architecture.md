@@ -184,8 +184,13 @@ my-aggregator-monorepo/
 │   │   │   ├── assets/         # Build-processed images, fonts, icons
 │   │   │   ├── routes/         # TanStack Router file-based routes
 │   │   │   │   ├── __root.tsx
+│   │   │   │   ├── index.tsx   # "/" redirect
 │   │   │   │   ├── login.tsx
 │   │   │   │   └── _authenticated/
+│   │   │   │       ├── route.tsx  # Auth guard + layout
+│   │   │   │       ├── dashboard.tsx
+│   │   │   │       ├── positions.tsx
+│   │   │   │       └── transactions.tsx
 │   │   │   ├── features/       # Feature modules (1:1 with routes)
 │   │   │   │   ├── auth/
 │   │   │   │   ├── dashboard/
@@ -196,12 +201,17 @@ my-aggregator-monorepo/
 │   │   │   │   ├── ui/         # Shadcn primitives
 │   │   │   │   ├── composed/   # Custom compositions
 │   │   │   │   └── layout/     # Header, Sidebar, PageLayout
-│   │   │   ├── hooks/
-│   │   │   │   └── api/        # TanStack Query hooks
+│   │   │   ├── hooks/          # Shared custom hooks
 │   │   │   ├── stores/         # Zustand stores
 │   │   │   ├── lib/
-│   │   │   │   ├── api.ts      # API client
-│   │   │   │   └── supabase.ts # Supabase client
+│   │   │   │   ├── api/
+│   │   │   │   │   ├── client.ts      # API client
+│   │   │   │   │   ├── types.ts       # API types
+│   │   │   │   │   ├── query-client.ts # TanStack Query config
+│   │   │   │   │   └── queries/       # Query options + mutations
+│   │   │   │   ├── supabase.ts        # Supabase client
+│   │   │   │   ├── router.ts          # TanStack Router config
+│   │   │   │   └── router-context.ts  # Router context type
 │   │   │   ├── utils/          # Shared utilities
 │   │   │   ├── types/          # TypeScript types
 │   │   │   └── __tests__/      # Shared test utilities
@@ -224,10 +234,12 @@ my-aggregator-monorepo/
 │   └── migrations/
 │       └── 00001_enable_rls.sql
 │
-├── e2e/                        # Playwright E2E tests
-│   ├── tests/
-│   ├── fixtures/
-│   └── playwright.config.ts
+├── e2e/                        # Playwright E2E tests (full-stack)
+│   ├── *.e2e.ts               # Test files
+│   ├── playwright-report/     # HTML reports (gitignored)
+│   └── test-results/          # Test artifacts (gitignored)
+│
+├── playwright.config.ts        # Playwright configuration
 │
 ├── .env                        # Environment variables
 ├── .env.example                # Template
@@ -297,6 +309,13 @@ The frontend dashboard application using a feature-first architecture.
 ```
 src/
 ├── routes/           # TanStack Router (file-based)
+│   ├── __root.tsx   # Root layout
+│   ├── index.tsx    # "/" redirect
+│   ├── login.tsx    # "/login"
+│   └── _authenticated/
+│       ├── route.tsx      # Auth guard + layout
+│       ├── dashboard.tsx  # "/dashboard"
+│       └── positions.tsx  # "/positions"
 ├── features/         # Business domains (1:1 with routes)
 │   ├── auth/
 │   ├── dashboard/
@@ -307,8 +326,12 @@ src/
 │   ├── ui/          # Shadcn primitives (DO NOT EDIT)
 │   ├── composed/    # Custom compositions
 │   └── layout/      # Header, Sidebar, PageLayout
-├── hooks/api/       # TanStack Query hooks
+├── hooks/           # Shared custom hooks
 ├── stores/          # Zustand stores
+├── lib/api/
+│   ├── client.ts       # API client
+│   ├── query-client.ts # TanStack Query config
+│   └── queries/        # Query options + mutations
 └── __tests__/       # Shared test utilities
 ```
 
@@ -325,10 +348,10 @@ src/
 
 | Pattern | Implementation |
 |---------|----------------|
-| **Routing** | TanStack Router (file-based) |
-| **Server State** | TanStack Query v5 |
+| **Routing** | TanStack Router (file-based, `route.tsx` for layouts) |
+| **Server State** | TanStack Query v5 with `queryOptions()` pattern |
 | **Client State** | Zustand with localStorage persist |
-| **API Mutations** | TanStack Query `useMutation` |
+| **API Mutations** | TanStack Query `useMutation` in `lib/api/queries/` |
 | **Simple Forms** | React 19 `useActionState` |
 | **UI Components** | Shadcn/ui primitives + custom compositions |
 | **Notifications** | Sonner toasts via global QueryCache callbacks |
@@ -349,13 +372,23 @@ Zustand (Client State)
     └── tablePageSize
 ```
 
-#### Testing Strategy
+#### Testing Strategy (3-Tier)
 
-| Test Type | Location | Runner |
-|-----------|----------|--------|
-| Unit tests | Co-located (`*.spec.ts`) | Vitest |
-| Integration tests | `features/<feature>/__tests__/` | Vitest + MSW |
-| E2E tests | `/e2e/` (monorepo root) | Playwright |
+| Tier | Tool | Purpose | File Pattern |
+|------|------|---------|--------------|
+| **Unit/Integration** | Vitest + jsdom | Logic, hooks, components | `*.test.ts(x)` |
+| **Component (Browser)** | Vitest Browser Mode | CSS, Canvas, browser APIs | `*.browser.test.tsx` |
+| **E2E** | Playwright | Full user journeys | `e2e/*.e2e.ts` |
+
+**Commands:**
+```bash
+bun test              # Unit/integration tests
+bun test:browser      # Component tests in real browser
+bun run e2e           # E2E tests (headless)
+bun run dev:mock      # Develop with mocked API (no backend needed)
+```
+
+See [.claude/rules/web-testing.md](../.claude/rules/web-testing.md) for full documentation.
 
 #### React 19 Features Used
 
@@ -552,6 +585,9 @@ bun run dev
 | `bun run db:generate` | Generate Prisma client |
 | `bun run db:push` | Push schema to DB |
 | `bun run db:studio` | Open Prisma Studio |
+| `bun run e2e` | Run E2E tests (headless) |
+| `bun run e2e:ui` | E2E tests with interactive UI |
+| `bun run e2e:debug` | E2E tests in debug mode |
 
 ### Ports
 

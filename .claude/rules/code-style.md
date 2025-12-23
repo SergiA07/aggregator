@@ -24,14 +24,28 @@ bunx biome check src/  # Check specific directory
 
 - Use ES module imports (not CommonJS)
 - Organize imports (Biome handles this automatically)
-- Import from barrel exports when available:
-  ```typescript
-  // Preferred
-  import { AccountEntity, TransactionEntity } from './domain/entities';
 
-  // Avoid importing from individual files when barrel exists
-  import { AccountEntity } from './domain/entities/account.entity';
-  ```
+**API (apps/api)**: Use barrel exports for domain entities:
+```typescript
+// Preferred
+import { AccountEntity, TransactionEntity } from './domain/entities';
+
+// Avoid importing from individual files when barrel exists
+import { AccountEntity } from './domain/entities/account.entity';
+```
+
+**Web (apps/web)**: Use barrels only for features, direct imports for lib/utils:
+```typescript
+// Direct imports for lib/api/ (no barrels)
+import { api } from '@/lib/api/client';
+import type { Account } from '@/lib/api/types';
+import { queryClient } from '@/lib/api/query-client';
+import { positionListOptions } from '@/lib/api/queries/positions';
+import { formatCurrency } from '@/utils/formatters';
+
+// Barrel imports for features/
+import { PositionsTable } from '@/features/positions';
+```
 
 ### Types
 
@@ -79,12 +93,20 @@ bunx biome check src/  # Check specific directory
 Use `@/*` for imports instead of relative paths:
 
 ```typescript
-// Preferred
-import { Button } from '@/components/ui/button';
+// Direct imports for lib/api/
+import { api } from '@/lib/api/client';
+import { queryClient } from '@/lib/api/query-client';
+import { positionListOptions } from '@/lib/api/queries/positions';
+import { formatCurrency } from '@/utils/formatters';
+
+// Barrel imports for features/
 import { PositionsTable } from '@/features/positions';
 
+// Direct imports for components
+import { Button } from '@/components/ui/button';
+
 // Avoid deep relative imports
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../components/ui/button';  // Bad
 ```
 
 ### Component Exports

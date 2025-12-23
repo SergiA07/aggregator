@@ -35,6 +35,7 @@ bun install              # Install all dependencies
 bun run dev              # Start all services (API + Web + Python)
 bun run dev:api          # Start only API
 bun run dev:web          # Start only frontend
+bun run dev:mock         # Start web with mocked API (MSW)
 
 # Database
 bunx supabase start      # Start local Supabase (requires Docker)
@@ -45,12 +46,21 @@ bun run db:studio        # Open Prisma Studio
 # Quality
 bun run lint             # Run Biome linter
 bun run type-check       # TypeScript type checking
-bun run test             # Run all tests
+bun run test             # Run unit/integration tests (jsdom)
 bun run build            # Build all packages
 
 # API-specific (from apps/api/)
 bun test                 # Run Bun tests
 bun test --watch         # Watch mode
+
+# Web-specific (from apps/web/)
+bun test                 # Run Vitest unit/integration tests (jsdom)
+bun test:browser         # Run component tests in real Chromium
+
+# E2E Tests (Playwright - from monorepo root)
+bun run e2e              # Run E2E tests (headless)
+bun run e2e:ui           # Run E2E tests with interactive UI
+bun run e2e:debug        # Run E2E tests in debug mode
 ```
 
 ## Environment Variables

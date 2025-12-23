@@ -4,51 +4,66 @@ paths: apps/web/**/*.spec.*, apps/web/**/*.test.*, apps/web/**/__tests__/**
 
 # Frontend Testing Guidelines
 
-## Test Runners
+## 3-Tier Testing Strategy
 
-- **Unit/Integration**: Vitest + React Testing Library
-- **E2E**: Playwright (at monorepo root `/e2e/`)
+| Tier | Tool | Purpose | File Pattern |
+|------|------|---------|--------------|
+| **Unit/Integration** | Vitest + jsdom | Logic, hooks, components | `*.test.ts(x)` |
+| **Component (Browser)** | Vitest Browser Mode | CSS, Canvas, browser APIs | `*.browser.test.tsx` |
+| **E2E** | Playwright | Full user journeys | `e2e/*.e2e.ts` |
+
+### When to Use Each Tier
+
+- **jsdom tests** (`*.test.tsx`): Default for most tests. Tests component logic, user interactions, hooks.
+- **Browser tests** (`*.browser.test.tsx`): Only when testing real CSS computed styles, Canvas, WebGL, or browser-specific APIs that jsdom cannot simulate.
+- **E2E tests** (`*.e2e.ts`): Full-stack integration testing real API, database, and auth flows.
 
 ## Test Structure
 
 ```
 src/
 ├── __tests__/                    # Shared test utilities
-│   ├── utils/
-│   │   └── render.tsx           # Custom render with providers
-│   ├── mocks/
-│   │   ├── handlers.ts          # MSW request handlers
-│   │   └── data.ts              # Mocked API responses
-│   └── setup.ts                 # Vitest setup (MSW server)
+│   ├── test-utils.tsx           # Custom render with providers
+│   ├── utils.ts                 # Test helpers (getTailwindColor, etc.)
+│   ├── setup.ts                 # Vitest setup (jsdom + MSW)
+│   └── mocks/
+│       ├── handlers.ts          # MSW request handlers
+│       └── data.ts              # Mocked API responses
+│
+├── components/
+│   └── layout/
+│       ├── header.tsx
+│       ├── header.test.tsx          # jsdom tests (logic, interactions)
+│       └── header.browser.test.tsx  # Browser tests (computed CSS)
 │
 ├── features/<feature>/
 │   ├── components/
 │   │   ├── SomeComponent.tsx
-│   │   └── SomeComponent.spec.ts   # Unit test (co-located)
+│   │   └── SomeComponent.test.tsx   # Unit test (co-located)
 │   └── __tests__/                   # Integration tests
-│       └── feature-page.spec.ts
+│       └── feature-page.test.tsx
+
+# At monorepo root:
+e2e/
+├── auth.e2e.ts                      # E2E tests
+├── playwright-report/               # HTML reports (gitignored)
+└── test-results/                    # Test artifacts (gitignored)
 ```
 
 ## Running Tests
 
 ```bash
-# From apps/web or monorepo root
-bun test                    # Run all tests
+# From apps/web
+bun test                    # Run jsdom tests (fast)
 bun test --watch           # Watch mode
 bun test src/features      # Test specific directory
-bun test --coverage        # With coverage
+bun test:browser           # Run browser tests (real Chromium)
 
-# E2E (from monorepo root)
-bun run test:e2e
+# From monorepo root
+bun run e2e                # Run E2E tests (headless)
+bun run e2e:ui             # Run with interactive UI
+bun run e2e:debug          # Debug mode
 ```
-
-## Test Categories
-
-| Type | Location | Purpose |
-|------|----------|---------|
-| Unit | Co-located (`*.spec.ts`) | Test components/hooks in isolation |
-| Integration | `features/<feature>/__tests__/` | Test feature with mocked API |
-| E2E | `/e2e/` (monorepo root) | Full stack tests |
 
 ## Custom Render
 
@@ -340,3 +355,175 @@ describe('PositionsPage', () => {
 6. **Mock at boundaries** - Mock API calls, not internal functions
 7. **Test error states** - Override MSW handlers for error scenarios
 8. **Clean up** - Let Testing Library handle cleanup automatically
+
+---
+
+## MSW Development Mode
+
+MSW can be used for frontend development without a running backend. This uses the same handlers as your tests, ensuring consistency between development and testing.
+
+### When to Use
+
+- **Backend not ready** - Start frontend development before API is complete
+- **Offline development** - Work without network access
+- **Demo/prototype** - Show features without real data
+- **Isolated debugging** - Test frontend behavior without backend variables
+
+### Setup
+
+#### 1. Create Browser Worker
+
+The browser worker is separate from the Node server used in tests:
+
+```typescript
+// __tests__/mocks/browser.ts
+import { setupWorker } from 'msw/browser';
+import { handlers } from './handlers';
+
+export const worker = setupWorker(...handlers);
+```
+
+#### 2. Enable in main.tsx
+
+Conditionally start MSW when `VITE_MOCK_API=true`:
+
+```typescript
+// main.tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
+import { queryClient } from '@/lib/query-client';
+import { router } from '@/lib/router';
+import './index.css';
+
+async function enableMocking() {
+  // Only enable in development when VITE_MOCK_API is set
+  if (import.meta.env.VITE_MOCK_API !== 'true') {
+    return;
+  }
+
+  const { worker } = await import('./__tests__/mocks/browser');
+
+  // Start the service worker
+  return worker.start({
+    onUnhandledRequest: 'warn', // Log unhandled requests (helpful for debugging)
+  });
+}
+
+// Start app after MSW is ready
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+});
+```
+
+#### 3. Add Development Scripts
+
+```json
+// package.json
+{
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "VITE_MOCK_API=true vite"
+  }
+}
+```
+
+### Usage
+
+```bash
+# Normal development (uses real API)
+bun run dev
+
+# Development with mocked API
+bun run dev:mock
+```
+
+### Visual Indicator (Optional)
+
+Add a visual indicator when running with mocked data:
+
+```typescript
+// components/dev/mock-indicator.tsx
+export function MockIndicator() {
+  if (import.meta.env.VITE_MOCK_API !== 'true') {
+    return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 left-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold z-50">
+      🔶 MOCK API
+    </div>
+  );
+}
+
+// Add to root layout
+<MockIndicator />
+```
+
+### Handler Reuse Pattern
+
+The same handlers are used across:
+
+```
+__tests__/mocks/handlers.ts
+         │
+         ├──► __tests__/mocks/node.ts    → Vitest (jsdom)
+         ├──► __tests__/mocks/browser.ts → Vitest Browser Mode
+         ├──► main.tsx (dev:mock)        → Development
+         └──► storybook/preview.tsx      → Storybook (if used)
+```
+
+This ensures **consistent mocked behavior** everywhere.
+
+### Adding Mock Data States
+
+Create handlers for different scenarios:
+
+```typescript
+// __tests__/mocks/handlers.ts
+import { http, HttpResponse } from 'msw';
+
+// Default handlers with realistic data
+export const handlers = [
+  http.get('*/api/v1/positions', () => {
+    return HttpResponse.json([
+      { id: '1', symbol: 'AAPL', shares: 10, currentValue: 1750 },
+      { id: '2', symbol: 'GOOGL', shares: 5, currentValue: 7500 },
+    ]);
+  }),
+];
+
+// Scenario: Empty state
+export const emptyHandlers = [
+  http.get('*/api/v1/positions', () => {
+    return HttpResponse.json([]);
+  }),
+];
+
+// Scenario: Error state
+export const errorHandlers = [
+  http.get('*/api/v1/positions', () => {
+    return HttpResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }),
+];
+
+// Scenario: Loading delay (for testing loading states)
+export const slowHandlers = [
+  http.get('*/api/v1/positions', async () => {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    return HttpResponse.json([{ id: '1', symbol: 'AAPL', shares: 10 }]);
+  }),
+];
+```
+
+Switch scenarios via query param or env var for testing different UI states during development.

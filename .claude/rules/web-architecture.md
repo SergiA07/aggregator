@@ -10,15 +10,15 @@ paths: apps/web/**
 src/
 ├── assets/                    # Build-processed assets (images, fonts, icons)
 ├── routes/                    # TanStack Router file-based routes
-│   ├── __root.tsx            # Root layout (providers)
-│   ├── index.tsx             # "/" - redirect
+│   ├── __root.tsx            # Root layout (providers, devtools)
+│   ├── index.tsx             # "/" - redirect to /dashboard
 │   ├── login.tsx             # "/login"
-│   ├── _authenticated.tsx    # Protected layout
-│   └── _authenticated/
-│       ├── dashboard.tsx
-│       ├── positions.tsx
-│       ├── transactions.tsx
-│       └── accounts.tsx
+│   └── _authenticated/       # Protected route group (pathless layout)
+│       ├── route.tsx         # Auth guard + layout (beforeLoad)
+│       ├── dashboard.tsx     # "/dashboard"
+│       ├── positions.tsx     # "/positions"
+│       ├── transactions.tsx  # "/transactions"
+│       └── accounts.tsx      # "/accounts"
 ├── features/                  # Feature modules (1:1 with routes)
 │   ├── auth/
 │   ├── dashboard/
@@ -32,8 +32,23 @@ src/
 ├── hooks/
 │   └── api/                  # TanStack Query hooks
 ├── stores/                    # Zustand stores
-├── utils/                     # Shared utilities
-├── lib/                       # External clients (api.ts, supabase.ts)
+├── utils/                     # Pure utilities (no barrel - use direct imports)
+│   ├── cn.ts                 # Tailwind class merging
+│   └── formatters.ts         # formatCurrency, formatDate, etc.
+├── lib/                       # External service clients (no barrel - use direct imports)
+│   ├── api/
+│   │   ├── client.ts         # API client (fetchWithAuth, api object)
+│   │   ├── types.ts          # API types (Account, Position, etc.)
+│   │   ├── query-client.ts   # TanStack Query config
+│   │   └── queries/          # TanStack Query options (official v5 pattern)
+│   │       ├── accounts.ts   # accountKeys + accountListOptions, accountDetailOptions
+│   │       ├── positions.ts  # positionKeys + positionListOptions, etc.
+│   │       ├── transactions.ts # transactionKeys + transactionListOptions
+│   │       └── import.ts     # useUploadFile, useImportCSV mutations
+│   ├── supabase.ts           # Supabase client
+│   ├── router.ts             # TanStack Router config + type registration
+│   └── router-context.ts     # TanStack Router context type
+├── hooks/                     # Shared custom hooks (non-API)
 ├── types/                     # Shared TypeScript types
 └── __tests__/                 # Shared test utilities
 ```
@@ -52,14 +67,27 @@ features/<feature>/
 └── index.ts              # Public API (barrel export)
 ```
 
-### Barrel Exports
+### Barrel Exports (Features Only)
 
-Each feature exports its public API:
+Use barrel exports **only for features** - they define the public API of each feature:
 
 ```typescript
 // features/positions/index.ts
 export { PositionsTable } from './components/PositionsTable';
 export { usePositions } from './hooks/usePositions';
+```
+
+**Do NOT use barrels for `lib/` or `utils/`** - use direct imports instead to avoid circular dependencies and improve tree-shaking:
+
+```typescript
+// Direct imports (preferred for lib/ and utils/)
+import { api } from '@/lib/api/client';
+import type { Account } from '@/lib/api/types';
+import { formatCurrency } from '@/utils/formatters';
+import { cn } from '@/utils/cn';
+
+// Feature barrel imports (preferred for features/)
+import { PositionsTable } from '@/features/positions';
 ```
 
 ## Routes vs Features
@@ -116,27 +144,66 @@ import { Table, TableBody, TableCell } from '@/components/ui/table';
 
 ### File-Based Routing
 
-Routes are auto-generated from the file structure:
+Routes are auto-generated from the file structure. The Vite plugin watches `src/routes/` and generates `routeTree.gen.ts` automatically.
 
 ```typescript
 // vite.config.ts
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 
 export default defineConfig({
-  plugins: [TanStackRouterVite(), react()],
+  plugins: [
+    // TanStack Router plugin MUST come before React plugin
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,  // Automatic lazy loading of route components
+    }),
+    react(),
+  ],
+});
+```
+
+**Key options:**
+- `target: 'react'` - Required for React projects
+- `autoCodeSplitting: true` - Automatically lazy-loads route components (no `React.lazy()` needed)
+
+### Router Context
+
+Pass shared context (like `queryClient`) to routes via `createRootRouteWithContext`:
+
+```typescript
+// lib/router-context.ts
+import type { QueryClient } from '@tanstack/react-query';
+
+export interface RouterContext {
+  queryClient: QueryClient;
+}
+```
+
+```typescript
+// routes/__root.tsx
+import { createRootRouteWithContext } from '@tanstack/react-router';
+import type { RouterContext } from '@/lib/router-context';
+
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootComponent,
 });
 ```
 
 ### Protected Routes
 
-Use layout routes with `beforeLoad`:
+Use layout routes with `beforeLoad`. Name the file `route.tsx` inside the folder:
 
 ```typescript
-// routes/_authenticated.tsx
+// routes/_authenticated/route.tsx
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { supabase } from '@/lib/supabase';
+
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const isDev = import.meta.env.VITE_DEV_MODE === 'true';
+    if (!session && !isDev) {
       throw redirect({ to: '/login' });
     }
   },
@@ -144,41 +211,75 @@ export const Route = createFileRoute('/_authenticated')({
 });
 ```
 
+**Note:** `route.tsx` is the convention for layout routes. The `beforeLoad` runs before any child routes render, making it ideal for auth guards.
+
 ## TanStack Query
 
-### Query Hooks Location
+### Query Options Pattern (Official v5)
 
-Place shared query hooks in `hooks/api/`:
+Use `queryOptions()` for reusable query configurations. Place in `lib/api/queries/`:
 
 ```typescript
-// hooks/api/usePositions.ts
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+// lib/api/queries/positions.ts
+import { queryOptions } from '@tanstack/react-query';
+import { api } from '../client';
 
-export function usePositions() {
-  return useQuery({
-    queryKey: ['positions'],
-    queryFn: api.positions.getAll,
+// Keys for cache invalidation
+export const positionKeys = {
+  all: ['positions'],
+  lists: ['positions', 'list'],
+  summaries: ['positions', 'summary'],
+} as const;
+
+// Query options - reusable with useQuery, prefetchQuery, etc.
+export function positionListOptions() {
+  return queryOptions({
+    queryKey: positionKeys.lists,
+    queryFn: api.getPositions,
   });
 }
 ```
 
+**Usage:**
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { positionListOptions, positionKeys } from '@/lib/api/queries/positions';
+
+// In components
+const { data } = useQuery(positionListOptions());
+
+// For prefetching (e.g., on hover)
+queryClient.prefetchQuery(positionListOptions());
+
+// For cache invalidation
+queryClient.invalidateQueries({ queryKey: positionKeys.all });
+```
+
 ### Mutations with Cache Invalidation
 
+Place mutation hooks in `lib/api/queries/` alongside query options:
+
 ```typescript
-// hooks/api/useImportTransactions.ts
-export function useImportTransactions() {
+// lib/api/queries/import.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../client';
+import { accountKeys } from './accounts';
+import { positionKeys } from './positions';
+import { transactionKeys } from './transactions';
+
+export function useUploadFile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: api.import.upload,
+    mutationFn: ({ file, broker, type }) => api.uploadFile(file, broker, type),
     meta: {
-      errorMessage: 'Failed to import transactions',
-      successMessage: 'Transactions imported successfully',
+      errorMessage: 'Failed to upload file',
+      successMessage: 'File uploaded successfully',
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: positionKeys.all });
+      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
     },
   });
 }
@@ -189,7 +290,7 @@ export function useImportTransactions() {
 Configure at QueryClient level:
 
 ```typescript
-// lib/query-client.ts
+// lib/api/query-client.ts
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -316,10 +417,10 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
 
 - Use Tailwind CSS v4 utility classes
 - Shadcn components use CSS variables for theming
-- Use `cn()` helper from `lib/utils.ts` for conditional classes
+- Use `cn()` helper from `utils/cn.ts` for conditional classes
 
 ```typescript
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 
 <div className={cn('base-class', isActive && 'active-class')} />
 ```
@@ -329,9 +430,26 @@ import { cn } from '@/lib/utils';
 Use `@/*` for imports:
 
 ```typescript
-import { Button } from '@/components/ui/button';
+// Direct imports for lib/api/
+import { api } from '@/lib/api/client';
+import type { Position } from '@/lib/api/types';
+import { queryClient } from '@/lib/api/query-client';
+import { positionListOptions } from '@/lib/api/queries/positions';
+
+// Direct imports for other lib/
+import { supabase } from '@/lib/supabase';
+import { router } from '@/lib/router';
+
+// Direct imports for utils/
+import { formatCurrency } from '@/utils/formatters';
+import { cn } from '@/utils/cn';
+
+// Barrel imports for features/
 import { PositionsTable } from '@/features/positions';
-import { usePreferences } from '@/stores';
+
+// Direct imports for other folders
+import { Button } from '@/components/ui/button';
+import { usePreferences } from '@/stores/preferences';
 ```
 
 ## File Naming

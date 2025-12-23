@@ -24,14 +24,16 @@ Review the web app (`apps/web/`) for quality, patterns, and adherence to feature
 ### TanStack Router
 
 - File-based routes in `routes/` directory
-- Protected routes use `beforeLoad` in `_authenticated.tsx`
+- Layout routes use `route.tsx` convention (e.g., `_authenticated/route.tsx`)
+- Protected routes use `beforeLoad` in layout routes
 - Route params properly typed
 
 ### TanStack Query
 
-- Query hooks in `hooks/api/` (not scattered in features)
-- Consistent query key structure
-- Mutations invalidate related queries
+- Query options in `lib/api/queries/` using `queryOptions()` pattern
+- Mutation hooks also in `lib/api/queries/` (e.g., `import.ts`)
+- Consistent query key structure with `*Keys` objects
+- Mutations invalidate related queries using key objects
 - Error handling uses `meta` for custom messages
 - Loading/error states handled in components
 
