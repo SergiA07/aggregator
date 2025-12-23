@@ -8,6 +8,7 @@
     "./api": "./src/api/index.ts"
   },
   "devDependencies": {
+    "@repo/config": "workspace:*",
     "typescript": "5.9.3"
   }
 }
