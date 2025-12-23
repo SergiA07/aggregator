@@ -1,0 +1,86 @@
+/**
+ * Mock data for transactions
+ */
+import type { Transaction, TransactionStats } from '@repo/shared-types';
+import { mockAccounts } from './accounts';
+import { mockSecurities } from './securities';
+
+export const mockTransactions: Transaction[] = [
+  {
+    id: 'txn-1',
+    userId: 'user-1',
+    accountId: 'acc-1',
+    securityId: 'sec-1',
+    date: '2024-01-15T10:30:00Z',
+    type: 'buy',
+    quantity: 10,
+    price: 150.0,
+    amount: 1500.0,
+    fees: 2.5,
+    currency: 'USD',
+    createdAt: '2024-01-15T10:30:00Z',
+    updatedAt: '2024-01-15T10:30:00Z',
+    account: mockAccounts[0],
+    security: mockSecurities[0],
+  },
+  {
+    id: 'txn-2',
+    userId: 'user-1',
+    accountId: 'acc-1',
+    securityId: 'sec-2',
+    date: '2024-02-01T14:20:00Z',
+    type: 'buy',
+    quantity: 5,
+    price: 320.0,
+    amount: 1600.0,
+    fees: 3.0,
+    currency: 'USD',
+    createdAt: '2024-02-01T14:20:00Z',
+    updatedAt: '2024-02-01T14:20:00Z',
+    account: mockAccounts[0],
+    security: mockSecurities[1],
+  },
+  {
+    id: 'txn-3',
+    userId: 'user-1',
+    accountId: 'acc-2',
+    securityId: 'sec-3',
+    date: '2024-02-20T09:15:00Z',
+    type: 'buy',
+    quantity: 20,
+    price: 95.0,
+    amount: 1900.0,
+    fees: 0.0,
+    currency: 'EUR',
+    createdAt: '2024-02-20T09:15:00Z',
+    updatedAt: '2024-02-20T09:15:00Z',
+    account: mockAccounts[1],
+    security: mockSecurities[2],
+  },
+  {
+    id: 'txn-4',
+    userId: 'user-1',
+    accountId: 'acc-1',
+    securityId: 'sec-1',
+    date: '2024-03-15T00:00:00Z',
+    type: 'dividend',
+    quantity: 0,
+    price: 0,
+    amount: 12.5,
+    fees: 0,
+    currency: 'USD',
+    notes: 'Q1 2024 Dividend',
+    createdAt: '2024-03-15T00:00:00Z',
+    updatedAt: '2024-03-15T00:00:00Z',
+    account: mockAccounts[0],
+    security: mockSecurities[0],
+  },
+];
+
+export const mockTransactionStats: TransactionStats = {
+  totalTransactions: 4,
+  totalBuys: 3,
+  totalSells: 0,
+  totalDividends: 1,
+  totalFees: 5.5,
+};

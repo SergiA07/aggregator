@@ -1,4 +1,12 @@
-import { supabase } from './supabase';
+import type {
+  Account,
+  ImportResult,
+  Position,
+  PositionsSummary,
+  Security,
+  Transaction,
+} from '@repo/shared-types';
+import { supabase } from '../supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -34,75 +42,6 @@ export async function fetchWithAuth(endpoint: string, options?: RequestInit) {
   return response.json();
 }
 
-// Types
-export interface Account {
-  id: string;
-  broker: string;
-  accountId: string;
-  accountName?: string;
-  currency: string;
-  createdAt: string;
-}
-
-export interface Security {
-  id: string;
-  symbol: string;
-  isin?: string;
-  name: string;
-  securityType: string;
-  currency: string;
-  exchange?: string;
-  sector?: string;
-  industry?: string;
-  country?: string;
-}
-
-export interface Position {
-  id: string;
-  quantity: number;
-  avgCost: number;
-  totalCost: number;
-  marketPrice?: number;
-  marketValue?: number;
-  unrealizedPnl?: number;
-  currency: string;
-  account: Account;
-  security: Security;
-}
-
-export interface Transaction {
-  id: string;
-  date: string;
-  type: 'buy' | 'sell' | 'dividend' | 'fee' | 'split' | 'other';
-  quantity: number;
-  price: number;
-  amount: number;
-  fees: number;
-  currency: string;
-  notes?: string;
-  account: Account;
-  security: Security;
-}
-
-export interface ImportResult {
-  success: boolean;
-  broker: string;
-  accountId?: string;
-  transactionsImported: number;
-  positionsCreated: number;
-  securitiesCreated: number;
-  errors: string[];
-}
-
-export interface PositionsSummary {
-  totalValue: number;
-  totalCost: number;
-  totalPnl: number;
-  pnlPercentage: number;
-  positionCount: number;
-}
-
-// API client methods
 export const api = {
   // Accounts
   getAccounts: (): Promise<Account[]> => fetchWithAuth('/accounts'),

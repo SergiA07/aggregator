@@ -23,10 +23,11 @@ A modern React dashboard for tracking investment portfolios across multiple brok
 src/
 ├── assets/                    # Build-processed assets (images, fonts, icons)
 ├── routes/                    # TanStack Router file-based routes
-│   ├── __root.tsx            # Root layout (providers)
+│   ├── __root.tsx            # Root layout (providers, devtools)
+│   ├── index.tsx             # "/" - redirect to /dashboard
 │   ├── login.tsx             # /login
-│   ├── _authenticated.tsx    # Protected layout
-│   └── _authenticated/
+│   └── _authenticated/       # Protected route group (pathless layout)
+│       ├── route.tsx         # Auth guard + layout (beforeLoad)
 │       ├── dashboard.tsx     # /dashboard
 │       ├── positions.tsx     # /positions
 │       ├── transactions.tsx  # /transactions
@@ -44,13 +45,18 @@ src/
 │   ├── composed/             # Custom component compositions
 │   └── layout/               # App layout (Header, Sidebar, PageLayout)
 │
-├── hooks/
-│   ├── api/                  # TanStack Query hooks
-│   └── ...                   # Other shared hooks
-│
+├── hooks/                     # Shared custom hooks (non-API)
 ├── stores/                    # Zustand stores
 ├── utils/                     # Shared utilities
 ├── lib/                       # External service clients
+│   ├── api/
+│   │   ├── client.ts         # API client
+│   │   ├── types.ts          # API types
+│   │   ├── query-client.ts   # TanStack Query config
+│   │   └── queries/          # Query options + mutation hooks
+│   ├── supabase.ts           # Supabase client
+│   ├── router.ts             # TanStack Router config
+│   └── router-context.ts     # Router context type
 ├── types/                     # Shared TypeScript types
 └── __tests__/                 # Shared test utilities
 ```
@@ -139,32 +145,51 @@ We leverage React 19 features applicable to client-side SPAs:
 
 ## Testing
 
-### Unit Tests (Vitest)
+This project uses a **3-tier testing strategy** for comprehensive coverage:
 
-Co-located with source files:
+| Tier | Tool | Purpose | File Pattern |
+|------|------|---------|--------------|
+| **Unit/Integration** | Vitest + jsdom | Logic, hooks, components | `*.test.ts(x)` |
+| **Component (Browser)** | Vitest Browser Mode | CSS, Canvas, browser APIs | `*.browser.test.tsx` |
+| **E2E** | Playwright | Full user journeys | `*.e2e.ts` |
+
+### Tier 1: Unit/Integration Tests (Vitest + jsdom)
 
 ```bash
-bun test                    # Run all tests
+bun test                    # Run all unit/integration tests
 bun test --watch           # Watch mode
 bun test src/utils         # Test specific directory
+bun test:coverage          # With coverage report
 ```
 
-### Integration Tests (Vitest + MSW)
+### Tier 2: Component Tests (Browser Mode)
 
-Located in `features/<feature>/__tests__/`:
+For testing real CSS, Canvas, and browser APIs:
 
 ```bash
-bun test src/features/positions/__tests__
+bun test:browser           # Run component tests in real browser
 ```
 
-### E2E Tests (Playwright)
+### Tier 3: E2E Tests (Playwright)
 
-Located at monorepo root `/e2e/`:
+Located at **monorepo root** in `/e2e/` (full-stack tests):
 
 ```bash
-cd ../..
-bun run test:e2e
+# From monorepo root
+bun run e2e                # Run E2E tests (headless)
+bun run e2e:ui             # Run with interactive UI
+bun run e2e:debug          # Debug mode
 ```
+
+### MSW Development Mode
+
+Develop without a running backend using mocked API responses:
+
+```bash
+bun run dev:mock           # Start with mocked API
+```
+
+This uses the same MSW handlers as tests for consistency.
 
 ## Code Style
 

@@ -1314,261 +1314,58 @@ createRoot(document.getElementById('root')!).render(
 
 ---
 
-## Phase 11: Set Up Testing Infrastructure
+## Phase 11: Three-Tier Testing Strategy
 
-### Step 11.1: Create Vitest Config
+This project uses a comprehensive 3-tier testing approach. For complete details, see:
+- **[.claude/rules/web-testing.md](../../.claude/rules/web-testing.md)** - Full testing documentation
+- **[.claude/plans/virtual-dreaming-abelson.md](../../.claude/plans/)** - Detailed implementation plan
 
-Create `apps/web/vitest.config.ts`:
+### Testing Tiers Overview
 
-```typescript
-import { resolve } from 'node:path';
-import { defineConfig } from 'vitest/config';
+| Tier | Tool | Environment | Purpose | File Pattern |
+|------|------|-------------|---------|--------------|
+| **Unit/Integration** | Vitest + jsdom | Simulated DOM | Logic, hooks, components | `*.test.ts(x)` |
+| **Component (Browser)** | Vitest Browser Mode | Real browser | CSS, Canvas, browser APIs | `*.browser.test.tsx` |
+| **E2E** | Playwright | Real browser | Full user journeys | `*.e2e.ts` |
 
-export default defineConfig({
-  test: {
-    environment: 'happy-dom',
-    globals: true,
-    setupFiles: ['./src/__tests__/setup.ts'],
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/__tests__/'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
-});
+### Quick Start
+
+```bash
+# Install dependencies
+bun add -D vitest @testing-library/react @testing-library/jest-dom msw jsdom
+bun add -D @vitest/browser playwright
+bun add -D @playwright/test
+
+# Run tests
+bun test                    # Unit/integration tests
+bun test:browser            # Component tests in real browser
+bun run e2e                 # E2E tests (headless)
+bun run e2e:ui              # E2E tests with interactive UI
 ```
 
----
+### MSW Development Mode
 
-### Step 11.2: Create Test Setup
+Develop frontend without a running backend:
 
-Create `apps/web/src/__tests__/setup.ts`:
-
-```typescript
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, afterAll } from 'vitest';
-import { server } from './mocks/server';
-
-// Start MSW server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-
-// Reset handlers after each test
-afterEach(() => {
-  cleanup();
-  server.resetHandlers();
-});
-
-// Close MSW server after all tests
-afterAll(() => server.close());
+```bash
+bun run dev:mock            # Start with mocked API
 ```
 
----
+Uses the same MSW handlers as tests for consistency. See `.claude/rules/web-testing.md` for setup details.
 
-### Step 11.3: Create MSW Handlers
-
-Create `apps/web/src/__tests__/mocks/handlers.ts`:
-
-```typescript
-import { http, HttpResponse } from 'msw';
-
-const API_URL = 'http://localhost:3000';
-
-export const handlers = [
-  // Accounts
-  http.get(`${API_URL}/accounts`, () => {
-    return HttpResponse.json([
-      {
-        id: '1',
-        broker: 'degiro',
-        accountId: 'account-1',
-        accountName: 'Main Investment',
-        currency: 'EUR',
-        createdAt: '2024-01-01T00:00:00Z',
-      },
-    ]);
-  }),
-
-  // Positions
-  http.get(`${API_URL}/positions`, () => {
-    return HttpResponse.json([
-      {
-        id: '1',
-        quantity: 10,
-        avgCost: 100,
-        totalCost: 1000,
-        marketPrice: 110,
-        marketValue: 1100,
-        unrealizedPnl: 100,
-        currency: 'EUR',
-        account: { id: '1', broker: 'degiro' },
-        security: {
-          id: '1',
-          symbol: 'AAPL',
-          name: 'Apple Inc.',
-          isin: 'US0378331005',
-        },
-      },
-    ]);
-  }),
-
-  // Positions Summary
-  http.get(`${API_URL}/positions/summary`, () => {
-    return HttpResponse.json({
-      totalValue: 1100,
-      totalCost: 1000,
-      totalPnl: 100,
-      pnlPercentage: 10,
-      positionCount: 1,
-    });
-  }),
-
-  // Transactions
-  http.get(`${API_URL}/transactions`, () => {
-    return HttpResponse.json([
-      {
-        id: '1',
-        date: '2024-01-15T00:00:00Z',
-        type: 'buy',
-        quantity: 10,
-        price: 100,
-        amount: 1000,
-        fees: 2,
-        currency: 'EUR',
-        account: { id: '1', broker: 'degiro' },
-        security: { id: '1', symbol: 'AAPL', name: 'Apple Inc.' },
-      },
-    ]);
-  }),
-];
-```
-
----
-
-### Step 11.4: Create MSW Server
-
-Create `apps/web/src/__tests__/mocks/server.ts`:
-
-```typescript
-import { setupServer } from 'msw/node';
-import { handlers } from './handlers';
-
-export const server = setupServer(...handlers);
-```
-
----
-
-### Step 11.5: Create Test Utilities
-
-Create `apps/web/src/__tests__/test-utils.tsx`:
-
-```typescript
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider, createMemoryRouter } from '@tanstack/react-router';
-import { render, type RenderOptions } from '@testing-library/react';
-import type { ReactElement, ReactNode } from 'react';
-
-// Create a fresh QueryClient for each test
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0,
-      },
-    },
-  });
-}
-
-interface WrapperProps {
-  children: ReactNode;
-}
-
-function createWrapper() {
-  const queryClient = createTestQueryClient();
-
-  return function Wrapper({ children }: WrapperProps) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    );
-  };
-}
-
-function customRender(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
-) {
-  return render(ui, { wrapper: createWrapper(), ...options });
-}
-
-// Re-export everything from testing-library
-export * from '@testing-library/react';
-
-// Override render with our custom version
-export { customRender as render };
-```
-
----
-
-### Step 11.6: Add Example Test
-
-Create `apps/web/src/features/positions/__tests__/positions-table.spec.tsx`:
-
-```typescript
-import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { render } from '@/__tests__/test-utils';
-import { PositionsTable } from '../components/positions-table';
-
-describe('PositionsTable', () => {
-  it('renders loading state initially', () => {
-    render(<PositionsTable />);
-    expect(screen.getByText(/loading positions/i)).toBeInTheDocument();
-  });
-
-  it('renders positions after loading', async () => {
-    render(<PositionsTable />);
-
-    await waitFor(() => {
-      expect(screen.getByText('AAPL')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
-  });
-
-  it('displays the correct market value', async () => {
-    render(<PositionsTable />);
-
-    await waitFor(() => {
-      expect(screen.getByText('€1,100.00')).toBeInTheDocument();
-    });
-  });
-});
-```
-
----
-
-### Step 11.7: Add Test Scripts to package.json
-
-Update `apps/web/package.json` to add test scripts:
+### Test Scripts (package.json)
 
 ```json
 {
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:run": "vitest run",
+    "test:browser": "vitest --project browser",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:debug": "playwright test --debug",
+    "dev:mock": "VITE_MOCK_API=true vite"
   }
 }
 ```

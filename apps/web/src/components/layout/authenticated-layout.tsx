@@ -1,0 +1,40 @@
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { ImportModal } from '@/components/composed/import-modal';
+import { useAuth } from '@/features/auth';
+import { Header } from './header';
+import { NavTab } from './nav-tab';
+import { PageLayout } from './page-layout';
+
+export function AuthenticatedLayout() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isImportOpen, setIsImportOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: '/login' });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900">
+      <Header user={user} onImportClick={() => setIsImportOpen(true)} onSignOut={handleSignOut} />
+
+      <nav className="bg-slate-800 border-b border-slate-700">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex gap-1">
+            <NavTab to="/dashboard" label="Overview" />
+            <NavTab to="/positions" label="Positions" />
+            <NavTab to="/transactions" label="Transactions" />
+          </div>
+        </div>
+      </nav>
+
+      <PageLayout>
+        <Outlet />
+      </PageLayout>
+
+      <ImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
+    </div>
+  );
+}

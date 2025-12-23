@@ -1,40 +1,10 @@
+import type { Position } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
-import type { Position } from '@/lib/api';
-import { api } from '@/lib/api';
-
-function formatCurrency(value: number | undefined | null, currency = 'EUR'): string {
-  if (value === undefined || value === null) return '-';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatNumber(value: number | undefined | null, decimals = 2): string {
-  if (value === undefined || value === null) return '-';
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
-function formatPercent(value: number | undefined | null): string {
-  if (value === undefined || value === null) return '-';
-  const sign = value >= 0 ? '+' : '';
-  return `${sign}${value.toFixed(2)}%`;
-}
+import { positionListOptions } from '@/lib/api/queries/positions';
+import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 export function PositionsTable() {
-  const {
-    data: positions,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['positions'],
-    queryFn: api.getPositions,
-  });
+  const { data: positions, isLoading, error } = useQuery(positionListOptions());
 
   if (isLoading) {
     return (
@@ -94,13 +64,13 @@ export function PositionsTable() {
               return (
                 <tr key={position.id} className="hover:bg-slate-700/30 transition-colors">
                   <td className="px-4 py-3">
-                    <span className="font-medium text-white">{position.security.symbol}</span>
-                    {position.security.isin && (
+                    <span className="font-medium text-white">{position.security?.symbol}</span>
+                    {position.security?.isin && (
                       <span className="ml-2 text-xs text-slate-500">{position.security.isin}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-slate-300 max-w-xs truncate">
-                    {position.security.name}
+                    {position.security?.name}
                   </td>
                   <td className="px-4 py-3 text-right text-white">
                     {formatNumber(position.quantity, 4)}
@@ -122,7 +92,7 @@ export function PositionsTable() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-                      {position.account.broker}
+                      {position.account?.broker}
                     </span>
                   </td>
                 </tr>

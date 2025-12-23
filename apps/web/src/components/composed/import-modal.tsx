@@ -1,7 +1,10 @@
+import type { ImportResult } from '@repo/shared-types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
-import type { ImportResult } from '@/lib/api';
-import { api } from '@/lib/api';
+import { api } from '@/lib/api/client';
+import { accountKeys } from '@/lib/api/queries/accounts';
+import { positionKeys } from '@/lib/api/queries/positions';
+import { transactionKeys } from '@/lib/api/queries/transactions';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -71,10 +74,9 @@ export function ImportModal({ isOpen, onClose }: ImportModalProps) {
     },
     onSuccess: (data) => {
       setResult(data);
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['positions'] });
-      queryClient.invalidateQueries({ queryKey: ['positions-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: positionKeys.all });
+      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
     },
   });
 

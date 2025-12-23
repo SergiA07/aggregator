@@ -1,24 +1,8 @@
+import type { Transaction } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import type { Transaction } from '@/lib/api';
-import { api } from '@/lib/api';
-
-function formatCurrency(value: number, currency = 'EUR'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+import { transactionListOptions } from '@/lib/api/queries/transactions';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 
 const TYPE_COLORS: Record<string, string> = {
   buy: 'bg-green-900/50 text-green-400',
@@ -41,14 +25,12 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
     data: transactions,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['transactions', accountId, typeFilter],
-    queryFn: () =>
-      api.getTransactions({
-        accountId,
-        type: typeFilter || undefined,
-      }),
-  });
+  } = useQuery(
+    transactionListOptions({
+      accountId,
+      type: typeFilter || undefined,
+    }),
+  );
 
   if (isLoading) {
     return (
@@ -133,9 +115,9 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="font-medium text-white">{tx.security.symbol}</span>
+                  <span className="font-medium text-white">{tx.security?.symbol}</span>
                 </td>
-                <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{tx.security.name}</td>
+                <td className="px-4 py-3 text-slate-300 max-w-xs truncate">{tx.security?.name}</td>
                 <td className="px-4 py-3 text-right text-white">
                   {tx.quantity.toLocaleString('en-US', { maximumFractionDigits: 4 })}
                 </td>
@@ -150,7 +132,7 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-                    {tx.account.broker}
+                    {tx.account?.broker}
                   </span>
                 </td>
               </tr>

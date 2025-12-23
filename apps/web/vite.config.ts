@@ -1,6 +1,8 @@
 import { resolve } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
+import { playwright } from '@vitest/browser-playwright';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
@@ -15,6 +17,11 @@ export default defineConfig({
   // Without this, Vite would only look for .env in apps/web/
   envDir: '../../',
   plugins: [
+    // TanStack Router plugin MUST come before React plugin
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
     // SWC-based React plugin (20x faster than Babel)
     // SWC is a Rust-based compiler that replaces Babel for transforming JSX/TSX
     // Result: Faster dev server startup and hot module replacement (HMR)
@@ -69,7 +76,11 @@ export default defineConfig({
     // Pre-transform frequently used files on startup
     // This "warms up" the server so first page load is faster
     warmup: {
-      clientFiles: ['./src/main.tsx', './src/App.tsx', './src/components/*.tsx'],
+      clientFiles: [
+        './src/main.tsx',
+        './src/routes/__root.tsx',
+        './src/routes/_authenticated/route.tsx',
+      ],
     },
   },
   build: {
@@ -105,11 +116,38 @@ export default defineConfig({
   },
 
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
     },
+    // Multiple test environments via projects
+    projects: [
+      // Tier 1: jsdom tests (fast, simulated browser)
+      {
+        extends: './vite.config.ts',
+        test: {
+          name: 'jsdom',
+          environment: 'jsdom',
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: ['src/**/*.browser.test.{ts,tsx}'],
+          setupFiles: ['./src/__tests__/setup.ts'],
+        },
+      },
+      // Tier 2: Browser tests (real browser via Playwright)
+      {
+        extends: './vite.config.ts',
+        test: {
+          name: 'browser',
+          include: ['src/**/*.browser.test.{ts,tsx}'],
+          setupFiles: ['./src/__tests__/setup.browser.ts'],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+            testerHtmlPath: './src/__tests__/browser.html',
+          },
+        },
+      },
+    ],
   },
 });
