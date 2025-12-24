@@ -46,6 +46,23 @@ jobs:
             echo "⏭️ No API or database changes - skipping deploy"
           fi
 
+      - name: Setup Bun
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
+        run: bun install
+
+      - name: Run database migrations
+        if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
+        working-directory: packages/database
+        run: bunx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Install Railway CLI
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         run: npm install -g @railway/cli@4.15.1
