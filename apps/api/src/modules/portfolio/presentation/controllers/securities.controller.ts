@@ -76,21 +76,20 @@ export class SecuritiesController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateSecuritySchema)) dto: UpdateSecurityInput,
   ) {
-    const security = await this.securitiesService.findOne(id);
+    const security = await this.securitiesService.update(id, dto);
     if (!security) {
       throw new NotFoundException('Security not found');
     }
-    return this.securitiesService.update(id, dto);
+    return security;
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a security' })
   async deleteSecurity(@Param('id') id: string) {
-    const security = await this.securitiesService.findOne(id);
-    if (!security) {
+    const deleted = await this.securitiesService.delete(id);
+    if (!deleted) {
       throw new NotFoundException('Security not found');
     }
-    await this.securitiesService.delete(id);
     return { message: 'Security deleted' };
   }
 }

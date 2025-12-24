@@ -26,11 +26,11 @@ export class AccountsService {
     return this.accountRepository.create(userId, data);
   }
 
-  async update(userId: string, id: string, data: UpdateAccountData): Promise<Account> {
+  async update(userId: string, id: string, data: UpdateAccountData): Promise<Account | null> {
     return this.accountRepository.update(userId, id, data);
   }
 
-  async delete(userId: string, id: string): Promise<void> {
+  async delete(userId: string, id: string): Promise<boolean> {
     return this.accountRepository.delete(userId, id);
   }
 }

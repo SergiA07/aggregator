@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@repo/database';
+import { Prisma } from '@repo/database';
 import type { DatabaseService } from '../../../../shared/database';
 import type {
   CreateTransactionData,
@@ -9,6 +9,10 @@ import type {
   TransactionWithRelations,
   UpdateTransactionData,
 } from './transaction.repository.interface';
+
+function isRecordNotFound(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
+}
 
 @Injectable()
 export class TransactionRepository implements ITransactionRepository {
@@ -86,21 +90,36 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     id: string,
     data: UpdateTransactionData,
-  ): Promise<TransactionWithRelations> {
-    return this.db.transaction.update({
-      where: { id, userId },
-      data,
-      include: {
-        account: true,
-        security: true,
-      },
-    });
+  ): Promise<TransactionWithRelations | null> {
+    try {
+      return await this.db.transaction.update({
+        where: { id, userId },
+        data,
+        include: {
+          account: true,
+          security: true,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
-  async delete(userId: string, id: string): Promise<void> {
-    await this.db.transaction.delete({
-      where: { id, userId },
-    });
+  async delete(userId: string, id: string): Promise<boolean> {
+    try {
+      await this.db.transaction.delete({
+        where: { id, userId },
+      });
+      return true;
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   async getStats(userId: string, accountId?: string): Promise<TransactionStats> {

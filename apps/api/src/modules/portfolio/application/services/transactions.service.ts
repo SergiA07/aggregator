@@ -35,11 +35,11 @@ export class TransactionsService {
     userId: string,
     id: string,
     data: UpdateTransactionData,
-  ): Promise<TransactionWithRelations> {
+  ): Promise<TransactionWithRelations | null> {
     return this.transactionRepository.update(userId, id, data);
   }
 
-  async delete(userId: string, id: string): Promise<void> {
+  async delete(userId: string, id: string): Promise<boolean> {
     return this.transactionRepository.delete(userId, id);
   }
 

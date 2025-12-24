@@ -35,11 +35,11 @@ export class SecuritiesService {
     return this.securityRepository.create(data);
   }
 
-  async update(id: string, data: UpdateSecurityData): Promise<Security> {
+  async update(id: string, data: UpdateSecurityData): Promise<Security | null> {
     return this.securityRepository.update(id, data);
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<boolean> {
     return this.securityRepository.delete(id);
   }
 

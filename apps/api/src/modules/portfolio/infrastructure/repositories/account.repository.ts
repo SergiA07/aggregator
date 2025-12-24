@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import type { Account } from '@repo/database';
+import { Prisma } from '@repo/database';
 import type { DatabaseService } from '../../../../shared/database';
 import type {
   CreateAccountData,
   IAccountRepository,
   UpdateAccountData,
 } from './account.repository.interface';
+
+function isRecordNotFound(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
+}
 
 @Injectable()
 export class AccountRepository implements IAccountRepository {
@@ -42,16 +47,31 @@ export class AccountRepository implements IAccountRepository {
     });
   }
 
-  async update(userId: string, id: string, data: UpdateAccountData): Promise<Account> {
-    return this.db.account.update({
-      where: { id, userId },
-      data,
-    });
+  async update(userId: string, id: string, data: UpdateAccountData): Promise<Account | null> {
+    try {
+      return await this.db.account.update({
+        where: { id, userId },
+        data,
+      });
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
-  async delete(userId: string, id: string): Promise<void> {
-    await this.db.account.delete({
-      where: { id, userId },
-    });
+  async delete(userId: string, id: string): Promise<boolean> {
+    try {
+      await this.db.account.delete({
+        where: { id, userId },
+      });
+      return true;
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return false;
+      }
+      throw error;
+    }
   }
 }

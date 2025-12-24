@@ -42,8 +42,8 @@ export interface ISecurityRepository {
   findByIsin(isin: string): Promise<Security | null>;
   findBySymbol(symbol: string): Promise<Security | null>;
   create(data: CreateSecurityData): Promise<Security>;
-  update(id: string, data: UpdateSecurityData): Promise<Security>;
-  delete(id: string): Promise<void>;
+  update(id: string, data: UpdateSecurityData): Promise<Security | null>;
+  delete(id: string): Promise<boolean>;
   getOrCreate(data: GetOrCreateSecurityData): Promise<Security>;
   getSecuritiesWithPositions(userId: string): Promise<Security[]>;
 }

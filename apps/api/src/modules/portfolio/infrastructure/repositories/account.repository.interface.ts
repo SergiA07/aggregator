@@ -22,6 +22,6 @@ export interface IAccountRepository {
   findOne(userId: string, id: string): Promise<Account | null>;
   findByBroker(userId: string, broker: string): Promise<Account | null>;
   create(userId: string, data: CreateAccountData): Promise<Account>;
-  update(userId: string, id: string, data: UpdateAccountData): Promise<Account>;
-  delete(userId: string, id: string): Promise<void>;
+  update(userId: string, id: string, data: UpdateAccountData): Promise<Account | null>;
+  delete(userId: string, id: string): Promise<boolean>;
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Security } from '@repo/database';
+import { Prisma } from '@repo/database';
 import type { DatabaseService } from '../../../../shared/database';
 import type {
   CreateSecurityData,
@@ -7,6 +8,10 @@ import type {
   ISecurityRepository,
   UpdateSecurityData,
 } from './security.repository.interface';
+
+function isRecordNotFound(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025';
+}
 
 @Injectable()
 export class SecurityRepository implements ISecurityRepository {
@@ -67,17 +72,32 @@ export class SecurityRepository implements ISecurityRepository {
     });
   }
 
-  async update(id: string, data: UpdateSecurityData): Promise<Security> {
-    return this.db.security.update({
-      where: { id },
-      data,
-    });
+  async update(id: string, data: UpdateSecurityData): Promise<Security | null> {
+    try {
+      return await this.db.security.update({
+        where: { id },
+        data,
+      });
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return null;
+      }
+      throw error;
+    }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.db.security.delete({
-      where: { id },
-    });
+  async delete(id: string): Promise<boolean> {
+    try {
+      await this.db.security.delete({
+        where: { id },
+      });
+      return true;
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   async getOrCreate(data: GetOrCreateSecurityData): Promise<Security> {

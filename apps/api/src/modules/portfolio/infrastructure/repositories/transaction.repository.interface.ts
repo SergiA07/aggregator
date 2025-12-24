@@ -65,7 +65,7 @@ export interface ITransactionRepository {
     userId: string,
     id: string,
     data: UpdateTransactionData,
-  ): Promise<TransactionWithRelations>;
-  delete(userId: string, id: string): Promise<void>;
+  ): Promise<TransactionWithRelations | null>;
+  delete(userId: string, id: string): Promise<boolean>;
   getStats(userId: string, accountId?: string): Promise<TransactionStats>;
 }

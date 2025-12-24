@@ -91,24 +91,23 @@ export class TransactionsController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateTransactionSchema)) dto: UpdateTransactionInput,
   ) {
-    const transaction = await this.transactionsService.findOne(user.id, id);
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
-    }
-    return this.transactionsService.update(user.id, id, {
+    const transaction = await this.transactionsService.update(user.id, id, {
       ...dto,
       date: dto.date ? new Date(dto.date) : undefined,
     });
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+    return transaction;
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a transaction' })
   async deleteTransaction(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    const transaction = await this.transactionsService.findOne(user.id, id);
-    if (!transaction) {
+    const deleted = await this.transactionsService.delete(user.id, id);
+    if (!deleted) {
       throw new NotFoundException('Transaction not found');
     }
-    await this.transactionsService.delete(user.id, id);
     return { message: 'Transaction deleted' };
   }
 }

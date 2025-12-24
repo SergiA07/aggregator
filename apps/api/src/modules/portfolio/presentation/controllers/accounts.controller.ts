@@ -60,21 +60,20 @@ export class AccountsController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateAccountSchema)) dto: UpdateAccountInput,
   ) {
-    const account = await this.accountsService.findOne(user.id, id);
+    const account = await this.accountsService.update(user.id, id, dto);
     if (!account) {
       throw new NotFoundException('Account not found');
     }
-    return this.accountsService.update(user.id, id, dto);
+    return account;
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an account' })
   async deleteAccount(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    const account = await this.accountsService.findOne(user.id, id);
-    if (!account) {
+    const deleted = await this.accountsService.delete(user.id, id);
+    if (!deleted) {
       throw new NotFoundException('Account not found');
     }
-    await this.accountsService.delete(user.id, id);
     return { message: 'Account deleted' };
   }
 }
