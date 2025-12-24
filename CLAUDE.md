@@ -40,7 +40,10 @@ bun run dev:mock         # Start web with mocked API (MSW)
 # Database
 bunx supabase start      # Start local Supabase (requires Docker)
 bun run db:generate      # Generate Prisma client
-bun run db:push          # Push schema to database
+bun run db:push          # Push schema to database (dev only)
+bun run db:migrate       # Create new migration (dev)
+bun run db:migrate:deploy # Apply migrations (production)
+bun run db:migrate:status # Check migration status
 bun run db:studio        # Open Prisma Studio
 
 # Quality

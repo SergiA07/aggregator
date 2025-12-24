@@ -3,7 +3,7 @@
 
 .PHONY: help setup dev dev-api dev-web dev-mock dev-python clean clean-all \
         build lint type-check test test-browser e2e e2e-ui e2e-debug \
-        db-generate db-push db-reset db-studio kill-ports logs
+        db-generate db-push db-migrate db-migrate-status db-baseline-prod db-reset db-studio kill-ports logs
 
 # Default target - show help
 help:
@@ -28,10 +28,13 @@ help:
 	@echo "  make e2e-debug   - Run E2E tests in debug mode"
 	@echo ""
 	@echo "Database:"
-	@echo "  make db-generate - Generate Prisma client"
-	@echo "  make db-push     - Push schema changes to database"
-	@echo "  make db-reset    - Reset database (WARNING: deletes all data)"
-	@echo "  make db-studio   - Open Prisma Studio"
+	@echo "  make db-generate       - Generate Prisma client"
+	@echo "  make db-push           - Push schema changes to database (dev only)"
+	@echo "  make db-migrate        - Create new migration (dev)"
+	@echo "  make db-migrate-status - Check migration status"
+	@echo "  make db-baseline-prod  - Baseline production DB (one-time setup)"
+	@echo "  make db-reset          - Reset database (WARNING: deletes all data)"
+	@echo "  make db-studio         - Open Prisma Studio"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean       - Remove build artifacts and caches"
@@ -108,6 +111,23 @@ db-generate:
 
 db-push:
 	bun run db:push
+
+db-migrate:
+	bun run db:migrate
+
+db-migrate-status:
+	bun run db:migrate:status
+
+db-baseline-prod:
+	@echo "This will baseline your PRODUCTION database for Prisma migrations."
+	@echo "Only run this ONCE when setting up migrations on an existing database."
+	@echo ""
+	@echo "Required: Set DATABASE_URL to your production connection string"
+	@echo ""
+	@read -p "Continue? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
+	cd packages/database && bunx prisma migrate resolve --applied 0_init
+	@echo ""
+	@echo "Production database baselined. Future deployments will run migrations automatically."
 
 db-reset:
 	@echo "WARNING: This will delete all data in the database!"
