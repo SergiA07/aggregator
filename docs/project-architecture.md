@@ -222,12 +222,22 @@ my-aggregator-monorepo/
 │       └── pyproject.toml      # Dependencies (uv)
 │
 ├── packages/
-│   └── database/               # Shared Prisma client
-│       ├── prisma/
-│       │   └── schema.prisma   # Database schema
+│   ├── database/               # Shared Prisma client
+│   │   ├── prisma/
+│   │   │   └── schema.prisma   # Database schema
+│   │   └── src/
+│   │       ├── client.ts       # Singleton client
+│   │       └── index.ts        # Exports
+│   └── shared-types/           # Shared TypeScript types and Zod schemas
 │       └── src/
-│           ├── client.ts       # Singleton client
-│           └── index.ts        # Exports
+│           ├── api/            # API response types
+│           ├── schemas/        # Zod validation schemas (used by API and Web)
+│           │   ├── account.ts
+│           │   ├── auth.ts
+│           │   ├── security.ts
+│           │   ├── transaction.ts
+│           │   └── index.ts
+│           └── index.ts
 │
 ├── supabase/
 │   ├── config.toml             # Local dev config
@@ -359,11 +369,14 @@ src/
 #### State Management
 
 ```
-TanStack Query (Server State)
-├── ['positions']       # Cached positions list
-├── ['transactions']    # Cached transactions list
-├── ['accounts']        # Cached accounts list
-└── ['positions-summary'] # Cached portfolio totals
+TanStack Query (Server State) - Function-based key factories
+├── accountKeys.lists()       # ['accounts', 'list']
+├── accountKeys.detail(id)    # ['accounts', 'detail', id]
+├── positionKeys.lists()      # ['positions', 'list']
+├── positionKeys.list({accountId})  # ['positions', 'list', {accountId}]
+├── positionKeys.summary()    # ['positions', 'summary']
+├── transactionKeys.lists()   # ['transactions', 'list']
+└── transactionKeys.list(filters)   # ['transactions', 'list', filters]
 
 Zustand (Client State)
 └── usePreferences

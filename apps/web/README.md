@@ -130,8 +130,22 @@ Code is organized by business domain, not technical concern. Each feature:
 | Use Case | Tool |
 |----------|------|
 | API mutations affecting cache | TanStack Query `useMutation` |
-| Simple forms (login, settings) | React 19 `useActionState` |
+| Simple forms (login, settings) | React 19 `useActionState` + Zod |
 | Pending UI | `useFormStatus` |
+
+### Form Validation
+
+Forms use shared Zod schemas from `@repo/shared-types/schemas`:
+
+```typescript
+import { loginSchema, z } from '@repo/shared-types/schemas';
+
+const result = schema.safeParse(formData);
+if (!result.success) {
+  const flattened = z.flattenError(result.error);
+  // flattened.fieldErrors contains per-field error arrays
+}
+```
 
 ## React 19 Features
 

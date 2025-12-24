@@ -70,15 +70,46 @@ import { PositionsTable } from '@/features/positions';
 
 ## API-Specific (apps/api)
 
+### Path Aliases
+
+Use `@/*` for imports instead of relative paths:
+
+```typescript
+// Use path aliases
+import { ZodValidationPipe } from '@/shared/pipes';
+import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
+
+// Avoid deep relative imports
+import { ZodValidationPipe } from '../../../shared/pipes';  // Bad
+```
+
 ### File Suffixes
 
 - Suffix controllers with `.controller.ts`
 - Suffix services with `.service.ts`
 - Suffix modules with `.module.ts`
-- Suffix DTOs with `.dto.ts`
 - Suffix entities with `.entity.ts`
 - Suffix guards with `.guard.ts`
 - Suffix decorators with `.decorator.ts`
+- Suffix pipes with `.pipe.ts`
+
+### Validation with Zod
+
+Use shared Zod schemas from `@repo/shared-types/schemas` instead of class-validator DTOs:
+
+```typescript
+// controllers/accounts.controller.ts
+import { createAccountSchema, type CreateAccountInput } from '@repo/shared-types/schemas';
+import { ZodValidationPipe } from '@/shared/pipes';
+
+@Post()
+async createAccount(
+  @CurrentUser() user: AuthUser,
+  @Body(new ZodValidationPipe(createAccountSchema)) dto: CreateAccountInput,
+) {
+  return this.accountsService.create(user.id, dto);
+}
+```
 
 ## Web-Specific (apps/web)
 

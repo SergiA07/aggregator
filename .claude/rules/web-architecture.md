@@ -182,10 +182,13 @@ export interface RouterContext {
 ```typescript
 // routes/__root.tsx
 import { createRootRouteWithContext } from '@tanstack/react-router';
+import { ErrorFallback } from '@/components/error/error-fallback';
+import { RootLayout } from '@/components/layout/root-layout';
 import type { RouterContext } from '@/lib/router-context';
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootComponent,
+  component: RootLayout,
+  errorComponent: ErrorFallback,  // Global error boundary
 });
 ```
 
@@ -224,18 +227,34 @@ Use `queryOptions()` for reusable query configurations. Place in `lib/api/querie
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '../client';
 
-// Keys for cache invalidation
+/**
+ * Query key factory for positions
+ *
+ * Function-based pattern enables:
+ * - Type safety for parameters
+ * - Hierarchical invalidation (invalidating lists() invalidates all filtered lists)
+ * - Consistent structure across all entities
+ */
 export const positionKeys = {
-  all: ['positions'],
-  lists: ['positions', 'list'],
-  summaries: ['positions', 'summary'],
-} as const;
+  all: ['positions'] as const,
+  lists: () => [...positionKeys.all, 'list'] as const,
+  list: (filters: { accountId?: string }) => [...positionKeys.lists(), filters] as const,
+  summary: () => [...positionKeys.all, 'summary'] as const,
+};
 
 // Query options - reusable with useQuery, prefetchQuery, etc.
 export function positionListOptions() {
   return queryOptions({
-    queryKey: positionKeys.lists,
+    queryKey: positionKeys.lists(),
     queryFn: api.getPositions,
+  });
+}
+
+export function positionsByAccountOptions(accountId: string) {
+  return queryOptions({
+    queryKey: positionKeys.list({ accountId }),
+    queryFn: () => api.getPositionsByAccount(accountId),
+    enabled: !!accountId,
   });
 }
 ```
@@ -251,8 +270,11 @@ const { data } = useQuery(positionListOptions());
 // For prefetching (e.g., on hover)
 queryClient.prefetchQuery(positionListOptions());
 
-// For cache invalidation
+// For cache invalidation - all position queries
 queryClient.invalidateQueries({ queryKey: positionKeys.all });
+
+// For cache invalidation - all list queries (including filtered)
+queryClient.invalidateQueries({ queryKey: positionKeys.lists() });
 ```
 
 ### Mutations with Cache Invalidation
@@ -369,28 +391,72 @@ export const usePreferences = create<PreferencesState>()(
 | Simple forms (no cache) | React 19 `useActionState` |
 | Pending UI | `useFormStatus` |
 
-### useActionState Example (Login)
+### useActionState Example with Zod Validation
+
+Use shared Zod schemas from `@repo/shared-types/schemas` for consistent validation across frontend and API:
 
 ```typescript
-// features/auth/components/LoginForm.tsx
-import { useActionState } from 'react';
+// features/auth/components/login-form.tsx
+import { loginSchema, signUpSchema, z } from '@repo/shared-types/schemas';
+import { useActionState, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 
-async function loginAction(prevState: string | null, formData: FormData) {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  return error ? error.message : null;
+type AuthState = {
+  fieldErrors: { email?: string[]; password?: string[] };
+  formError: string | null;
+};
+
+const initialState: AuthState = { fieldErrors: {}, formError: null };
+
+function SubmitButton({ isSignUp }: { isSignUp: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending}>
+      {pending ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+    </button>
+  );
 }
 
 export function LoginForm() {
-  const [error, submitAction, isPending] = useActionState(loginAction, null);
+  const { signIn, signUp } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const authAction = async (_prevState: AuthState, formData: FormData): Promise<AuthState> => {
+    const rawData = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+    };
+
+    const schema = isSignUp ? signUpSchema : loginSchema;
+    const result = schema.safeParse(rawData);
+
+    if (!result.success) {
+      const flattened = z.flattenError(result.error);
+      return { fieldErrors: flattened.fieldErrors, formError: null };
+    }
+
+    try {
+      if (isSignUp) await signUp(result.data.email, result.data.password);
+      else await signIn(result.data.email, result.data.password);
+      return initialState;
+    } catch (err) {
+      return {
+        fieldErrors: {},
+        formError: err instanceof Error ? err.message : 'Authentication failed',
+      };
+    }
+  };
+
+  const [state, formAction] = useActionState(authAction, initialState);
 
   return (
-    <form action={submitAction}>
-      <input name="email" type="email" required />
-      <input name="password" type="password" required />
-      <SubmitButton>Sign In</SubmitButton>
-      {error && <p className="text-red-500">{error}</p>}
+    <form action={formAction}>
+      <input name="email" type="email" aria-invalid={!!state.fieldErrors.email} />
+      {state.fieldErrors.email && <p className="text-red-500">{state.fieldErrors.email[0]}</p>}
+      <input name="password" type="password" aria-invalid={!!state.fieldErrors.password} />
+      {state.fieldErrors.password && <p className="text-red-500">{state.fieldErrors.password[0]}</p>}
+      {state.formError && <p className="text-red-500">{state.formError}</p>}
+      <SubmitButton isSignUp={isSignUp} />
     </form>
   );
 }
