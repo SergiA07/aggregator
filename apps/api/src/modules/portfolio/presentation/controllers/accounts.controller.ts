@@ -11,9 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '../../../auth';
+import {
+  type CreateAccountInput,
+  createAccountSchema,
+  type UpdateAccountInput,
+  updateAccountSchema,
+} from '@repo/shared-types/schemas';
+import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
+import { ZodValidationPipe } from '@/shared/pipes';
 import { AccountsService } from '../../application/services';
-import type { CreateAccountDto, UpdateAccountDto } from '../dto';
 
 @ApiTags('Accounts')
 @ApiBearerAuth()
@@ -40,7 +46,10 @@ export class AccountsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new account' })
-  async createAccount(@CurrentUser() user: AuthUser, @Body() dto: CreateAccountDto) {
+  async createAccount(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(createAccountSchema)) dto: CreateAccountInput,
+  ) {
     return this.accountsService.create(user.id, dto);
   }
 
@@ -49,7 +58,7 @@ export class AccountsController {
   async updateAccount(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
-    @Body() dto: UpdateAccountDto,
+    @Body(new ZodValidationPipe(updateAccountSchema)) dto: UpdateAccountInput,
   ) {
     const account = await this.accountsService.findOne(user.id, id);
     if (!account) {

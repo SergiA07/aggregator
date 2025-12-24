@@ -12,9 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '../../../auth';
+import {
+  type CreateTransactionInput,
+  createTransactionSchema,
+  type UpdateTransactionInput,
+  updateTransactionSchema,
+} from '@repo/shared-types/schemas';
+import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
+import { ZodValidationPipe } from '@/shared/pipes';
 import { TransactionsService } from '../../application/services';
-import type { CreateTransactionDto, UpdateTransactionDto } from '../dto';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()
@@ -68,7 +74,10 @@ export class TransactionsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new transaction' })
-  async createTransaction(@CurrentUser() user: AuthUser, @Body() dto: CreateTransactionDto) {
+  async createTransaction(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(createTransactionSchema)) dto: CreateTransactionInput,
+  ) {
     return this.transactionsService.create(user.id, {
       ...dto,
       date: new Date(dto.date),
@@ -80,7 +89,7 @@ export class TransactionsController {
   async updateTransaction(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
-    @Body() dto: UpdateTransactionDto,
+    @Body(new ZodValidationPipe(updateTransactionSchema)) dto: UpdateTransactionInput,
   ) {
     const transaction = await this.transactionsService.findOne(user.id, id);
     if (!transaction) {

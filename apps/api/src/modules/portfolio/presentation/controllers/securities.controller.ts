@@ -12,9 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '../../../auth';
+import {
+  type CreateSecurityInput,
+  createSecuritySchema,
+  type UpdateSecurityInput,
+  updateSecuritySchema,
+} from '@repo/shared-types/schemas';
+import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
+import { ZodValidationPipe } from '@/shared/pipes';
 import { SecuritiesService } from '../../application/services';
-import type { CreateSecurityDto, UpdateSecurityDto } from '../dto';
 
 @ApiTags('Securities')
 @ApiBearerAuth()
@@ -58,13 +64,18 @@ export class SecuritiesController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new security' })
-  async createSecurity(@Body() dto: CreateSecurityDto) {
+  async createSecurity(
+    @Body(new ZodValidationPipe(createSecuritySchema)) dto: CreateSecurityInput,
+  ) {
     return this.securitiesService.create(dto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a security' })
-  async updateSecurity(@Param('id') id: string, @Body() dto: UpdateSecurityDto) {
+  async updateSecurity(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateSecuritySchema)) dto: UpdateSecurityInput,
+  ) {
     const security = await this.securitiesService.findOne(id);
     if (!security) {
       throw new NotFoundException('Security not found');
