@@ -8,7 +8,10 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_SECRET_KEY",
     "PYTHON_SERVICE_URL",
-    "VITE_*"
+    "VITE_*",
+    "PORT",
+    "FRONTEND_URL",
+    "DEV_MODE"
   ],
   "tasks": {
     "build": {
