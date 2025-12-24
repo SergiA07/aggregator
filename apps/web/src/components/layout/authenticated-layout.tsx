@@ -10,15 +10,27 @@ export function AuthenticatedLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate({ to: '/login' });
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      navigate({ to: '/login' });
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <Header user={user} onImportClick={() => setIsImportOpen(true)} onSignOut={handleSignOut} />
+      <Header
+        user={user}
+        onImportClick={() => setIsImportOpen(true)}
+        onSignOut={handleSignOut}
+        isSigningOut={isSigningOut}
+      />
 
       <nav className="bg-slate-800 border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4">

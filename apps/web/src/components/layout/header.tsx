@@ -4,9 +4,10 @@ interface HeaderProps {
   user: User | null;
   onImportClick: () => void;
   onSignOut: () => void;
+  isSigningOut?: boolean;
 }
 
-export function Header({ user, onImportClick, onSignOut }: HeaderProps) {
+export function Header({ user, onImportClick, onSignOut, isSigningOut }: HeaderProps) {
   return (
     <header className="bg-slate-800 border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -37,9 +38,10 @@ export function Header({ user, onImportClick, onSignOut }: HeaderProps) {
           <button
             type="button"
             onClick={onSignOut}
-            className="px-3 py-1 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-colors"
+            disabled={isSigningOut}
+            className="px-3 py-1 text-sm bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-white rounded-md transition-colors"
           >
-            Sign Out
+            {isSigningOut ? 'Signing out...' : 'Sign Out'}
           </button>
         </div>
       </div>
