@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { parse } from 'csv-parse/sync';
 
 export interface ParsedTransaction {
@@ -229,8 +230,8 @@ export abstract class BaseParser {
         symbol: string;
         isin?: string;
         name: string;
-        quantity: number;
-        totalCost: number;
+        quantity: BigNumber;
+        totalCost: BigNumber;
         currency: string;
       }
     >();
@@ -242,29 +243,33 @@ export abstract class BaseParser {
       const existing = positionMap.get(key);
 
       if (tx.type === 'buy') {
+        const txAmount = new BigNumber(tx.amount).abs();
+        const txFees = new BigNumber(tx.fees);
+        const txQuantity = new BigNumber(tx.quantity);
+
         if (existing) {
-          existing.quantity += tx.quantity;
-          existing.totalCost += Math.abs(tx.amount) + tx.fees;
+          existing.quantity = existing.quantity.plus(txQuantity);
+          existing.totalCost = existing.totalCost.plus(txAmount).plus(txFees);
         } else {
           positionMap.set(key, {
             symbol: tx.symbol,
             isin: tx.isin,
             name: tx.name,
-            quantity: tx.quantity,
-            totalCost: Math.abs(tx.amount) + tx.fees,
+            quantity: txQuantity,
+            totalCost: txAmount.plus(txFees),
             currency: tx.currency,
           });
         }
       } else if (tx.type === 'sell' && existing) {
-        const sellQuantity = Math.abs(tx.quantity);
-        const ratio = sellQuantity / existing.quantity;
+        const sellQuantity = new BigNumber(tx.quantity).abs();
+        const ratio = sellQuantity.dividedBy(existing.quantity);
 
         // Reduce cost proportionally
-        existing.totalCost = existing.totalCost * (1 - ratio);
-        existing.quantity -= sellQuantity;
+        existing.totalCost = existing.totalCost.times(new BigNumber(1).minus(ratio));
+        existing.quantity = existing.quantity.minus(sellQuantity);
 
         // Remove position if fully sold
-        if (existing.quantity <= 0.0001) {
+        if (existing.quantity.lte(0.0001)) {
           positionMap.delete(key);
         }
       }
@@ -272,14 +277,14 @@ export abstract class BaseParser {
 
     // Convert to array and calculate avg cost
     return Array.from(positionMap.values())
-      .filter((p) => p.quantity > 0.0001)
+      .filter((p) => p.quantity.gt(0.0001))
       .map((p) => ({
         symbol: p.symbol,
         isin: p.isin,
         name: p.name,
-        quantity: p.quantity,
-        avgCost: p.totalCost / p.quantity,
-        totalCost: p.totalCost,
+        quantity: p.quantity.toNumber(),
+        avgCost: p.totalCost.dividedBy(p.quantity).toNumber(),
+        totalCost: p.totalCost.toNumber(),
         currency: p.currency,
       }));
   }
