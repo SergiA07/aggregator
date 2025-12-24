@@ -1,6 +1,35 @@
+import { createHash } from 'node:crypto';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../shared/database';
 import { type BaseParser, DegiroParser, type ParseResult, TradeRepublicParser } from '../parsers';
+
+/**
+ * Generate a deterministic fingerprint for a transaction.
+ * Uses SHA-256 hash of key fields to create a unique identifier.
+ * This allows efficient duplicate detection via indexed lookup.
+ */
+function generateTransactionFingerprint(params: {
+  accountId: string;
+  securityId: string;
+  date: Date;
+  type: string;
+  quantity: number;
+  price: number;
+  amount: number;
+}): string {
+  // Use fixed-precision string representation to avoid float comparison issues
+  const data = [
+    params.accountId,
+    params.securityId,
+    params.date.toISOString().split('T')[0], // Date only (YYYY-MM-DD)
+    params.type,
+    params.quantity.toFixed(8),
+    params.price.toFixed(8),
+    params.amount.toFixed(2),
+  ].join('|');
+
+  return createHash('sha256').update(data).digest('hex').slice(0, 32);
+}
 
 export interface ImportResult {
   success: boolean;
@@ -86,22 +115,24 @@ export class ImportTransactionsUseCase {
           continue;
         }
 
-        // Check for duplicate
+        // Generate fingerprint for deduplication (used when externalId not available)
+        const fingerprint = tx.externalId
+          ? undefined
+          : generateTransactionFingerprint({
+              accountId: account.id,
+              securityId,
+              date: tx.date,
+              type: tx.type,
+              quantity: tx.quantity,
+              price: tx.price,
+              amount: tx.amount,
+            });
+
+        // Check for duplicate using externalId or fingerprint (both have unique constraints)
         const existing = await this.db.transaction.findFirst({
           where: tx.externalId
-            ? {
-                userId,
-                accountId: account.id,
-                externalId: tx.externalId,
-              }
-            : {
-                userId,
-                accountId: account.id,
-                securityId,
-                date: tx.date,
-                quantity: tx.quantity,
-                price: tx.price,
-              },
+            ? { userId, accountId: account.id, externalId: tx.externalId }
+            : { userId, fingerprint },
         });
         if (existing) {
           continue; // Skip duplicate
@@ -120,6 +151,7 @@ export class ImportTransactionsUseCase {
             fees: tx.fees,
             currency: tx.currency,
             externalId: tx.externalId,
+            fingerprint,
           },
         });
 
