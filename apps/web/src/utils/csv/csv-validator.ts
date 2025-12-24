@@ -1,3 +1,4 @@
+import { FILE_UPLOAD, formatMaxFileSize, isAllowedExtension } from '@repo/shared-types/validation';
 import {
   BROKERS,
   type BrokerId,
@@ -5,9 +6,6 @@ import {
   formatBrokerName,
   getDelimiterName,
 } from './csv-types';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const VALID_EXTENSIONS = ['.csv', '.txt'];
 
 const VALIDATION_ERROR_TYPES = {
   FILE_TOO_LARGE: 'file_too_large',
@@ -115,20 +113,17 @@ function headerMatches(header: string, alternatives: string[]): boolean {
  * Validate file size and type before reading
  */
 export function validateFile(file: File): ValidationError | null {
-  if (file.size > MAX_FILE_SIZE) {
+  if (file.size > FILE_UPLOAD.MAX_SIZE) {
     return {
       type: VALIDATION_ERROR_TYPES.FILE_TOO_LARGE,
-      message: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)} MB.`,
+      message: `File too large. Maximum size is ${formatMaxFileSize()}.`,
     };
   }
 
-  const fileName = file.name.toLowerCase();
-  const hasValidExtension = VALID_EXTENSIONS.some((ext) => fileName.endsWith(ext));
-
-  if (!hasValidExtension) {
+  if (!isAllowedExtension(file.name)) {
     return {
       type: VALIDATION_ERROR_TYPES.INVALID_TYPE,
-      message: 'Invalid file type. Please upload a CSV or TXT file.',
+      message: `Invalid file type. Allowed extensions: ${FILE_UPLOAD.ALLOWED_EXTENSIONS.join(', ')}`,
     };
   }
 

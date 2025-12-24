@@ -198,7 +198,7 @@ describe('csv-validator', () => {
     });
 
     it('formats sabadell', () => {
-      expect(formatBrokerName('sabadell')).toBe('Sabadell');
+      expect(formatBrokerName('sabadell')).toBe('Sabadell Bank');
     });
 
     it('returns original for unknown broker', () => {
