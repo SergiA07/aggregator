@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1: Prune monorepo for minimal Docker context
-FROM oven/bun:1 AS pruner
+FROM oven/bun:1.3.5 AS pruner
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN turbo prune @repo/api --docker
 
 # Stage 2: Install dependencies
-FROM oven/bun:1 AS installer
+FROM oven/bun:1.3.5 AS installer
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ COPY --from=pruner /app/out/json/ .
 RUN bun install
 
 # Stage 3: Build the application
-FROM oven/bun:1 AS builder
+FROM oven/bun:1.3.5 AS builder
 
 WORKDIR /app
 
@@ -45,7 +45,7 @@ RUN cd packages/database && bun run db:generate
 RUN cd apps/api && bun run build
 
 # Stage 4: Production dependencies only
-FROM oven/bun:1 AS prod-deps
+FROM oven/bun:1.3.5 AS prod-deps
 
 WORKDIR /app
 
@@ -57,7 +57,7 @@ COPY --from=pruner /app/out/json/ .
 RUN bun install --production --ignore-scripts
 
 # Stage 5: Production runtime
-FROM oven/bun:1-alpine AS runner
+FROM oven/bun:1.3.5-alpine AS runner
 
 WORKDIR /app
 
