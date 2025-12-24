@@ -40,10 +40,12 @@ async function bootstrap() {
 
   // Register CORS at Fastify level (before any NestJS middleware)
   // Using app.register is the recommended approach for Fastify plugins
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (isProd && !frontendUrl) {
+    throw new Error('FRONTEND_URL environment variable is required in production');
+  }
   await app.register(cors, {
-    origin: isProd
-      ? [process.env.FRONTEND_URL || 'https://yourdomain.com']
-      : ['http://localhost:5173'],
+    origin: isProd ? [frontendUrl!] : ['http://localhost:5173'],
     credentials: true, // Allow cookies/auth headers
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
