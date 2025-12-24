@@ -41,6 +41,11 @@
       "groupName": "Biome"
     },
     {
+      "description": "Group Docker base images",
+      "matchManagers": ["dockerfile"],
+      "groupName": "Docker images"
+    },
+    {
       "description": "Automerge non-major dev dependency updates",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
