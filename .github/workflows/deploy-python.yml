@@ -23,7 +23,7 @@ jobs:
       - name: Check for Python changes
         id: changes
         if: github.event_name == 'workflow_run'
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files: |
             apps/python-service/**/*.py
@@ -46,7 +46,7 @@ jobs:
 
       - name: Install Railway CLI
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
-        run: npm install -g @railway/cli
+        run: npm install -g @railway/cli@4.15.1
 
       - name: Deploy to Railway
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
