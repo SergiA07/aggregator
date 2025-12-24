@@ -54,6 +54,7 @@ export type TransactionMinAggregateOutputType = {
   currency: string | null
   notes: string | null
   externalId: string | null
+  fingerprint: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -72,6 +73,7 @@ export type TransactionMaxAggregateOutputType = {
   currency: string | null
   notes: string | null
   externalId: string | null
+  fingerprint: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -90,6 +92,7 @@ export type TransactionCountAggregateOutputType = {
   currency: number
   notes: number
   externalId: number
+  fingerprint: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -124,6 +127,7 @@ export type TransactionMinAggregateInputType = {
   currency?: true
   notes?: true
   externalId?: true
+  fingerprint?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -142,6 +146,7 @@ export type TransactionMaxAggregateInputType = {
   currency?: true
   notes?: true
   externalId?: true
+  fingerprint?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +165,7 @@ export type TransactionCountAggregateInputType = {
   currency?: true
   notes?: true
   externalId?: true
+  fingerprint?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -265,6 +271,7 @@ export type TransactionGroupByOutputType = {
   currency: string
   notes: string | null
   externalId: string | null
+  fingerprint: string | null
   createdAt: Date
   updatedAt: Date
   _count: TransactionCountAggregateOutputType | null
@@ -306,6 +313,7 @@ export type TransactionWhereInput = {
   currency?: Prisma.StringFilter<"Transaction"> | string
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
@@ -326,6 +334,7 @@ export type TransactionOrderByWithRelationInput = {
   currency?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  fingerprint?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   account?: Prisma.AccountOrderByWithRelationInput
@@ -335,6 +344,7 @@ export type TransactionOrderByWithRelationInput = {
 export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   userId_accountId_externalId?: Prisma.TransactionUserIdAccountIdExternalIdCompoundUniqueInput
+  userId_fingerprint?: Prisma.TransactionUserIdFingerprintCompoundUniqueInput
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
@@ -350,11 +360,12 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   currency?: Prisma.StringFilter<"Transaction"> | string
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   security?: Prisma.XOR<Prisma.SecurityScalarRelationFilter, Prisma.SecurityWhereInput>
-}, "id" | "userId_accountId_externalId">
+}, "id" | "userId_accountId_externalId" | "userId_fingerprint">
 
 export type TransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -370,6 +381,7 @@ export type TransactionOrderByWithAggregationInput = {
   currency?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  fingerprint?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TransactionCountOrderByAggregateInput
@@ -396,6 +408,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   currency?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  fingerprint?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
 }
@@ -412,6 +425,7 @@ export type TransactionCreateInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
@@ -432,6 +446,7 @@ export type TransactionUncheckedCreateInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -448,6 +463,7 @@ export type TransactionUpdateInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
@@ -468,6 +484,7 @@ export type TransactionUncheckedUpdateInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -486,6 +503,7 @@ export type TransactionCreateManyInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -502,6 +520,7 @@ export type TransactionUpdateManyMutationInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -520,6 +539,7 @@ export type TransactionUncheckedUpdateManyInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -540,6 +560,11 @@ export type TransactionUserIdAccountIdExternalIdCompoundUniqueInput = {
   externalId: string
 }
 
+export type TransactionUserIdFingerprintCompoundUniqueInput = {
+  userId: string
+  fingerprint: string
+}
+
 export type TransactionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
@@ -554,6 +579,7 @@ export type TransactionCountOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
+  fingerprint?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -579,6 +605,7 @@ export type TransactionMaxOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
+  fingerprint?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -597,6 +624,7 @@ export type TransactionMinOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
+  fingerprint?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -712,6 +740,7 @@ export type TransactionCreateWithoutAccountInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   security: Prisma.SecurityCreateNestedOneWithoutTransactionsInput
@@ -730,6 +759,7 @@ export type TransactionUncheckedCreateWithoutAccountInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -777,6 +807,7 @@ export type TransactionScalarWhereInput = {
   currency?: Prisma.StringFilter<"Transaction"> | string
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
 }
@@ -793,6 +824,7 @@ export type TransactionCreateWithoutSecurityInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
@@ -811,6 +843,7 @@ export type TransactionUncheckedCreateWithoutSecurityInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -854,6 +887,7 @@ export type TransactionCreateManyAccountInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -870,6 +904,7 @@ export type TransactionUpdateWithoutAccountInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   security?: Prisma.SecurityUpdateOneRequiredWithoutTransactionsNestedInput
@@ -888,6 +923,7 @@ export type TransactionUncheckedUpdateWithoutAccountInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -905,6 +941,7 @@ export type TransactionUncheckedUpdateManyWithoutAccountInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -922,6 +959,7 @@ export type TransactionCreateManySecurityInput = {
   currency?: string
   notes?: string | null
   externalId?: string | null
+  fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -938,6 +976,7 @@ export type TransactionUpdateWithoutSecurityInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
@@ -956,6 +995,7 @@ export type TransactionUncheckedUpdateWithoutSecurityInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -973,6 +1013,7 @@ export type TransactionUncheckedUpdateManyWithoutSecurityInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -993,6 +1034,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   currency?: boolean
   notes?: boolean
   externalId?: boolean
+  fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
@@ -1013,6 +1055,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   currency?: boolean
   notes?: boolean
   externalId?: boolean
+  fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
@@ -1033,6 +1076,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   currency?: boolean
   notes?: boolean
   externalId?: boolean
+  fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
@@ -1053,11 +1097,12 @@ export type TransactionSelectScalar = {
   currency?: boolean
   notes?: boolean
   externalId?: boolean
+  fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "securityId" | "date" | "type" | "quantity" | "price" | "amount" | "fees" | "currency" | "notes" | "externalId" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "securityId" | "date" | "type" | "quantity" | "price" | "amount" | "fees" | "currency" | "notes" | "externalId" | "fingerprint" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
@@ -1091,6 +1136,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     currency: string
     notes: string | null
     externalId: string | null
+    fingerprint: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["transaction"]>
@@ -1531,6 +1577,7 @@ export interface TransactionFieldRefs {
   readonly currency: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly externalId: Prisma.FieldRef<"Transaction", 'String'>
+  readonly fingerprint: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
 }

@@ -120,6 +120,7 @@ export const TransactionScalarFieldEnum = {
   currency: 'currency',
   notes: 'notes',
   externalId: 'externalId',
+  fingerprint: 'fingerprint',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -47,26 +47,28 @@ model Security {
 
 // Transactions (buy, sell, dividend, etc.)
 model Transaction {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  accountId  String   @map("account_id")
-  securityId String   @map("security_id")
-  date       DateTime
-  type       String   // buy, sell, dividend, split, transfer
-  quantity   Decimal  @db.Decimal(18, 8)
-  price      Decimal  @db.Decimal(18, 8)
-  amount     Decimal  @db.Decimal(18, 2) // Total amount (quantity * price)
-  fees       Decimal  @default(0) @db.Decimal(18, 2)
-  currency   String   @default("EUR")
-  notes      String?
-  externalId String?  @map("external_id") // ID from broker for deduplication
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  accountId   String   @map("account_id")
+  securityId  String   @map("security_id")
+  date        DateTime
+  type        String   // buy, sell, dividend, split, transfer
+  quantity    Decimal  @db.Decimal(18, 8)
+  price       Decimal  @db.Decimal(18, 8)
+  amount      Decimal  @db.Decimal(18, 2) // Total amount (quantity * price)
+  fees        Decimal  @default(0) @db.Decimal(18, 2)
+  currency    String   @default("EUR")
+  notes       String?
+  externalId  String?  @map("external_id") // ID from broker for deduplication
+  fingerprint String?  // Hash of transaction fields for deduplication without externalId
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   security Security @relation(fields: [securityId], references: [id])
 
   @@unique([userId, accountId, externalId])
+  @@unique([userId, fingerprint])
   @@map("transactions")
 }
 
