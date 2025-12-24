@@ -5,10 +5,14 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./api": "./src/api/index.ts"
+    "./api": "./src/api/index.ts",
+    "./schemas": "./src/schemas/index.ts"
   },
   "devDependencies": {
     "@repo/config": "workspace:*",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.2.1"
   }
 }
