@@ -1,0 +1,53 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices", ":prHourlyLimit4", ":prConcurrentLimit10"],
+  "labels": ["dependencies"],
+  "schedule": ["before 9am on monday"],
+  "timezone": "Europe/Madrid",
+  "packageRules": [
+    {
+      "description": "Group TanStack packages",
+      "matchPackagePatterns": ["^@tanstack/"],
+      "groupName": "TanStack"
+    },
+    {
+      "description": "Group Supabase packages",
+      "matchPackagePatterns": ["^@supabase/"],
+      "groupName": "Supabase"
+    },
+    {
+      "description": "Group NestJS packages",
+      "matchPackagePatterns": ["^@nestjs/"],
+      "groupName": "NestJS"
+    },
+    {
+      "description": "Group testing packages",
+      "matchPackagePatterns": ["vitest", "playwright", "@testing-library/", "msw"],
+      "groupName": "testing"
+    },
+    {
+      "description": "Group GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Railway CLI in workflows",
+      "matchPackageNames": ["@railway/cli"],
+      "groupName": "Railway CLI"
+    },
+    {
+      "description": "Group Biome",
+      "matchPackagePatterns": ["^@biomejs/"],
+      "groupName": "Biome"
+    },
+    {
+      "description": "Automerge non-major dev dependency updates",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    }
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps"
+}
