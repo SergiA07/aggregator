@@ -15,21 +15,28 @@
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '../client';
 
-// Query key constants for invalidation
-// `as const` makes these readonly and gives exact literal types
+/**
+ * Query key factory for positions
+ *
+ * Hierarchical structure enables efficient invalidation:
+ *   - positionKeys.all → invalidates everything
+ *   - positionKeys.lists() → invalidates all list queries
+ *   - positionKeys.list({ accountId }) → invalidates filtered list
+ *   - positionKeys.summary() → invalidates summary
+ */
 export const positionKeys = {
-  all: ['positions'],
-  lists: ['positions', 'list'],
-  summaries: ['positions', 'summary'],
-  byAccount: ['positions', 'byAccount'],
-} as const;
+  all: ['positions'] as const,
+  lists: () => [...positionKeys.all, 'list'] as const,
+  list: (filters: { accountId?: string }) => [...positionKeys.lists(), filters] as const,
+  summary: () => [...positionKeys.all, 'summary'] as const,
+};
 
 /**
  * Query options for fetching all positions
  */
 export function positionListOptions() {
   return queryOptions({
-    queryKey: positionKeys.lists,
+    queryKey: positionKeys.lists(),
     queryFn: api.getPositions,
   });
 }
@@ -39,7 +46,7 @@ export function positionListOptions() {
  */
 export function positionSummaryOptions() {
   return queryOptions({
-    queryKey: positionKeys.summaries,
+    queryKey: positionKeys.summary(),
     queryFn: api.getPositionsSummary,
   });
 }
@@ -49,7 +56,7 @@ export function positionSummaryOptions() {
  */
 export function positionsByAccountOptions(accountId: string) {
   return queryOptions({
-    queryKey: [...positionKeys.byAccount, accountId],
+    queryKey: positionKeys.list({ accountId }),
     queryFn: () => api.getPositionsByAccount(accountId),
     enabled: !!accountId,
   });

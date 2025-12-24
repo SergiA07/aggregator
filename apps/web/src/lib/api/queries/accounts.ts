@@ -19,20 +19,26 @@
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '../client';
 
-// Query key constants for invalidation
-// `as const` makes these readonly and gives exact literal types
+/**
+ * Query key factory for accounts
+ *
+ * Hierarchical structure enables efficient invalidation:
+ *   - accountKeys.all → invalidates everything
+ *   - accountKeys.lists() → invalidates all list queries
+ *   - accountKeys.detail(id) → invalidates specific account
+ */
 export const accountKeys = {
-  all: ['accounts'],
-  lists: ['accounts', 'list'],
-  details: ['accounts', 'detail'],
-} as const;
+  all: ['accounts'] as const,
+  lists: () => [...accountKeys.all, 'list'] as const,
+  detail: (id: string) => [...accountKeys.all, 'detail', id] as const,
+};
 
 /**
  * Query options for fetching all accounts
  */
 export function accountListOptions() {
   return queryOptions({
-    queryKey: accountKeys.lists,
+    queryKey: accountKeys.lists(),
     queryFn: api.getAccounts,
   });
 }
@@ -42,7 +48,7 @@ export function accountListOptions() {
  */
 export function accountDetailOptions(id: string) {
   return queryOptions({
-    queryKey: [...accountKeys.details, id],
+    queryKey: accountKeys.detail(id),
     queryFn: () => api.getAccount(id),
     enabled: !!id,
   });

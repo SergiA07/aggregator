@@ -21,19 +21,27 @@ export interface TransactionFilters {
   type?: string;
 }
 
-// Query key constants for invalidation
-// `as const` makes these readonly and gives exact literal types
+/**
+ * Query key factory for transactions
+ *
+ * Hierarchical structure enables efficient invalidation:
+ *   - transactionKeys.all → invalidates everything
+ *   - transactionKeys.lists() → invalidates all list queries
+ *   - transactionKeys.list(filters) → invalidates filtered list
+ */
 export const transactionKeys = {
-  all: ['transactions'],
-  lists: ['transactions', 'list'],
-} as const;
+  all: ['transactions'] as const,
+  lists: () => [...transactionKeys.all, 'list'] as const,
+  list: (filters?: TransactionFilters) =>
+    filters ? ([...transactionKeys.lists(), filters] as const) : transactionKeys.lists(),
+};
 
 /**
  * Query options for fetching transactions with optional filters
  */
 export function transactionListOptions(filters?: TransactionFilters) {
   return queryOptions({
-    queryKey: filters ? [...transactionKeys.lists, filters] : transactionKeys.lists,
+    queryKey: transactionKeys.list(filters),
     queryFn: () => api.getTransactions(filters),
   });
 }
