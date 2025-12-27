@@ -179,12 +179,14 @@ data/database/portfolio.db  # SQLite database file
 
 ## Pre-Migration Checklist
 
-- [ ] Set up Supabase locally (`supabase start`)
-- [ ] Run Prisma migrations (`bun run db:push`)
+- [ ] Set up Supabase locally (`bunx supabase start`)
+- [ ] Apply Prisma migrations (`make db-migrate`)
 - [ ] Create a test user in Supabase Auth
 - [ ] Copy CSV source files to monorepo
 - [ ] Decide on migration approach (A, B, or C)
 - [ ] Implement or adapt importers as needed
+
+See [prisma-migrations.md](prisma-migrations.md) for detailed migration workflow.
 
 ---
 
