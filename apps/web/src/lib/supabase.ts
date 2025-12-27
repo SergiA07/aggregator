@@ -4,10 +4,9 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const isMockMode = import.meta.env.VITE_MOCK_API === 'true';
-const isDevMode = import.meta.env.VITE_DEV_MODE === 'true';
 
 if (!supabaseUrl || !supabasePublishableKey) {
-  if (!isMockMode && !isDevMode) {
+  if (!isMockMode && !import.meta.env.DEV) {
     throw new Error('Missing Supabase environment variables');
   }
   console.warn('Supabase credentials not set. Auth features will not work.');

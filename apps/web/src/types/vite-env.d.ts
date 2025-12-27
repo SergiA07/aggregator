@@ -3,5 +3,5 @@ interface ImportMetaEnv {
   readonly VITE_MOCK_API: string;
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_PUBLISHABLE_KEY: string;
-  readonly VITE_DEV_MODE: string;
+  readonly DEV: boolean;
 }

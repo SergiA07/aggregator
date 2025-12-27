@@ -7,7 +7,7 @@ export const Route = createFileRoute('/_authenticated')({
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    const isDev = import.meta.env.VITE_DEV_MODE === 'true';
+    const isDev = import.meta.env.DEV;
 
     if (!session && !isDev) {
       throw redirect({ to: '/login' });
