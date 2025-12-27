@@ -10,8 +10,7 @@
     "PYTHON_SERVICE_URL",
     "VITE_*",
     "PORT",
-    "FRONTEND_URL",
-    "DEV_MODE"
+    "FRONTEND_URL"
   ],
   "tasks": {
     "build": {
