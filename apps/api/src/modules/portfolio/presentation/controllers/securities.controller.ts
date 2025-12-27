@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,7 +19,7 @@ import {
   type UpdateSecurityInput,
   updateSecuritySchema,
 } from '@repo/shared-types/schemas';
-import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
+import { AdminGuard, type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
 import { ZodValidationPipe } from '@/shared/pipes';
 import { SecuritiesService } from '../../application/services';
 
@@ -31,8 +32,15 @@ export class SecuritiesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all securities' })
-  @ApiQuery({ name: 'search', required: false, description: 'Search by symbol, name, or ISIN' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by symbol, name, or ISIN (max 100 chars)',
+  })
   async getSecurities(@Query('search') search?: string) {
+    if (search && search.length > 100) {
+      throw new BadRequestException('Search query too long (max 100 characters)');
+    }
     return this.securitiesService.findAll(search);
   }
 
@@ -63,7 +71,8 @@ export class SecuritiesController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new security' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Create a new security (admin only)' })
   async createSecurity(
     @Body(new ZodValidationPipe(createSecuritySchema)) dto: CreateSecurityInput,
   ) {
@@ -71,7 +80,8 @@ export class SecuritiesController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update a security' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Update a security (admin only)' })
   async updateSecurity(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateSecuritySchema)) dto: UpdateSecurityInput,
@@ -84,7 +94,8 @@ export class SecuritiesController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a security' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete a security (admin only)' })
   async deleteSecurity(@Param('id') id: string) {
     const deleted = await this.securitiesService.delete(id);
     if (!deleted) {
