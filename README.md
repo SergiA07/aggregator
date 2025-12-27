@@ -34,16 +34,22 @@ Before starting, ensure you have the following installed:
     Start the local Supabase instance:
 
     ```bash
-    npx supabase start
+    bunx supabase start
     ```
 
-    Push the database schema:
+    Apply database migrations:
 
     ```bash
-    bun run db:push
+    make db-migrate
     ```
 
-    *Note: If you don't have the Supabase CLI installed globally, `npx` will download and run it for you.*
+    Or use the alternative commands:
+    ```bash
+    bun run db:migrate        # Create and apply migrations (dev)
+    bun run db:migrate:status # Check migration status
+    ```
+
+    For a complete guide on database migrations, see [docs/prisma-migrations.md](docs/prisma-migrations.md).
 
 ## Running the Project
 
