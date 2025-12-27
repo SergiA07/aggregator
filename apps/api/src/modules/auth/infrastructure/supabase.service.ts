@@ -19,7 +19,7 @@ export class SupabaseAuthService implements IAuthService {
 
     if (!supabaseUrl || !supabaseKey) {
       // In dev mode, we can skip Supabase client initialization
-      if (process.env.DEV_MODE === 'true') {
+      if (process.env.NODE_ENV === 'development') {
         console.warn('Supabase credentials not set, running in dev mode without auth');
         return;
       }
@@ -58,9 +58,13 @@ export class SupabaseAuthService implements IAuthService {
     }
 
     // Map Supabase User to our AuthUser interface
+    // Role comes from app_metadata (set by admin, not user-editable)
+    const role = data.user.app_metadata?.role === 'admin' ? 'admin' : 'user';
+
     return {
       id: data.user.id,
       email: data.user.email,
+      role,
       metadata: {
         ...data.user.user_metadata,
         ...data.user.app_metadata,

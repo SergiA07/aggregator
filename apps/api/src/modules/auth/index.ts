@@ -5,7 +5,8 @@ export * from './auth.module';
 export * from './domain/interfaces';
 // Service (concrete implementation)
 export * from './infrastructure/supabase.service';
-// Guard (uses interface)
+export * from './presentation/admin.guard';
+// Guards
 export * from './presentation/auth.guard';
 
 // Decorator

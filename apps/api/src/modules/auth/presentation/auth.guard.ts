@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Development mode bypass - use mock user when no auth header and in dev mode
-    const isDev = process.env.DEV_MODE === 'true';
+    const isDev = process.env.NODE_ENV === 'development';
 
     const authHeader = request.headers.authorization;
 
