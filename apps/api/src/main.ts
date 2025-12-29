@@ -88,7 +88,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3333;
   await app.listen({ port: Number(port), host: '0.0.0.0' });
-  console.log(`API running on port ${port}`);
+  console.log(`API running on port ${port} (${process.env.NODE_ENV ?? 'development'})`);
   console.log(`Swagger docs available at /api/docs`);
 }
 
