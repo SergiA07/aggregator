@@ -91,4 +91,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start the application
 # Migrations are run in CI/CD before deployment (not at container startup)
+# Force rebuild: 2024-12-29
 CMD ["bun", "run", "dist/main.js"]
