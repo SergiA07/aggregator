@@ -24,9 +24,11 @@ apps/api/src/
 │   │   │   ├── services/             # AccountsService, TransactionsService
 │   │   │   ├── use-cases/            # ImportTransactionsUseCase
 │   │   │   └── parsers/              # BaseParser, DegiroParser, etc.
-│   │   ├── infrastructure/repositories/
-│   │   │   ├── account.repository.ts
-│   │   │   └── account.repository.interface.ts
+│   │   ├── infrastructure/
+│   │   │   ├── repositories/         # Database access
+│   │   │   │   ├── account.repository.ts
+│   │   │   │   └── account.repository.interface.ts
+│   │   │   └── services/             # External API clients (OpenFIGI, etc.)
 │   │   ├── presentation/
 │   │   │   ├── controllers/          # AccountsController, etc.
 │   │   │   └── dto/                  # Organized by entity

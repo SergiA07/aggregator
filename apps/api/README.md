@@ -149,10 +149,12 @@ src/
 │       │       └── trade-republic-parser.ts
 │       │
 │       ├── infrastructure/
-│       │   └── repositories/         # Database access
-│       │       ├── account.repository.ts
-│       │       ├── account.repository.interface.ts
-│       │       └── ... (other repositories)
+│       │   ├── repositories/         # Database access
+│       │   │   ├── account.repository.ts
+│       │   │   ├── account.repository.interface.ts
+│       │   │   └── ... (other repositories)
+│       │   └── services/             # External API clients
+│       │       └── openfigi.service.ts  # Security type lookup via OpenFIGI
 │       │
 │       ├── presentation/
 │       │   ├── controllers/          # HTTP endpoints

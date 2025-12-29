@@ -272,13 +272,13 @@ Go to your repo → Settings → Secrets and variables → Actions
 | `RAILWAY_TOKEN` | Your Railway API token |
 | `CLOUDFLARE_API_TOKEN` | Your Cloudflare API token |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable key (`sb_publishable_...`) |
 
 **Variables (non-sensitive):**
 | Variable Name | Value |
 |---------------|-------|
 | `VITE_API_URL` | `https://portfolio-api-production.up.railway.app` |
 | `VITE_SUPABASE_URL` | `https://your-project.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable key (not sensitive) |
 
 #### 3. Link Railway services
 
