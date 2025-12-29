@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Security } from '@repo/database';
 import { Prisma } from '@repo/database';
-import type { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '../../../../shared/database';
 import type {
   CreateSecurityData,
   GetOrCreateSecurityData,
@@ -15,7 +15,7 @@ function isRecordNotFound(error: unknown): boolean {
 
 @Injectable()
 export class SecurityRepository implements ISecurityRepository {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
   async findAll(search?: string): Promise<Security[]> {
     if (search) {

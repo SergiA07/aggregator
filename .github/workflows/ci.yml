@@ -52,3 +52,38 @@ jobs:
 
       - name: Test affected packages
         run: bunx turbo test --filter=...[${{ steps.base.outputs.ref }}]
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API Docker image
+        run: docker build -t api-test -f apps/api/Dockerfile .
+
+      - name: Verify container starts (DI resolution)
+        run: |
+          # Run container and capture output
+          # We expect it to fail on SUPABASE config, but NOT on DI resolution errors
+          OUTPUT=$(docker run --rm \
+            -e DATABASE_URL="postgresql://test:test@localhost:5432/test" \
+            -e SUPABASE_URL="https://test.supabase.co" \
+            -e SUPABASE_ANON_KEY="test" \
+            -e SUPABASE_SERVICE_KEY="test" \
+            api-test timeout 10s bun run dist/main.js 2>&1 || true)
+
+          echo "$OUTPUT"
+
+          # Fail if we see dependency resolution errors
+          if echo "$OUTPUT" | grep -q "UnknownDependenciesException"; then
+            echo "::error::NestJS dependency injection failed - check for type imports of injectable classes"
+            exit 1
+          fi
+
+          # Fail if we see module resolution errors
+          if echo "$OUTPUT" | grep -q "Cannot find module"; then
+            echo "::error::Module resolution failed - check path aliases and imports"
+            exit 1
+          fi
+
+          echo "✅ Container startup verification passed"

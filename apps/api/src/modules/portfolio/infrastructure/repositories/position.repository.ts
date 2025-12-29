@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import type { DatabaseService } from '../../../../shared/database';
+import { Inject, Injectable } from '@nestjs/common';
+import { DatabaseService } from '../../../../shared/database';
 import type {
   IPositionRepository,
   PositionSummaryStats,
@@ -8,7 +8,7 @@ import type {
 
 @Injectable()
 export class PositionRepository implements IPositionRepository {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
   async findByUser(userId: string): Promise<PositionWithRelations[]> {
     return this.db.position.findMany({

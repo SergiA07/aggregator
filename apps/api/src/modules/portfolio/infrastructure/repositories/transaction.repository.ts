@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/database';
-import type { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '../../../../shared/database';
 import type {
   CreateTransactionData,
   ITransactionRepository,
@@ -16,7 +16,7 @@ function isRecordNotFound(error: unknown): boolean {
 
 @Injectable()
 export class TransactionRepository implements ITransactionRepository {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
   async findByUser(
     userId: string,

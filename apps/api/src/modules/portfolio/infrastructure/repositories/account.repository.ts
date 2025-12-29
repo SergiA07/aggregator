@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Account } from '@repo/database';
 import { Prisma } from '@repo/database';
-import type { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '../../../../shared/database';
 import type {
   CreateAccountData,
   IAccountRepository,
@@ -14,7 +14,7 @@ function isRecordNotFound(error: unknown): boolean {
 
 @Injectable()
 export class AccountRepository implements IAccountRepository {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
   async findByUser(userId: string): Promise<Account[]> {
     return this.db.account.findMany({

@@ -4,7 +4,7 @@ import { Prisma } from '@repo/database';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { DatabaseService } from '../../../../shared/database';
 import { SecurityEntity } from '../../domain/entities';
-import type { OpenFigiService } from '../../infrastructure/services';
+import { OpenFigiService } from '../../infrastructure/services';
 import type { BaseParser, ParseResult } from '../parsers';
 
 /** Injection token for CSV parsers */
@@ -60,7 +60,7 @@ export class ImportTransactionsUseCase {
     @Inject(DatabaseService) private readonly db: DatabaseService,
     @InjectPinoLogger(ImportTransactionsUseCase.name) private readonly logger: PinoLogger,
     @Inject(CSV_PARSERS) private readonly parsers: BaseParser[],
-    private readonly openFigiService: OpenFigiService,
+    @Inject(OpenFigiService) private readonly openFigiService: OpenFigiService,
   ) {}
 
   async execute(
