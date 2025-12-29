@@ -28,5 +28,6 @@ REVOKE ALL ON bank_accounts FROM authenticated;
 REVOKE ALL ON bank_transactions FROM authenticated;
 REVOKE ALL ON price_history FROM authenticated;
 
--- Note: _prisma_migrations table warning can be ignored as it's internal to Prisma
--- and not accessible via normal PostgREST queries due to naming convention
+-- Revoke access to Prisma's internal migration tracking table
+REVOKE ALL ON _prisma_migrations FROM anon;
+REVOKE ALL ON _prisma_migrations FROM authenticated;
