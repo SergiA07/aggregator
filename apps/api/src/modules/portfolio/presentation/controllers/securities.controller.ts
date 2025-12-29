@@ -19,6 +19,7 @@ import {
   type UpdateSecurityInput,
   updateSecuritySchema,
 } from '@repo/shared-types/schemas';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { AdminGuard, type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
 import { ZodValidationPipe } from '@/shared/pipes';
 import { SecuritiesService } from '../../application/services';
@@ -28,7 +29,10 @@ import { SecuritiesService } from '../../application/services';
 @Controller('securities')
 @UseGuards(SupabaseAuthGuard)
 export class SecuritiesController {
-  constructor(@Inject(SecuritiesService) private readonly securitiesService: SecuritiesService) {}
+  constructor(
+    @Inject(SecuritiesService) private readonly securitiesService: SecuritiesService,
+    @InjectPinoLogger(SecuritiesController.name) private readonly logger: PinoLogger,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all securities' })
@@ -74,15 +78,22 @@ export class SecuritiesController {
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Create a new security (admin only)' })
   async createSecurity(
+    @CurrentUser() user: AuthUser,
     @Body(new ZodValidationPipe(createSecuritySchema)) dto: CreateSecurityInput,
   ) {
-    return this.securitiesService.create(dto);
+    const security = await this.securitiesService.create(dto);
+    this.logger.info(
+      { adminId: user.id, securityId: security.id, symbol: security.symbol },
+      'Security created',
+    );
+    return security;
   }
 
   @Put(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Update a security (admin only)' })
   async updateSecurity(
+    @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateSecuritySchema)) dto: UpdateSecurityInput,
   ) {
@@ -90,17 +101,19 @@ export class SecuritiesController {
     if (!security) {
       throw new NotFoundException('Security not found');
     }
+    this.logger.info({ adminId: user.id, securityId: id }, 'Security updated');
     return security;
   }
 
   @Delete(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Delete a security (admin only)' })
-  async deleteSecurity(@Param('id') id: string) {
+  async deleteSecurity(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.securitiesService.delete(id);
     if (!deleted) {
       throw new NotFoundException('Security not found');
     }
+    this.logger.info({ adminId: user.id, securityId: id }, 'Security deleted');
     return { message: 'Security deleted' };
   }
 }

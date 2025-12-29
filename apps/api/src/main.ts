@@ -6,31 +6,22 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   // Create NestJS app with Fastify adapter
-  // Enable Pino logger in production for high-performance structured logging
+  // Logging is handled by nestjs-pino (configured in AppModule)
   const isProd = process.env.NODE_ENV === 'production';
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({
-      logger: isProd
-        ? {
-            level: 'info',
-            // Pino transport for pretty printing in production logs
-            transport: undefined, // Use default JSON format in prod
-          }
-        : {
-            level: 'debug',
-            transport: {
-              target: 'pino-pretty', // Pretty print in development
-              options: { colorize: true },
-            },
-          },
-    }),
+    new FastifyAdapter(),
+    { bufferLogs: true }, // Buffer logs until nestjs-pino is ready
   );
+
+  // Use nestjs-pino as the application logger
+  app.useLogger(app.get(Logger));
 
   // Register compression plugin - compresses HTTP responses with gzip/brotli
   // This reduces bandwidth usage significantly (especially for JSON responses)

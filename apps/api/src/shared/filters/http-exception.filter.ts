@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 
 interface ErrorResponse {
   statusCode: number;
@@ -17,6 +18,8 @@ interface ErrorResponse {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(@InjectPinoLogger(HttpExceptionFilter.name) private readonly logger: PinoLogger) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
@@ -39,7 +42,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       // Log unexpected errors but don't expose details to client
-      console.error('Unhandled exception:', exception);
+      this.logger.error(
+        {
+          method: request.method,
+          url: request.url,
+          error: exception.message,
+          stack: exception.stack,
+        },
+        'Unhandled exception',
+      );
       message = 'An unexpected error occurred';
     }
 

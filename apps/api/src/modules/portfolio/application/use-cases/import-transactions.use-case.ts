@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/database';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { DatabaseService } from '../../../../shared/database';
 import { type BaseParser, DegiroParser, type ParseResult, TradeRepublicParser } from '../parsers';
 
@@ -52,7 +53,10 @@ export interface ImportResult {
 export class ImportTransactionsUseCase {
   private readonly parsers: BaseParser[] = [new DegiroParser(), new TradeRepublicParser()];
 
-  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
+  constructor(
+    @Inject(DatabaseService) private readonly db: DatabaseService,
+    @InjectPinoLogger(ImportTransactionsUseCase.name) private readonly logger: PinoLogger,
+  ) {}
 
   async execute(
     userId: string,
@@ -72,15 +76,22 @@ export class ImportTransactionsUseCase {
     }
 
     if (!parser) {
+      this.logger.warn({ userId, filename }, 'Import failed: could not detect broker format');
       throw new BadRequestException(
         'Could not detect broker format. Supported formats: DeGiro, Trade Republic',
       );
     }
 
+    this.logger.info({ userId, broker: parser.broker, filename }, 'Import started');
+
     // Parse the CSV
     const parseResult = parser.parse(content);
 
     if (parseResult.transactions.length === 0 && parseResult.positions.length === 0) {
+      this.logger.warn(
+        { userId, errors: parseResult.errors },
+        'Import failed: no transactions found',
+      );
       throw new BadRequestException(
         `No transactions found in file. Parsing errors: ${parseResult.errors.join(', ')}`,
       );
@@ -217,7 +228,7 @@ export class ImportTransactionsUseCase {
       }
     }
 
-    return {
+    const result = {
       success: errors.length < parseResult.transactions.length,
       broker: parseResult.broker,
       accountId: account.id,
@@ -226,6 +237,19 @@ export class ImportTransactionsUseCase {
       securitiesCreated,
       errors,
     };
+
+    this.logger.info(
+      {
+        accountId: account.id,
+        transactionsImported,
+        positionsCreated,
+        securitiesCreated,
+        errorCount: errors.length,
+      },
+      'Import completed',
+    );
+
+    return result;
   }
 
   private async getOrCreateAccount(userId: string, broker: string) {

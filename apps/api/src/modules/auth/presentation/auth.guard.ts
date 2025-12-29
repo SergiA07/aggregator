@@ -5,6 +5,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { AUTH_SERVICE, createDevUser, type IAuthService } from '../domain/interfaces';
 
 /**
@@ -18,6 +19,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     @Inject(AUTH_SERVICE)
     private readonly authService: IAuthService,
+    @InjectPinoLogger(AuthGuard.name) private readonly logger: PinoLogger,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,6 +41,10 @@ export class AuthGuard implements CanActivate {
         request.user = createDevUser();
         return true;
       }
+      this.logger.warn(
+        { method: request.method, url: request.url, reason: 'missing_header' },
+        'Auth failed',
+      );
       throw new UnauthorizedException('No authorization header');
     }
 
@@ -49,6 +55,10 @@ export class AuthGuard implements CanActivate {
         request.user = createDevUser();
         return true;
       }
+      this.logger.warn(
+        { method: request.method, url: request.url, reason: 'empty_token' },
+        'Auth failed',
+      );
       throw new UnauthorizedException('No token provided');
     }
 
@@ -59,6 +69,10 @@ export class AuthGuard implements CanActivate {
         request.user = createDevUser();
         return true;
       }
+      this.logger.warn(
+        { method: request.method, url: request.url, reason: 'invalid_token' },
+        'Auth failed',
+      );
       throw new UnauthorizedException('Invalid token');
     }
 
