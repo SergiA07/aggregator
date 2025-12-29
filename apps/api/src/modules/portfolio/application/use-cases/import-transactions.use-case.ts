@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@repo/database';
 import { DatabaseService } from '../../../../shared/database';
 import { type BaseParser, DegiroParser, type ParseResult, TradeRepublicParser } from '../parsers';
 
@@ -157,11 +158,12 @@ export class ImportTransactionsUseCase {
 
         transactionsImported++;
       } catch (error) {
-        const message = error instanceof Error ? error.message : '';
-        if (message.includes('Unique constraint failed')) {
+        // P2002 = Unique constraint violation (duplicate transaction)
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
           continue;
         }
-        errors.push(`Failed to import transaction: ${message || 'Unknown'}`);
+        const message = error instanceof Error ? error.message : 'Unknown';
+        errors.push(`Failed to import transaction: ${message}`);
       }
     }
 
@@ -227,20 +229,20 @@ export class ImportTransactionsUseCase {
   }
 
   private async getOrCreateAccount(userId: string, broker: string) {
-    const existing = await this.db.account.findFirst({
-      where: { userId, broker },
-    });
-
-    if (existing) return existing;
-
-    return this.db.account.create({
-      data: {
+    // Use database-level upsert to prevent race conditions
+    // The @@unique([userId, broker]) constraint ensures atomic operation
+    return this.db.account.upsert({
+      where: {
+        userId_broker: { userId, broker },
+      },
+      create: {
         userId,
         broker,
         accountId: `${broker}-${Date.now()}`,
         accountName: `${broker.charAt(0).toUpperCase() + broker.slice(1)} Account`,
         currency: 'EUR',
       },
+      update: {}, // No-op if account already exists
     });
   }
 
