@@ -21,6 +21,7 @@ model Account {
   positions    Position[]
   transactions Transaction[]
 
+  @@unique([userId, broker], name: "userId_broker")
   @@unique([userId, broker, accountId])
   @@map("accounts")
 }

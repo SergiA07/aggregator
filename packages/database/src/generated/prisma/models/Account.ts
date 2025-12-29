@@ -225,6 +225,7 @@ export type AccountOrderByWithRelationInput = {
 
 export type AccountWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  userId_broker?: Prisma.AccountUserId_brokerCompoundUniqueInput
   userId_broker_accountId?: Prisma.AccountUserIdBrokerAccountIdCompoundUniqueInput
   AND?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
   OR?: Prisma.AccountWhereInput[]
@@ -238,7 +239,7 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   positions?: Prisma.PositionListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
-}, "id" | "userId_broker_accountId">
+}, "id" | "userId_broker" | "userId_broker_accountId">
 
 export type AccountOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -351,6 +352,11 @@ export type AccountUncheckedUpdateManyInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AccountUserId_brokerCompoundUniqueInput = {
+  userId: string
+  broker: string
 }
 
 export type AccountUserIdBrokerAccountIdCompoundUniqueInput = {
