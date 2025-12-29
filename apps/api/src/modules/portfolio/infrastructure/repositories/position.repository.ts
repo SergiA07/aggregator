@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { DatabaseService } from '../../../../shared/database';
-import type { IPositionRepository, PositionWithRelations } from './position.repository.interface';
+import type {
+  IPositionRepository,
+  PositionSummaryStats,
+  PositionWithRelations,
+} from './position.repository.interface';
 
 @Injectable()
 export class PositionRepository implements IPositionRepository {
@@ -25,5 +29,24 @@ export class PositionRepository implements IPositionRepository {
       },
       orderBy: { marketValue: 'desc' },
     });
+  }
+
+  async getSummaryStats(userId: string): Promise<PositionSummaryStats> {
+    const result = await this.db.position.aggregate({
+      where: { userId },
+      _sum: {
+        marketValue: true,
+        totalCost: true,
+        unrealizedPnl: true,
+      },
+      _count: true,
+    });
+
+    return {
+      totalValue: result._sum.marketValue?.toNumber() ?? 0,
+      totalCost: result._sum.totalCost?.toNumber() ?? 0,
+      totalPnl: result._sum.unrealizedPnl?.toNumber() ?? 0,
+      positionCount: result._count,
+    };
   }
 }

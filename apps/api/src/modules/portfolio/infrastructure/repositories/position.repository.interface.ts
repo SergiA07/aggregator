@@ -9,8 +9,17 @@ export interface PositionWithRelations extends Position {
   security?: { id: string; symbol: string; name: string };
 }
 
+// Summary stats calculated via database aggregation
+export interface PositionSummaryStats {
+  totalValue: number;
+  totalCost: number;
+  totalPnl: number;
+  positionCount: number;
+}
+
 // Repository interface
 export interface IPositionRepository {
   findByUser(userId: string): Promise<PositionWithRelations[]>;
   findByAccount(userId: string, accountId: string): Promise<PositionWithRelations[]>;
+  getSummaryStats(userId: string): Promise<PositionSummaryStats>;
 }

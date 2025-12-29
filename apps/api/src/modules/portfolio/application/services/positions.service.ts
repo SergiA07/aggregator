@@ -21,18 +21,11 @@ export class PositionsService {
   }
 
   async getSummary(userId: string) {
-    const positions = await this.findByUser(userId);
-
-    const totalValue = positions.reduce((sum, p) => sum + (p.marketValue?.toNumber() ?? 0), 0);
-    const totalCost = positions.reduce((sum, p) => sum + p.totalCost.toNumber(), 0);
-    const totalPnl = positions.reduce((sum, p) => sum + (p.unrealizedPnl?.toNumber() ?? 0), 0);
+    const stats = await this.positionRepository.getSummaryStats(userId);
 
     return {
-      totalValue,
-      totalCost,
-      totalPnl,
-      pnlPercentage: totalCost > 0 ? (totalPnl / totalCost) * 100 : 0,
-      positionCount: positions.length,
+      ...stats,
+      pnlPercentage: stats.totalCost > 0 ? (stats.totalPnl / stats.totalCost) * 100 : 0,
     };
   }
 }

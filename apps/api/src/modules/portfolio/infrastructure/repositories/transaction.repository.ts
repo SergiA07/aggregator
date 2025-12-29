@@ -128,44 +128,51 @@ export class TransactionRepository implements ITransactionRepository {
       where.accountId = accountId;
     }
 
-    const transactions = await this.db.transaction.findMany({
-      where,
-      select: {
-        type: true,
-        amount: true,
-        fees: true,
-      },
-    });
+    // Use database aggregates instead of fetching all rows
+    const [totals, byType] = await Promise.all([
+      // Get total count and sum of fees
+      this.db.transaction.aggregate({
+        where,
+        _count: true,
+        _sum: { fees: true },
+      }),
+      // Get counts and amounts grouped by transaction type
+      this.db.transaction.groupBy({
+        by: ['type'],
+        where,
+        _count: { id: true },
+        _sum: { amount: true },
+      }),
+    ]);
 
+    // Build stats from aggregated results
     const stats: TransactionStats = {
-      totalTransactions: transactions.length,
+      totalTransactions: totals._count,
+      totalFees: totals._sum.fees?.toNumber() ?? 0,
       totalBuys: 0,
       totalSells: 0,
       totalDividends: 0,
-      totalFees: 0,
       buyAmount: 0,
       sellAmount: 0,
       dividendAmount: 0,
     };
 
-    for (const tx of transactions) {
-      const amount = tx.amount.toNumber();
-      const fees = tx.fees.toNumber();
+    for (const group of byType) {
+      const count = group._count.id;
+      const amount = group._sum.amount?.toNumber() ?? 0;
 
-      stats.totalFees += fees;
-
-      switch (tx.type) {
+      switch (group.type) {
         case 'buy':
-          stats.totalBuys++;
-          stats.buyAmount += amount;
+          stats.totalBuys = count;
+          stats.buyAmount = amount;
           break;
         case 'sell':
-          stats.totalSells++;
-          stats.sellAmount += amount;
+          stats.totalSells = count;
+          stats.sellAmount = amount;
           break;
         case 'dividend':
-          stats.totalDividends++;
-          stats.dividendAmount += amount;
+          stats.totalDividends = count;
+          stats.dividendAmount = amount;
           break;
       }
     }
