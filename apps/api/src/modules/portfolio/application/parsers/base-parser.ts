@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { parse } from 'csv-parse/sync';
+import type { PinoLogger } from 'nestjs-pino';
 
 export interface ParsedTransaction {
   date: Date;
@@ -35,6 +36,8 @@ export interface ParseResult {
 export abstract class BaseParser {
   abstract readonly broker: string;
 
+  constructor(protected readonly logger?: PinoLogger) {}
+
   abstract canParse(content: string, filename?: string): boolean;
   abstract parse(content: string): ParseResult;
 
@@ -65,8 +68,11 @@ export abstract class BaseParser {
         relax_column_count: relaxColumnCount,
         trim: true,
       });
-    } catch (_error) {
-      // Try different encodings if parsing fails
+    } catch (error) {
+      this.logger?.warn(
+        { error: error instanceof Error ? error.message : 'Unknown error' },
+        'CSV parsing failed, returning empty result',
+      );
       return [];
     }
   }

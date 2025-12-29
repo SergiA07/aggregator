@@ -8,12 +8,18 @@ import {
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 
+interface ValidationFieldError {
+  field: string;
+  messages: string[];
+}
+
 interface ErrorResponse {
   statusCode: number;
   message: string | string[];
   error: string;
   timestamp: string;
   path: string;
+  errors?: ValidationFieldError[];
 }
 
 @Catch()
@@ -28,6 +34,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | string[] = 'Internal server error';
     let error = 'Internal Server Error';
+    let validationErrors: ValidationFieldError[] | undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -39,6 +46,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const res = exceptionResponse as Record<string, unknown>;
         message = (res.message as string | string[]) || message;
         error = (res.error as string) || exception.name;
+        // Preserve validation errors from ZodValidationPipe
+        if (Array.isArray(res.errors)) {
+          validationErrors = res.errors as ValidationFieldError[];
+        }
       }
     } else if (exception instanceof Error) {
       // Log unexpected errors but don't expose details to client
@@ -60,6 +71,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error,
       timestamp: new Date().toISOString(),
       path: request.url,
+      ...(validationErrors && { errors: validationErrors }),
     };
 
     response.status(status).send(errorResponse);

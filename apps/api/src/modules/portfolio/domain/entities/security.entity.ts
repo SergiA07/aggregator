@@ -7,6 +7,17 @@
 
 export type SecurityType = 'stock' | 'etf' | 'bond' | 'fund' | 'crypto' | 'other';
 
+/**
+ * Keywords used to infer security type from name.
+ * Extracted as constants for maintainability and testability.
+ */
+export const SECURITY_TYPE_KEYWORDS: Record<Exclude<SecurityType, 'stock' | 'other'>, string[]> = {
+  etf: ['etf', 'ishares', 'vanguard', 'spdr', 'invesco', 'xtrackers', 'amundi'],
+  bond: ['bond', 'treasury', 'gilt', 'bund', 'obligation'],
+  fund: ['fund', 'fonds', 'sicav', 'ucits'],
+  crypto: ['bitcoin', 'ethereum', 'crypto', 'btc', 'eth'],
+};
+
 export class SecurityEntity {
   constructor(
     public readonly id: string,
@@ -88,27 +99,15 @@ export class SecurityEntity {
   }
 
   /**
-   * Infer security type from name
+   * Infer security type from name using keyword matching
    */
   static inferType(name: string): SecurityType {
     const lower = name.toLowerCase();
 
-    if (
-      lower.includes('etf') ||
-      lower.includes('ishares') ||
-      lower.includes('vanguard') ||
-      lower.includes('spdr')
-    ) {
-      return 'etf';
-    }
-    if (lower.includes('bond') || lower.includes('treasury') || lower.includes('gilt')) {
-      return 'bond';
-    }
-    if (lower.includes('fund') || lower.includes('fonds') || lower.includes('sicav')) {
-      return 'fund';
-    }
-    if (lower.includes('bitcoin') || lower.includes('ethereum') || lower.includes('crypto')) {
-      return 'crypto';
+    for (const [type, keywords] of Object.entries(SECURITY_TYPE_KEYWORDS)) {
+      if (keywords.some((keyword) => lower.includes(keyword))) {
+        return type as SecurityType;
+      }
     }
 
     return 'stock';

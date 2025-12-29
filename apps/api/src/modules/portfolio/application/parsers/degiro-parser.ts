@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { BaseParser, type ParsedTransaction, type ParseResult } from './base-parser';
 
 /**
@@ -8,8 +10,13 @@ import { BaseParser, type ParsedTransaction, type ParseResult } from './base-par
  *
  * Supports both Spanish and English column names.
  */
+@Injectable()
 export class DegiroParser extends BaseParser {
   readonly broker = 'degiro';
+
+  constructor(@InjectPinoLogger(DegiroParser.name) logger: PinoLogger) {
+    super(logger);
+  }
 
   // Column name mappings (Spanish -> English)
   private readonly columnMappings: Record<string, string> = {

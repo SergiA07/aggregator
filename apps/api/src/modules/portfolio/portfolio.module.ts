@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { DatabaseService } from '../../shared/database';
+import { DegiroParser, TradeRepublicParser } from './application/parsers';
 import {
   AccountsService,
   PositionsService,
   SecuritiesService,
   TransactionsService,
 } from './application/services';
-import { ImportTransactionsUseCase } from './application/use-cases';
+import { CSV_PARSERS, ImportTransactionsUseCase } from './application/use-cases';
 import {
   ACCOUNT_REPOSITORY,
   AccountRepository,
@@ -17,6 +18,7 @@ import {
   TRANSACTION_REPOSITORY,
   TransactionRepository,
 } from './infrastructure/repositories';
+import { OpenFigiService } from './infrastructure/services';
 import {
   AccountsController,
   ImportController,
@@ -61,6 +63,19 @@ import {
     PositionsService,
     TransactionsService,
     SecuritiesService,
+    OpenFigiService,
+
+    // Parsers (injectable with logging)
+    DegiroParser,
+    TradeRepublicParser,
+    {
+      provide: CSV_PARSERS,
+      useFactory: (degiro: DegiroParser, tradeRepublic: TradeRepublicParser) => [
+        degiro,
+        tradeRepublic,
+      ],
+      inject: [DegiroParser, TradeRepublicParser],
+    },
 
     // Use cases
     ImportTransactionsUseCase,

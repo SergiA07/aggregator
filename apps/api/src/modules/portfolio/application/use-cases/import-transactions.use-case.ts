@@ -3,7 +3,12 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/database';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { DatabaseService } from '../../../../shared/database';
-import { type BaseParser, DegiroParser, type ParseResult, TradeRepublicParser } from '../parsers';
+import { SecurityEntity } from '../../domain/entities';
+import type { OpenFigiService } from '../../infrastructure/services';
+import type { BaseParser, ParseResult } from '../parsers';
+
+/** Injection token for CSV parsers */
+export const CSV_PARSERS = Symbol('CSV_PARSERS');
 
 /**
  * Generate a deterministic fingerprint for a transaction.
@@ -51,11 +56,11 @@ export interface ImportResult {
  */
 @Injectable()
 export class ImportTransactionsUseCase {
-  private readonly parsers: BaseParser[] = [new DegiroParser(), new TradeRepublicParser()];
-
   constructor(
     @Inject(DatabaseService) private readonly db: DatabaseService,
     @InjectPinoLogger(ImportTransactionsUseCase.name) private readonly logger: PinoLogger,
+    @Inject(CSV_PARSERS) private readonly parsers: BaseParser[],
+    private readonly openFigiService: OpenFigiService,
   ) {}
 
   async execute(
@@ -306,6 +311,13 @@ export class ImportTransactionsUseCase {
       }
     }
 
+    // Batch lookup security types via OpenFIGI for all ISINs
+    const isins = Array.from(securitiesToCreate.values())
+      .map((s) => s.isin)
+      .filter((isin): isin is string => !!isin);
+
+    const openFigiTypes = await this.openFigiService.lookupByIsin(isins);
+
     for (const [key, sec] of securitiesToCreate) {
       try {
         let security = sec.isin
@@ -313,16 +325,30 @@ export class ImportTransactionsUseCase {
           : await this.db.security.findFirst({ where: { symbol: sec.symbol } });
 
         if (!security) {
+          // Use OpenFIGI result if available, otherwise fall back to keyword inference
+          const securityType =
+            (sec.isin && openFigiTypes.get(sec.isin)) || SecurityEntity.inferType(sec.name);
+
           security = await this.db.security.create({
             data: {
               symbol: sec.symbol,
               isin: sec.isin,
               name: sec.name,
-              securityType: this.inferSecurityType(sec.name),
+              securityType,
               currency: sec.currency,
             },
           });
           created++;
+
+          this.logger.debug(
+            {
+              symbol: sec.symbol,
+              isin: sec.isin,
+              securityType,
+              source: sec.isin && openFigiTypes.has(sec.isin) ? 'openfigi' : 'inference',
+            },
+            'Security created',
+          );
         }
 
         securityMap.set(key, security.id);
@@ -334,21 +360,5 @@ export class ImportTransactionsUseCase {
     }
 
     return { map: securityMap, created };
-  }
-
-  private inferSecurityType(name: string): string {
-    const lower = name.toLowerCase();
-
-    if (lower.includes('etf') || lower.includes('ishares') || lower.includes('vanguard')) {
-      return 'etf';
-    }
-    if (lower.includes('bond') || lower.includes('treasury')) {
-      return 'bond';
-    }
-    if (lower.includes('fund') || lower.includes('fonds')) {
-      return 'fund';
-    }
-
-    return 'stock';
   }
 }

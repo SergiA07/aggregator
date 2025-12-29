@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { BaseParser, type ParsedTransaction, type ParseResult } from './base-parser';
 
 /**
@@ -6,8 +8,13 @@ import { BaseParser, type ParsedTransaction, type ParseResult } from './base-par
  * Supports both German and English column names.
  * Handles multiple date and number formats.
  */
+@Injectable()
 export class TradeRepublicParser extends BaseParser {
   readonly broker = 'trade-republic';
+
+  constructor(@InjectPinoLogger(TradeRepublicParser.name) logger: PinoLogger) {
+    super(logger);
+  }
 
   // Column variations (German/English)
   private readonly dateColumns = ['Date', 'Datum', 'Zeitpunkt'];
