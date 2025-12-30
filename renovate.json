@@ -4,6 +4,16 @@
   "labels": ["dependencies"],
   "schedule": ["before 9am on monday"],
   "timezone": "Europe/Madrid",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Bun version in GitHub Actions workflows",
+      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "matchStrings": ["bun-version:\\s*[\"']?(?<currentValue>[\\d.]+)[\"']?"],
+      "depNameTemplate": "oven-sh/bun",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
   "packageRules": [
     {
       "description": "Group TanStack packages",
@@ -44,6 +54,11 @@
       "description": "Group Docker base images",
       "matchManagers": ["dockerfile"],
       "groupName": "Docker images"
+    },
+    {
+      "description": "Group Bun runtime updates",
+      "matchPackageNames": ["oven-sh/bun"],
+      "groupName": "Bun"
     },
     {
       "description": "Automerge non-major dev dependency updates",
