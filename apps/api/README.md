@@ -1,21 +1,62 @@
 # Portfolio Aggregator - API
 
-A NestJS REST API for managing investment portfolios across multiple brokers.
+A NestJS REST API for managing investment portfolios across multiple brokers, built with Clean Architecture principles.
 
 ## Tech Stack
 
 | Category | Technology |
 |----------|------------|
 | **Framework** | NestJS 11 |
-| **HTTP Server** | Fastify 5 (not Express) |
-| **Database** | PostgreSQL via Supabase + Prisma |
+| **HTTP Server** | Fastify (not Express) |
+| **Database** | PostgreSQL via Supabase + Prisma v7 |
 | **Authentication** | Supabase Auth (JWT) |
-| **Validation** | class-validator + class-transformer |
+| **Validation** | Zod + class-validator |
 | **Documentation** | Swagger/OpenAPI |
+| **Logging** | Pino (structured JSON) |
 | **Testing** | Bun test runner |
-| **Architecture** | Clean Architecture |
 
-## Quick Start
+## Project Structure
+
+```
+src/
+├── main.ts                              # Fastify bootstrap & plugins
+├── app.module.ts                        # Root NestJS module
+├── app.controller.ts                    # Health check endpoint
+│
+├── modules/                             # Feature modules
+│   ├── auth/                            # Authentication (global)
+│   │   ├── domain/interfaces/           # IAuthService, AuthUser
+│   │   ├── infrastructure/              # SupabaseAuthService
+│   │   └── presentation/                # Guards, decorators
+│   │
+│   └── portfolio/                       # Portfolio management
+│       ├── domain/entities/             # Business objects
+│       ├── application/
+│       │   ├── services/                # Business logic
+│       │   ├── use-cases/               # Complex workflows
+│       │   └── parsers/                 # CSV parsing strategies
+│       ├── infrastructure/
+│       │   ├── repositories/            # Data access
+│       │   └── services/                # External APIs
+│       └── presentation/
+│           ├── controllers/             # HTTP endpoints
+│           └── dto/                     # Request/response shapes
+│
+└── shared/                              # Cross-cutting concerns
+    ├── database/                        # Prisma client wrapper
+    ├── filters/                         # Global error handling
+    └── pipes/                           # Validation pipes
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Bun 1.0+
+- Docker (for local Supabase)
+- PostgreSQL (via Supabase)
+
+### Development
 
 ```bash
 # From monorepo root
@@ -24,382 +65,623 @@ bun install
 # Start local Supabase (requires Docker)
 bunx supabase start
 
-# Start API in development mode
+# Generate Prisma client
+bun run db:generate
+
+# Start API in dev mode
 bun run dev:api
 ```
 
 The API runs at `http://localhost:3333`
-Swagger docs at `http://localhost:3333/api/docs`
 
----
+### Environment Variables
 
-## For Beginners: Understanding the Architecture
-
-### What is Clean Architecture?
-
-Think of the API like an onion with layers. Each layer has a specific job, and they can only talk to the layers inside them (never outside).
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                        │
-│   "The receptionist" - Handles HTTP requests/responses       │
-│   Controllers, DTOs, Guards                                  │
-├─────────────────────────────────────────────────────────────┤
-│                    APPLICATION LAYER                         │
-│   "The manager" - Orchestrates business operations           │
-│   Services, Use Cases, Parsers                               │
-├─────────────────────────────────────────────────────────────┤
-│                   INFRASTRUCTURE LAYER                       │
-│   "The warehouse" - Handles data storage                     │
-│   Repositories (database access)                             │
-├─────────────────────────────────────────────────────────────┤
-│                      DOMAIN LAYER                            │
-│   "The rulebook" - Core business logic                       │
-│   Entities, Interfaces                                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Why?** This separation makes the code:
-- **Testable**: You can test each layer independently
-- **Maintainable**: Changes in one layer don't break others
-- **Flexible**: You can swap databases or frameworks without rewriting everything
-
-### How a Request Flows
-
-When you call `GET /accounts`:
-
-```
-1. HTTP Request arrives
-        ↓
-2. Controller receives it (presentation)
-   "Hey, someone wants all accounts for user X"
-        ↓
-3. Service processes it (application)
-   "Let me ask the database for this user's accounts"
-        ↓
-4. Repository fetches data (infrastructure)
-   "SELECT * FROM accounts WHERE user_id = X"
-        ↓
-5. Data flows back up through the layers
-        ↓
-6. HTTP Response sent
-```
-
-### Understanding Dependency Injection
-
-Instead of creating objects directly, we "inject" them:
-
-```typescript
-// ❌ Bad: Tightly coupled
-class AccountsService {
-  private repository = new AccountRepository(); // Hard to test!
-}
-
-// ✅ Good: Dependency injection
-class AccountsService {
-  constructor(private repository: IAccountRepository) {} // Easy to swap/mock!
-}
-```
-
-The `@Inject()` decorator tells NestJS what to inject:
-
-```typescript
-constructor(
-  @Inject(ACCOUNT_REPOSITORY)  // "Please give me the account repository"
-  private readonly repository: IAccountRepository,
-) {}
-```
-
----
-
-## Project Structure
-
-```
-src/
-├── main.ts                           # App entry point, Fastify setup
-├── app.module.ts                     # Root module
-├── app.controller.ts                 # Health check endpoint
-│
-├── modules/
-│   ├── auth/                         # Authentication module
-│   │   ├── domain/interfaces/        # Auth contracts
-│   │   ├── infrastructure/           # Supabase implementation
-│   │   ├── presentation/             # Guards, decorators
-│   │   └── auth.module.ts
-│   │
-│   └── portfolio/                    # Main business module
-│       ├── domain/
-│       │   └── entities/             # Business objects
-│       │       ├── account.entity.ts
-│       │       ├── transaction.entity.ts
-│       │       ├── position.entity.ts
-│       │       └── security.entity.ts
-│       │
-│       ├── application/
-│       │   ├── services/             # Business logic orchestration
-│       │   │   ├── accounts.service.ts
-│       │   │   ├── transactions.service.ts
-│       │   │   ├── positions.service.ts
-│       │   │   └── securities.service.ts
-│       │   ├── use-cases/            # Complex operations
-│       │   │   └── import-transactions.use-case.ts
-│       │   └── parsers/              # CSV parsing logic
-│       │       ├── base-parser.ts
-│       │       ├── degiro-parser.ts
-│       │       └── trade-republic-parser.ts
-│       │
-│       ├── infrastructure/
-│       │   ├── repositories/         # Database access
-│       │   │   ├── account.repository.ts
-│       │   │   ├── account.repository.interface.ts
-│       │   │   └── ... (other repositories)
-│       │   └── services/             # External API clients
-│       │       └── openfigi.service.ts  # Security type lookup via OpenFIGI
-│       │
-│       ├── presentation/
-│       │   ├── controllers/          # HTTP endpoints
-│       │   │   ├── accounts.controller.ts
-│       │   │   ├── transactions.controller.ts
-│       │   │   ├── positions.controller.ts
-│       │   │   └── import.controller.ts
-│       │   └── dto/                  # Request/Response shapes
-│       │       ├── account/
-│       │       ├── transaction/
-│       │       └── position/
-│       │
-│       └── portfolio.module.ts
-│
-└── shared/
-    ├── database/                     # Prisma client wrapper
-    │   ├── database.service.ts
-    │   └── database.module.ts
-    └── filters/                      # Error handling
-        └── http-exception.filter.ts
-```
-
----
-
-## API Endpoints
-
-All endpoints require authentication (Bearer token) except `/health`.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check |
-| `GET` | `/accounts` | List user's accounts |
-| `POST` | `/accounts` | Create account |
-| `GET` | `/accounts/:id` | Get account by ID |
-| `PATCH` | `/accounts/:id` | Update account |
-| `DELETE` | `/accounts/:id` | Delete account |
-| `GET` | `/transactions` | List transactions (with filters) |
-| `POST` | `/transactions` | Create transaction |
-| `GET` | `/positions` | List current positions |
-| `GET` | `/positions/summary` | Portfolio summary |
-| `GET` | `/securities` | List securities |
-| `POST` | `/import` | Import transactions from CSV |
-
-Full documentation at: `http://localhost:3333/api/docs`
-
----
-
-## Key Concepts Explained
-
-### Entities vs DTOs
-
-| Concept | Purpose | Example |
-|---------|---------|---------|
-| **Entity** | Represents a business object with behavior | `AccountEntity` with `belongsToUser()` method |
-| **DTO** | Shapes data for HTTP transfer | `CreateAccountDto` with validation rules |
-
-```typescript
-// Entity (domain layer) - has business logic
-class AccountEntity {
-  belongsToUser(userId: string): boolean {
-    return this.userId === userId;
-  }
-}
-
-// DTO (presentation layer) - validates input
-class CreateAccountDto {
-  @IsString()
-  @ApiProperty({ description: 'Account name' })
-  name: string;
-}
-```
-
-### Repository Pattern
-
-Repositories abstract database access. The service doesn't know (or care) if you're using PostgreSQL, MongoDB, or a text file.
-
-```typescript
-// Interface (contract)
-interface IAccountRepository {
-  findByUserId(userId: string): Promise<Account[]>;
-}
-
-// Implementation (actual database code)
-class AccountRepository implements IAccountRepository {
-  async findByUserId(userId: string) {
-    return this.db.account.findMany({ where: { userId } });
-  }
-}
-```
-
-### Token Constants
-
-We use constants instead of magic strings for dependency injection:
-
-```typescript
-// ✅ Good: Type-safe, refactorable
-export const ACCOUNT_REPOSITORY = 'ACCOUNT_REPOSITORY';
-@Inject(ACCOUNT_REPOSITORY) private repo: IAccountRepository
-
-// ❌ Bad: Magic string, error-prone
-@Inject('IAccountRepository') private repo: IAccountRepository
-```
-
----
-
-## Environment Variables
-
-Create `.env` at monorepo root:
+Required in `.env` at monorepo root:
 
 ```env
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
-
-# Supabase
+DATABASE_URL=postgresql://...
 SUPABASE_URL=http://localhost:54321
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_KEY=your-service-key
 
-# Server
-PORT=3333
-NODE_ENV=development
+# Production only
+FRONTEND_URL=https://your-frontend.com
+```
 
-# Development mode (bypasses auth with mock user)
-DEV_MODE=false
+## API Endpoints
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/health` | GET | Health check |
+| `/api/docs` | GET | Swagger UI |
+| `/accounts` | GET/POST | List/create accounts |
+| `/accounts/:id` | GET/PUT/DELETE | Manage account |
+| `/transactions` | GET/POST | List/create transactions |
+| `/positions` | GET | List positions |
+| `/securities` | GET/POST | List/create securities |
+| `/import/upload` | POST | Import CSV file |
+| `/import/brokers` | GET | List supported brokers |
+
+All routes except `/health` and `/api/docs` require authentication via `Authorization: Bearer <token>` header.
+
+---
+
+## Architecture: Clean Architecture
+
+This API follows **Clean Architecture** with strict layer separation. Dependencies flow inward only - outer layers depend on inner layers, never the reverse.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PRESENTATION LAYER                       │
+│         Controllers, DTOs, Guards, Decorators               │
+│                                                             │
+│  Handles HTTP concerns: routes, validation, auth, responses │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ depends on
+┌─────────────────────────────────────────────────────────────┐
+│                    APPLICATION LAYER                        │
+│              Services, Use Cases, Parsers                   │
+│                                                             │
+│   Orchestrates business logic, coordinates repositories     │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ depends on
+┌─────────────────────────────────────────────────────────────┐
+│                   INFRASTRUCTURE LAYER                      │
+│            Repositories, External Services                  │
+│                                                             │
+│    Implements data access, external API integrations        │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ depends on
+┌─────────────────────────────────────────────────────────────┐
+│                      DOMAIN LAYER                           │
+│           Entities, Interfaces, Value Objects               │
+│                                                             │
+│  Pure business logic - NO framework dependencies            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Why Clean Architecture?
+
+| Benefit | How It Helps |
+|---------|--------------|
+| **Testability** | Mock repositories easily, test business logic in isolation |
+| **Flexibility** | Swap Supabase for Firebase? Change only infrastructure layer |
+| **Maintainability** | Clear boundaries, predictable code location |
+| **Scalability** | Add features without touching unrelated code |
+
+---
+
+## Layer Deep Dive
+
+### Domain Layer (Business Rules)
+
+The innermost layer contains **pure business logic** with zero framework dependencies. These classes can be copy-pasted to any TypeScript project.
+
+**Entities** - Business objects with behavior:
+
+```typescript
+// domain/entities/transaction.entity.ts
+export class TransactionEntity {
+  constructor(
+    public readonly id: string,
+    public readonly type: TransactionType,
+    public readonly quantity: Decimal,
+    public readonly price: Decimal,
+    // ...
+  ) {}
+
+  // Business logic methods
+  isBuy(): boolean { return this.type === 'buy'; }
+  isSell(): boolean { return this.type === 'sell'; }
+
+  getNetAmount(): Decimal {
+    return this.amount.minus(this.fees);
+  }
+
+  getTotalCost(): Decimal {
+    return this.quantity.times(this.price).plus(this.fees);
+  }
+}
+```
+
+**Interfaces** - Contracts for outer layers:
+
+```typescript
+// domain/interfaces/auth.interface.ts
+export interface IAuthService {
+  verifyToken(token: string): Promise<AuthUser | null>;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: 'user' | 'admin';
+}
+```
+
+### Application Layer (Orchestration)
+
+Coordinates business operations using domain entities and repository interfaces.
+
+**Services** - Simple CRUD orchestration:
+
+```typescript
+// application/services/accounts.service.ts
+@Injectable()
+export class AccountsService {
+  constructor(
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository,
+  ) {}
+
+  async findByUser(userId: string): Promise<Account[]> {
+    return this.accountRepository.findByUser(userId);
+  }
+
+  async create(userId: string, data: CreateAccountInput): Promise<Account> {
+    return this.accountRepository.create(userId, data);
+  }
+}
+```
+
+**Use Cases** - Complex multi-step workflows:
+
+```typescript
+// application/use-cases/import-transactions.use-case.ts
+@Injectable()
+export class ImportTransactionsUseCase {
+  async execute(userId: string, content: string): Promise<ImportResult> {
+    // 1. Detect broker format (DeGiro, Trade Republic, etc.)
+    // 2. Parse CSV using appropriate parser
+    // 3. Create/upsert account
+    // 4. Create securities (with OpenFIGI lookup)
+    // 5. Import transactions (with duplicate detection)
+    // 6. Calculate and upsert positions
+    // 7. Return comprehensive result
+  }
+}
+```
+
+**Parsers** - Strategy pattern for multi-format support:
+
+```typescript
+// application/parsers/base-parser.ts
+export abstract class BaseParser {
+  abstract readonly broker: string;
+  abstract canParse(content: string): boolean;
+  abstract parse(content: string): ParseResult;
+}
+
+// application/parsers/degiro-parser.ts
+export class DegiroParser extends BaseParser {
+  readonly broker = 'degiro';
+
+  canParse(content: string): boolean {
+    return content.includes('Fecha') || content.includes('Date');
+  }
+
+  parse(content: string): ParseResult {
+    // DeGiro-specific CSV parsing logic
+  }
+}
+```
+
+### Infrastructure Layer (External Concerns)
+
+Implements interfaces defined in domain/application layers.
+
+**Repositories** - Data access abstraction:
+
+```typescript
+// infrastructure/repositories/account.repository.interface.ts
+export interface IAccountRepository {
+  findByUser(userId: string): Promise<Account[]>;
+  findOne(userId: string, id: string): Promise<Account | null>;
+  create(userId: string, data: CreateAccountData): Promise<Account>;
+  update(userId: string, id: string, data: UpdateAccountData): Promise<Account | null>;
+  delete(userId: string, id: string): Promise<boolean>;
+}
+
+// infrastructure/repositories/account.repository.ts
+@Injectable()
+export class AccountRepository implements IAccountRepository {
+  constructor(
+    @Inject(DatabaseService) private readonly db: DatabaseService
+  ) {}
+
+  async findByUser(userId: string): Promise<Account[]> {
+    return this.db.account.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+}
+```
+
+**External Services** - Third-party integrations:
+
+```typescript
+// infrastructure/services/openfigi.service.ts
+@Injectable()
+export class OpenFigiService {
+  async lookupByIsin(isin: string): Promise<SecurityMetadata | null> {
+    // Calls OpenFIGI API to get security type (ETF, stock, bond, etc.)
+    // Implements rate limiting, batching, and retry logic
+  }
+}
+```
+
+### Presentation Layer (HTTP Interface)
+
+Handles all HTTP concerns - routing, validation, authentication, responses.
+
+**Controllers** - Route handlers:
+
+```typescript
+// presentation/controllers/accounts.controller.ts
+@Controller('accounts')
+@UseGuards(SupabaseAuthGuard)
+@ApiTags('Accounts')
+@ApiBearerAuth()
+export class AccountsController {
+  constructor(private readonly accountsService: AccountsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List user accounts' })
+  async getAccounts(@CurrentUser() user: AuthUser): Promise<Account[]> {
+    return this.accountsService.findByUser(user.id);
+  }
+
+  @Post()
+  async createAccount(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(createAccountSchema)) dto: CreateAccountInput,
+  ): Promise<Account> {
+    return this.accountsService.create(user.id, dto);
+  }
+}
+```
+
+**Guards** - Authentication/authorization:
+
+```typescript
+// presentation/auth.guard.ts
+@Injectable()
+export class SupabaseAuthGuard implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractToken(request);
+
+    // Dev mode: use mock user
+    if (this.isDev && !token) {
+      request.user = createDevUser();
+      return true;
+    }
+
+    // Prod mode: verify JWT
+    const user = await this.authService.verifyToken(token);
+    if (!user) throw new UnauthorizedException();
+
+    request.user = user;
+    return true;
+  }
+}
+```
+
+**Decorators** - Request context extraction:
+
+```typescript
+// presentation/user.decorator.ts
+export const CurrentUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): AuthUser => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.user;
+  },
+);
 ```
 
 ---
 
-## Development
+## NestJS Concepts Explained
 
-### Running the API
+### What is NestJS?
 
-```bash
-# Development with hot reload
-bun run dev:api
+NestJS is a framework for building server-side applications. Think of it as "Angular for the backend" - it uses decorators, modules, and dependency injection to organize code.
 
-# Or from apps/api directory
-bun run dev
-```
+### Modules
 
-### Running Tests
-
-```bash
-cd apps/api
-bun test              # Run all tests
-bun test --watch      # Watch mode
-```
-
-### Linting & Type Checking
-
-```bash
-bun run lint          # Biome linter
-bun run type-check    # TypeScript check
-```
-
-### Database Commands
-
-```bash
-# From monorepo root
-bunx supabase start   # Start local database
-bunx supabase stop    # Stop database
-bunx prisma studio    # Visual database browser
-bunx prisma db push   # Push schema changes
-```
-
----
-
-## Adding New Features
-
-### 1. Create a New Module
-
-Use the `/new-module` command or create manually:
-
-```
-src/modules/<module-name>/
-├── domain/entities/
-├── application/services/
-├── infrastructure/repositories/
-├── presentation/controllers/
-├── presentation/dto/
-└── <module>.module.ts
-```
-
-### 2. Follow the Pattern
-
-1. **Define entity** in `domain/entities/`
-2. **Create repository interface** in `infrastructure/repositories/*.interface.ts`
-3. **Implement repository** in `infrastructure/repositories/*.repository.ts`
-4. **Create service** in `application/services/`
-5. **Create controller** with DTOs in `presentation/`
-6. **Wire up in module** using factory providers
-7. **Register module** in `app.module.ts`
-
-### 3. Example Module Registration
+Modules group related functionality. Every NestJS app has at least one module (AppModule).
 
 ```typescript
 @Module({
-  controllers: [MyController],
-  providers: [
-    // Repository with factory provider
-    {
-      provide: MY_REPOSITORY,
-      useFactory: (db: DatabaseService) => new MyRepository(db),
-      inject: [DatabaseService],
-    },
-    // Service
-    MyService,
-  ],
-  exports: [MyService],
+  imports: [DatabaseModule, AuthModule],    // Other modules to use
+  controllers: [AccountsController],         // HTTP route handlers
+  providers: [AccountsService],              // Injectable services
+  exports: [AccountsService],                // Make available to other modules
 })
-export class MyModule {}
+export class PortfolioModule {}
+```
+
+### Dependency Injection (DI)
+
+Instead of creating instances manually, NestJS creates and injects them for you:
+
+```typescript
+// WITHOUT DI (bad - tight coupling)
+class AccountsController {
+  private service = new AccountsService(new AccountRepository(new DatabaseService()));
+}
+
+// WITH DI (good - loose coupling)
+@Controller()
+class AccountsController {
+  constructor(private readonly accountsService: AccountsService) {}
+  // NestJS automatically creates and injects AccountsService
+}
+```
+
+**Benefits:**
+- Easy to swap implementations (mock for testing, different DB for prod)
+- Clear dependency graph
+- Automatic lifecycle management
+
+### Injection Tokens
+
+For interfaces (which don't exist at runtime), use string tokens:
+
+```typescript
+// Define token
+export const ACCOUNT_REPOSITORY = 'ACCOUNT_REPOSITORY';
+
+// Register in module
+{
+  provide: ACCOUNT_REPOSITORY,
+  useFactory: (db: DatabaseService) => new AccountRepository(db),
+  inject: [DatabaseService],
+}
+
+// Inject using token
+constructor(
+  @Inject(ACCOUNT_REPOSITORY)
+  private readonly repo: IAccountRepository
+) {}
+```
+
+### Decorators
+
+Decorators add metadata to classes/methods. NestJS uses them heavily:
+
+| Decorator | Purpose | Example |
+|-----------|---------|---------|
+| `@Controller('path')` | Define route prefix | `@Controller('accounts')` |
+| `@Get()`, `@Post()`, etc. | HTTP method handlers | `@Get(':id')` |
+| `@Injectable()` | Mark class as injectable | `@Injectable()` |
+| `@Module()` | Define module | See above |
+| `@UseGuards()` | Apply guards | `@UseGuards(AuthGuard)` |
+| `@Body()`, `@Param()` | Extract request data | `@Body() dto: CreateDto` |
+
+### Guards
+
+Guards decide if a request should proceed. Return `true` to allow, `false` to deny.
+
+```typescript
+@Injectable()
+export class AuthGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    return this.validateRequest(request);
+  }
+}
+
+// Usage
+@UseGuards(AuthGuard)
+@Get()
+getProtectedData() { ... }
+```
+
+### Pipes
+
+Pipes transform or validate input data:
+
+```typescript
+// Built-in validation pipe
+@Post()
+create(@Body(ValidationPipe) dto: CreateAccountDto) { ... }
+
+// Custom Zod validation pipe
+@Post()
+create(@Body(new ZodValidationPipe(schema)) dto: CreateAccountInput) { ... }
+```
+
+### Filters
+
+Filters handle exceptions globally:
+
+```typescript
+@Catch()
+export class HttpExceptionFilter implements ExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    // Format error response consistently
+    response.status(status).send({
+      statusCode: status,
+      message: exception.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+```
+
+---
+
+## Fastify vs Express
+
+This API uses **Fastify** instead of the more common Express. Here's why:
+
+| Aspect | Express | Fastify |
+|--------|---------|---------|
+| **Performance** | ~15,000 req/s | ~75,000 req/s |
+| **Schema validation** | External (Joi, Zod) | Built-in JSON Schema |
+| **Plugins** | Middleware | Encapsulated plugins |
+| **TypeScript** | Partial | First-class |
+
+### Fastify Plugins Used
+
+```typescript
+// main.ts
+await app.register(compress, { encodings: ['gzip', 'deflate'] });
+await app.register(cors, { origin: ['http://localhost:5173'] });
+await app.register(helmet, { contentSecurityPolicy: false });
+await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
+```
+
+| Plugin | Purpose |
+|--------|---------|
+| `@fastify/compress` | Gzip responses (smaller payloads) |
+| `@fastify/cors` | Cross-origin requests from frontend |
+| `@fastify/helmet` | Security headers (XSS, clickjacking) |
+| `@fastify/multipart` | File upload handling |
+
+---
+
+## Authentication Flow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Client    │────▶│  AuthGuard  │────▶│ Supabase    │────▶│  Controller │
+│             │     │             │     │ Service     │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │                   │
+       │ Authorization:    │                   │                   │
+       │ Bearer <token>    │                   │                   │
+       │──────────────────▶│                   │                   │
+       │                   │ verifyToken()     │                   │
+       │                   │──────────────────▶│                   │
+       │                   │                   │ Validate JWT      │
+       │                   │                   │ with Supabase     │
+       │                   │◀──────────────────│                   │
+       │                   │ AuthUser          │                   │
+       │                   │                   │                   │
+       │                   │ Attach to request │                   │
+       │                   │──────────────────────────────────────▶│
+       │                   │                   │                   │
+       │                   │                   │    @CurrentUser() │
+       │◀──────────────────────────────────────────────────────────│
+       │ Response          │                   │                   │
+```
+
+### Development Mode
+
+When `NODE_ENV=development`, the API:
+- Skips Supabase credentials validation
+- Uses a mock user when no token is provided
+- Enables verbose logging
+
+This makes local development easier without needing Supabase setup.
+
+---
+
+## Data Flow Example: Import CSV
+
+Here's how a CSV import flows through all layers:
+
+```
+1. HTTP Request
+   POST /import/upload
+   Content-Type: multipart/form-data
+   Body: { file: transactions.csv }
+              │
+              ▼
+2. Presentation Layer (ImportController)
+   - Extracts file from multipart
+   - Validates file size/type
+   - Converts to string
+              │
+              ▼
+3. Application Layer (ImportTransactionsUseCase)
+   - Detects broker format (DeGiro, Trade Republic)
+   - Delegates to appropriate Parser
+              │
+              ▼
+4. Application Layer (DegiroParser)
+   - Parses CSV rows
+   - Normalizes column names
+   - Returns ParseResult { transactions, positions, errors }
+              │
+              ▼
+5. Application Layer (ImportTransactionsUseCase continues)
+   - Creates/upserts account
+   - Looks up securities via OpenFigiService
+   - Creates transactions (with duplicate detection)
+   - Calculates and upserts positions
+              │
+              ▼
+6. Infrastructure Layer (Repositories)
+   - AccountRepository.upsert()
+   - SecurityRepository.getOrCreate()
+   - TransactionRepository.create()
+   - PositionRepository.upsert()
+              │
+              ▼
+7. Database (Prisma → PostgreSQL)
+   - Executes SQL queries
+   - Handles constraints (unique, foreign keys)
+              │
+              ▼
+8. Response
+   {
+     "success": true,
+     "broker": "degiro",
+     "transactionsImported": 125,
+     "duplicatesSkipped": 3,
+     "securitiesCreated": 28
+   }
 ```
 
 ---
 
 ## Testing
 
-### Unit Test Example
+```bash
+# Run all tests
+bun test
+
+# Watch mode
+bun test --watch
+
+# Specific file
+bun test src/modules/portfolio/application/services/accounts.service.test.ts
+```
+
+### Testing Strategy
+
+| Layer | What to Test | How |
+|-------|--------------|-----|
+| Domain | Entity methods | Unit tests, no mocks needed |
+| Application | Service logic | Mock repositories |
+| Infrastructure | Repository queries | Integration tests with test DB |
+| Presentation | Controllers | E2E tests with supertest |
+
+### Example: Testing a Service
 
 ```typescript
-import { describe, expect, it, beforeEach, mock } from 'bun:test';
-import { Test } from '@nestjs/testing';
-import { AccountsService } from './accounts.service';
-import { ACCOUNT_REPOSITORY } from '../infrastructure/repositories';
-
 describe('AccountsService', () => {
   let service: AccountsService;
+  let mockRepo: jest.Mocked<IAccountRepository>;
 
-  const mockRepository = {
-    findByUserId: mock(() => Promise.resolve([{ id: '1', name: 'Test' }])),
-  };
-
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        AccountsService,
-        { provide: ACCOUNT_REPOSITORY, useValue: mockRepository },
-      ],
-    }).compile();
-
-    service = module.get(AccountsService);
+  beforeEach(() => {
+    mockRepo = {
+      findByUser: jest.fn(),
+      create: jest.fn(),
+    };
+    service = new AccountsService(mockRepo);
   });
 
-  it('should return accounts for user', async () => {
-    const result = await service.findByUserId('user-123');
+  it('should return user accounts', async () => {
+    mockRepo.findByUser.mockResolvedValue([mockAccount]);
+
+    const result = await service.findByUser('user-123');
+
+    expect(mockRepo.findByUser).toHaveBeenCalledWith('user-123');
     expect(result).toHaveLength(1);
   });
 });
@@ -407,75 +689,111 @@ describe('AccountsService', () => {
 
 ---
 
-## Error Handling
+## Code Style
 
-The API uses NestJS HTTP exceptions:
+- **Formatting**: Biome (not ESLint/Prettier)
+- **Path Aliases**: `@/*` maps to `src/*`
+- **File Naming**: kebab-case (`accounts.service.ts`)
+- **File Suffixes**: `.controller.ts`, `.service.ts`, `.module.ts`, `.guard.ts`
 
-```typescript
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+Run linting:
 
-// In service
-async findById(id: string) {
-  const account = await this.repository.findById(id);
-  if (!account) {
-    throw new NotFoundException(`Account ${id} not found`);
-  }
-  return account;
-}
-```
-
-All errors are formatted consistently by `HttpExceptionFilter`:
-
-```json
-{
-  "statusCode": 404,
-  "message": "Account abc123 not found",
-  "error": "Not Found",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "path": "/accounts/abc123"
-}
+```bash
+bunx biome check --write .
 ```
 
 ---
 
-## Authentication
+## Common Commands
 
-The API uses Supabase Auth with JWT tokens.
+```bash
+# Development
+bun run dev:api          # Start with hot reload
 
-### Protected Routes
+# Database
+bun run db:generate      # Generate Prisma client
+bun run db:push          # Push schema changes (dev)
+bun run db:migrate       # Create migration
+bun run db:studio        # Open Prisma Studio
 
-```typescript
-@Controller('accounts')
-@UseGuards(SupabaseAuthGuard)  // Requires valid JWT
-export class AccountsController {
-  @Get()
-  findAll(@CurrentUser() user: AuthUser) {  // Extracts user from token
-    return this.service.findByUserId(user.id);
-  }
-}
+# Quality
+bun run lint             # Run Biome linter
+bun run type-check       # TypeScript check
+bun run test             # Run tests
+bun run build            # Build for production
 ```
-
-### Development Mode
-
-Set `DEV_MODE=true` to bypass authentication with a mock user (useful for testing).
 
 ---
 
-## Fastify vs Express
+## Adding a New Feature
 
-This API uses Fastify instead of Express because:
+1. **Create domain entities** (if needed):
+   ```
+   src/modules/portfolio/domain/entities/new-entity.ts
+   ```
 
-| Feature | Fastify | Express |
-|---------|---------|---------|
-| Performance | ~2x faster | Slower |
-| Validation | Built-in JSON Schema | Requires middleware |
-| Plugins | Modern async/await | Callback-based |
-| TypeScript | First-class support | Requires types package |
+2. **Create repository interface**:
+   ```
+   src/modules/portfolio/infrastructure/repositories/new.repository.interface.ts
+   ```
 
-**Important**: Don't use Express middleware. Use Fastify plugins instead:
-- File uploads: `@fastify/multipart` (not multer)
-- CORS: `@fastify/cors` (not cors)
-- Compression: `@fastify/compress` (not compression)
+3. **Implement repository**:
+   ```
+   src/modules/portfolio/infrastructure/repositories/new.repository.ts
+   ```
+
+4. **Create service**:
+   ```
+   src/modules/portfolio/application/services/new.service.ts
+   ```
+
+5. **Create controller**:
+   ```
+   src/modules/portfolio/presentation/controllers/new.controller.ts
+   ```
+
+6. **Register in module**:
+   ```typescript
+   // portfolio.module.ts
+   @Module({
+     controllers: [..., NewController],
+     providers: [
+       ...,
+       { provide: NEW_REPOSITORY, useFactory: ... },
+       NewService,
+     ],
+   })
+   ```
+
+7. **Add tests** for each layer
+
+---
+
+## Troubleshooting
+
+### "Cannot find module '@/...'"
+
+Path aliases need to be resolved. Run:
+```bash
+bun run build
+```
+
+### "UnauthorizedException" in development
+
+Make sure `NODE_ENV=development` is set, or provide a valid Supabase token.
+
+### Database connection errors
+
+1. Check `DATABASE_URL` in `.env`
+2. Ensure Supabase is running: `bunx supabase status`
+3. Regenerate Prisma client: `bun run db:generate`
+
+### Import fails with "Unknown broker"
+
+The CSV format wasn't recognized. Check:
+1. File encoding is UTF-8
+2. CSV has expected column headers
+3. Broker is supported (see `/import/brokers`)
 
 ---
 
@@ -485,5 +803,4 @@ This API uses Fastify instead of Express because:
 2. Follow Clean Architecture patterns
 3. Add tests for new functionality
 4. Run `bun run lint` and `bun run type-check`
-5. Use repository token constants (not strings)
-6. Submit PR with description
+5. Submit PR with description
