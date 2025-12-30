@@ -59,8 +59,8 @@ describe('formatters', () => {
       expect(formatPercent(-5.25)).toBe('-5.25%');
     });
 
-    it('formats zero with + sign', () => {
-      expect(formatPercent(0)).toBe('+0.00%');
+    it('formats zero without sign', () => {
+      expect(formatPercent(0)).toBe('0.00%');
     });
 
     it('returns dash for null', () => {
@@ -82,12 +82,16 @@ describe('formatters', () => {
       expect(formatDate(date)).toBe('Jun 20, 2024');
     });
 
-    it('uses custom pattern', () => {
-      expect(formatDate('2024-01-15', 'yyyy-MM-dd')).toBe('2024-01-15');
+    it('uses custom format options', () => {
+      expect(formatDate('2024-01-15', { year: 'numeric', month: '2-digit', day: '2-digit' })).toBe(
+        '01/15/2024',
+      );
     });
 
     it('formats with full month name', () => {
-      expect(formatDate('2024-12-25', 'MMMM d, yyyy')).toBe('December 25, 2024');
+      expect(formatDate('2024-12-25', { year: 'numeric', month: 'long', day: 'numeric' })).toBe(
+        'December 25, 2024',
+      );
     });
   });
 });

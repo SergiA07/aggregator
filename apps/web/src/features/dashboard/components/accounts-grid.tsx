@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/composed/empty-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/i18n';
 
 interface AccountsGridProps {
   accounts: Account[] | undefined;
@@ -12,6 +13,8 @@ interface AccountsGridProps {
 }
 
 export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -26,9 +29,7 @@ export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) 
     return (
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Failed to load accounts. Please try refreshing the page.
-        </AlertDescription>
+        <AlertDescription>{t('dashboard.accounts.error')}</AlertDescription>
       </Alert>
     );
   }
@@ -37,8 +38,8 @@ export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) 
     return (
       <EmptyState
         icon={Wallet}
-        title="No accounts yet"
-        description="Use the Import button in the header to add your first brokerage account."
+        title={t('dashboard.accounts.empty.title')}
+        description={t('dashboard.accounts.empty.description')}
       />
     );
   }
@@ -57,13 +58,13 @@ export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) 
               <div>
                 <p className="font-medium capitalize">{account.broker.replace('-', ' ')}</p>
                 <p className="text-sm text-muted-foreground">
-                  {account.accountName || 'Main Account'}
+                  {account.accountName || t('dashboard.accounts.mainAccount')}
                 </p>
               </div>
             </div>
           </CardContent>
           <CardFooter className="justify-between text-sm">
-            <span className="text-muted-foreground">Currency</span>
+            <span className="text-muted-foreground">{t('common.currency')}</span>
             <span>{account.currency}</span>
           </CardFooter>
         </Card>
