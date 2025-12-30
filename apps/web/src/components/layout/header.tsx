@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import { Upload } from 'lucide-react';
+import { LogOut, Upload } from 'lucide-react';
 import { LanguagePicker } from '@/components/layout/language-picker';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/lib/i18n';
@@ -16,17 +16,20 @@ export function Header({ user, onImportClick, onSignOut, isSigningOut }: HeaderP
 
   return (
     <header className="bg-card border-b border-border">
-      <div className="w-full px-4 md:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-foreground">{t('common.appName')}</h1>
-        <div className="flex items-center gap-4">
-          <Button onClick={onImportClick}>
+      <div className="w-full px-4 md:px-6 lg:px-8 py-4 flex justify-end md:justify-between items-center">
+        <h1 className="hidden md:block text-xl font-bold text-foreground">{t('common.appName')}</h1>
+        <div className="flex items-center gap-2 md:gap-4">
+          <Button onClick={onImportClick} size="sm" className="md:size-default">
             <Upload className="size-4" />
-            {t('header.import')}
+            <span className="hidden md:inline">{t('header.import')}</span>
           </Button>
-          <span className="text-muted-foreground text-sm">{user?.email}</span>
+          <span className="hidden md:inline text-muted-foreground text-sm">{user?.email}</span>
           <LanguagePicker />
           <Button variant="outline" size="sm" onClick={onSignOut} disabled={isSigningOut}>
-            {isSigningOut ? t('auth.signingOut') : t('auth.signOut')}
+            <LogOut className="size-4" />
+            <span className="hidden md:inline">
+              {isSigningOut ? t('auth.signingOut') : t('auth.signOut')}
+            </span>
           </Button>
         </div>
       </div>

@@ -39,6 +39,10 @@ export const ca: I18nMessages = {
     overview: 'Resum',
     positions: 'Posicions',
     transactions: 'Transaccions',
+    collapse: 'Contreure',
+    expand: 'Expandir',
+    menu: 'Menú de navegació',
+    openMenu: 'Obrir menú',
   },
 
   // =========================================================================

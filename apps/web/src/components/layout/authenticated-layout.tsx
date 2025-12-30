@@ -1,12 +1,13 @@
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { BottomNav } from '@/components/layout/bottom-nav';
 import { ImportModal } from '@/components/layout/import-modal';
 import { useAuth } from '@/features/auth';
 import { useTranslation } from '@/lib/i18n';
 import { Header } from './header';
-import { NavTab } from './nav-tab';
 import { PageLayout } from './page-layout';
+import { Sidebar } from './sidebar';
 
 export function AuthenticatedLayout() {
   const { user, signOut } = useAuth();
@@ -30,7 +31,7 @@ export function AuthenticatedLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header
         user={user}
         onImportClick={() => setIsImportOpen(true)}
@@ -38,19 +39,19 @@ export function AuthenticatedLayout() {
         isSigningOut={isSigningOut}
       />
 
-      <nav className="border-b border-border bg-card">
-        <div className="w-full px-4 md:px-6 lg:px-8">
-          <div className="flex gap-1">
-            <NavTab to="/dashboard" label={t('nav.overview')} />
-            <NavTab to="/positions" label={t('nav.positions')} />
-            <NavTab to="/transactions" label={t('nav.transactions')} />
-          </div>
-        </div>
-      </nav>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop sidebar */}
+        <Sidebar className="hidden md:flex" />
 
-      <PageLayout>
-        <Outlet />
-      </PageLayout>
+        <main className="flex-1 overflow-auto pb-16 md:pb-0">
+          <PageLayout>
+            <Outlet />
+          </PageLayout>
+        </main>
+      </div>
+
+      {/* Mobile bottom navigation */}
+      <BottomNav />
 
       <ImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
     </div>

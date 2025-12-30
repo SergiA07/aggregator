@@ -48,6 +48,10 @@ export const en = {
     overview: 'Overview',
     positions: 'Positions',
     transactions: 'Transactions',
+    collapse: 'Collapse',
+    expand: 'Expand',
+    menu: 'Navigation menu',
+    openMenu: 'Open menu',
   },
 
   // =========================================================================
