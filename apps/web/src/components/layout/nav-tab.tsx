@@ -27,9 +27,8 @@ export function NavTab({ to, label }: NavTabProps) {
   return (
     <Link
       to={to}
-      className="px-4 py-3 font-medium capitalize transition-colors"
-      activeProps={{ className: 'text-primary-400 border-b-2 border-primary-400' }}
-      inactiveProps={{ className: 'text-slate-400 hover:text-white' }}
+      className="px-4 py-3 font-medium capitalize transition-colors text-muted-foreground hover:text-foreground"
+      activeProps={{ className: 'text-primary border-b-2 border-primary' }}
       onMouseEnter={handleMouseEnter}
     >
       {label}

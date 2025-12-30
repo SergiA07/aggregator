@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { accountListOptions } from '@/lib/api/queries/accounts';
 import { positionSummaryOptions } from '@/lib/api/queries/positions';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
@@ -14,40 +16,40 @@ export function Dashboard() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {summaryLoading ? (
-          [1, 2, 3, 4].map((n) => (
-            <div key={`skeleton-${n}`} className="animate-pulse bg-slate-800 rounded-lg p-4 h-24" />
-          ))
+          [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-24" />)
         ) : (
           <>
             <SummaryCard
               title="Total Value"
               value={formatCurrency(summary?.totalValue ?? 0)}
-              color="blue"
+              variant="info"
             />
-            <SummaryCard
-              title="Total Cost"
-              value={formatCurrency(summary?.totalCost ?? 0)}
-              color="slate"
-            />
+            <SummaryCard title="Total Cost" value={formatCurrency(summary?.totalCost ?? 0)} />
             <SummaryCard
               title="Total P&L"
               value={formatCurrency(summary?.totalPnl ?? 0)}
-              color={summary?.totalPnl && summary.totalPnl >= 0 ? 'green' : 'red'}
+              variant={summary?.totalPnl && summary.totalPnl >= 0 ? 'success' : 'destructive'}
             />
             <SummaryCard
               title="Return"
               value={formatPercent(summary?.pnlPercentage ?? 0)}
-              color={summary?.pnlPercentage && summary.pnlPercentage >= 0 ? 'green' : 'red'}
+              variant={
+                summary?.pnlPercentage && summary.pnlPercentage >= 0 ? 'success' : 'destructive'
+              }
             />
           </>
         )}
       </div>
 
       {/* Accounts Section */}
-      <section className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Investment Accounts</h2>
-        <AccountsGrid accounts={accounts} isLoading={accountsLoading} />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Investment Accounts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AccountsGrid accounts={accounts} isLoading={accountsLoading} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

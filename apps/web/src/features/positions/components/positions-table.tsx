@@ -1,6 +1,19 @@
 import type { Position } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { positionListOptions } from '@/lib/api/queries/positions';
+import { cn } from '@/lib/utils';
 import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 export function PositionsTable() {
@@ -8,25 +21,31 @@ export function PositionsTable() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 rounded-lg p-6">
-        <p className="text-slate-400">Loading positions...</p>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <Skeleton className="h-64" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-slate-800 rounded-lg p-6">
-        <p className="text-red-400">Error loading positions</p>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-destructive">Error loading positions</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!positions || positions.length === 0) {
     return (
-      <div className="bg-slate-800 rounded-lg p-6">
-        <p className="text-slate-400">No positions yet. Import CSV data to get started.</p>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-muted-foreground">No positions yet. Import CSV data to get started.</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -36,90 +55,99 @@ export function PositionsTable() {
   const totalPnl = positions.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
 
   return (
-    <div className="bg-slate-800 rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-slate-700/50">
-              <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Symbol</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Name</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Qty</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Avg Cost</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Price</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Value</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">P&L</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">P&L %</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Account</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-700">
-            {positions.map((position: Position) => {
-              const pnlPercent =
-                position.totalCost > 0
-                  ? ((position.unrealizedPnl || 0) / position.totalCost) * 100
-                  : 0;
-              const pnlColor =
-                (position.unrealizedPnl || 0) >= 0 ? 'text-green-400' : 'text-red-400';
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Symbol</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead className="text-right">Qty</TableHead>
+            <TableHead className="text-right">Avg Cost</TableHead>
+            <TableHead className="text-right">Price</TableHead>
+            <TableHead className="text-right">Value</TableHead>
+            <TableHead className="text-right">P&L</TableHead>
+            <TableHead className="text-right">P&L %</TableHead>
+            <TableHead>Account</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {positions.map((position: Position) => {
+            const pnlPercent =
+              position.totalCost > 0
+                ? ((position.unrealizedPnl || 0) / position.totalCost) * 100
+                : 0;
+            const isPositive = (position.unrealizedPnl || 0) >= 0;
 
-              return (
-                <tr key={position.id} className="hover:bg-slate-700/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-white">{position.security?.symbol}</span>
-                    {position.security?.isin && (
-                      <span className="ml-2 text-xs text-slate-500">{position.security.isin}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-300 max-w-xs truncate">
-                    {position.security?.name}
-                  </td>
-                  <td className="px-4 py-3 text-right text-white">
-                    {formatNumber(position.quantity, 4)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-slate-300">
-                    {formatCurrency(position.avgCost, position.currency)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-slate-300">
-                    {formatCurrency(position.marketPrice, position.currency)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-white font-medium">
-                    {formatCurrency(position.marketValue, position.currency)}
-                  </td>
-                  <td className={`px-4 py-3 text-right font-medium ${pnlColor}`}>
-                    {formatCurrency(position.unrealizedPnl, position.currency)}
-                  </td>
-                  <td className={`px-4 py-3 text-right font-medium ${pnlColor}`}>
-                    {formatPercent(pnlPercent)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-                      {position.account?.broker}
+            return (
+              <TableRow key={position.id}>
+                <TableCell>
+                  <span className="font-medium">{position.security?.symbol}</span>
+                  {position.security?.isin && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {position.security.isin}
                     </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-700/50 font-medium">
-              <td colSpan={5} className="px-4 py-3 text-slate-300">
-                Total
-              </td>
-              <td className="px-4 py-3 text-right text-white">{formatCurrency(totalValue)}</td>
-              <td
-                className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
-              >
-                {formatCurrency(totalPnl)}
-              </td>
-              <td
-                className={`px-4 py-3 text-right ${totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
-              >
-                {formatPercent(totalCost > 0 ? (totalPnl / totalCost) * 100 : 0)}
-              </td>
-              <td />
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
+                  )}
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-muted-foreground">
+                  {position.security?.name}
+                </TableCell>
+                <TableCell className="text-right">{formatNumber(position.quantity, 4)}</TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {formatCurrency(position.avgCost, position.currency)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {formatCurrency(position.marketPrice, position.currency)}
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  {formatCurrency(position.marketValue, position.currency)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    'text-right font-medium',
+                    isPositive ? 'text-green-500' : 'text-red-500',
+                  )}
+                >
+                  {formatCurrency(position.unrealizedPnl, position.currency)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    'text-right font-medium',
+                    isPositive ? 'text-green-500' : 'text-red-500',
+                  )}
+                >
+                  {formatPercent(pnlPercent)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{position.account?.broker}</Badge>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={5}>Total</TableCell>
+            <TableCell className="text-right font-medium">{formatCurrency(totalValue)}</TableCell>
+            <TableCell
+              className={cn(
+                'text-right font-medium',
+                totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
+              )}
+            >
+              {formatCurrency(totalPnl)}
+            </TableCell>
+            <TableCell
+              className={cn(
+                'text-right font-medium',
+                totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
+              )}
+            >
+              {formatPercent(totalCost > 0 ? (totalPnl / totalCost) * 100 : 0)}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        </TableFooter>
+      </Table>
+    </Card>
   );
 }
