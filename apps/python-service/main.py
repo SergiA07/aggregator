@@ -1,12 +1,19 @@
+import os
+import re
+from typing import Optional
+
+import httpx
+from bs4 import BeautifulSoup
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
-import httpx
-from bs4 import BeautifulSoup
 from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
-import re
+from youtube_transcript_api._errors import NoTranscriptFound, TranscriptsDisabled
+
+# Configuration - env vars are passed by deployment platform or set externally
+CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS", "http://localhost:5173,http://localhost:3000"
+).split(",")
 
 app = FastAPI(
     title="Portfolio Aggregator - Python Service",
@@ -17,7 +24,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[origin.strip() for origin in CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,7 +71,11 @@ class BatchTranscriptRequest(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "python-service"}
+    return {
+        "status": "healthy",
+        "service": "python-service",
+        "cors_origins": CORS_ORIGINS,
+    }
 
 
 # ============== Scraping Endpoints ==============
