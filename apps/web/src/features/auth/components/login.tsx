@@ -15,8 +15,8 @@ export function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-white">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-foreground">Loading...</div>
       </div>
     );
   }

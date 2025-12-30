@@ -24,7 +24,7 @@ export function AuthenticatedLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <Header
         user={user}
         onImportClick={() => setIsImportOpen(true)}
@@ -32,7 +32,7 @@ export function AuthenticatedLayout() {
         isSigningOut={isSigningOut}
       />
 
-      <nav className="bg-slate-800 border-b border-slate-700">
+      <nav className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
             <NavTab to="/dashboard" label="Overview" />
