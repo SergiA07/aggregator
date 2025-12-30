@@ -54,7 +54,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
         with:
-          bun-version: latest
+          bun-version: "1.3.5"
 
       - name: Cache bun dependencies
         if: github.event_name == 'workflow_dispatch' || steps.changes.outputs.any_changed == 'true'
