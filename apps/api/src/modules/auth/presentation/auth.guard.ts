@@ -5,7 +5,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import type { Env } from '@/shared/config';
 import { AUTH_SERVICE, createDevUser, type IAuthService } from '../domain/interfaces';
@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
     @Inject(AUTH_SERVICE)
     private readonly authService: IAuthService,
     @InjectPinoLogger(AuthGuard.name) private readonly logger: PinoLogger,
-    private readonly config: ConfigService<Env, true>,
+    @Inject(ConfigService) private readonly config: ConfigService<Env, true>,
   ) {
     // Check dev bypass once at construction time
     // Requires BOTH: NODE_ENV === 'development' AND AUTH_DEV_BYPASS === true

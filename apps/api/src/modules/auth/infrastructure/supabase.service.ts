@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from '@/shared/config';
 import type { AuthUser, IAuthService } from '../domain/interfaces';
@@ -15,7 +15,7 @@ import type { AuthUser, IAuthService } from '../domain/interfaces';
 export class SupabaseAuthService implements IAuthService {
   private readonly client: SupabaseClient | null = null;
 
-  constructor(private readonly config: ConfigService<Env, true>) {
+  constructor(@Inject(ConfigService) private readonly config: ConfigService<Env, true>) {
     const supabaseUrl = this.config.get('SUPABASE_URL');
     const supabaseKey = this.config.get('SUPABASE_SECRET_KEY');
     const nodeEnv = this.config.get('NODE_ENV');
