@@ -1,14 +1,16 @@
 import type { Account } from '@repo/shared-types';
-import { Inbox } from 'lucide-react';
+import { AlertTriangle, Inbox } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AccountsGridProps {
   accounts: Account[] | undefined;
   isLoading: boolean;
+  error?: Error | null;
 }
 
-export function AccountsGrid({ accounts, isLoading }: AccountsGridProps) {
+export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -16,6 +18,17 @@ export function AccountsGrid({ accounts, isLoading }: AccountsGridProps) {
           <Skeleton key={n} className="h-28" />
         ))}
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load accounts. Please try refreshing the page.
+        </AlertDescription>
+      </Alert>
     );
   }
 

@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { ImportModal } from '@/components/composed/import-modal';
 import { useAuth } from '@/features/auth';
 import { Header } from './header';
@@ -18,6 +19,9 @@ export function AuthenticatedLayout() {
     try {
       await signOut();
       navigate({ to: '/login' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to sign out';
+      toast.error(message);
     } finally {
       setIsSigningOut(false);
     }

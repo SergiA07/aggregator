@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { accountListOptions } from '@/lib/api/queries/accounts';
@@ -8,8 +10,16 @@ import { AccountsGrid } from './accounts-grid';
 import { SummaryCard } from './summary-card';
 
 export function Dashboard() {
-  const { data: summary, isLoading: summaryLoading } = useQuery(positionSummaryOptions());
-  const { data: accounts, isLoading: accountsLoading } = useQuery(accountListOptions());
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useQuery(positionSummaryOptions());
+  const {
+    data: accounts,
+    isLoading: accountsLoading,
+    error: accountsError,
+  } = useQuery(accountListOptions());
 
   return (
     <div className="space-y-8">
@@ -17,6 +27,13 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {summaryLoading ? (
           [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-24" />)
+        ) : summaryError ? (
+          <Alert variant="destructive" className="col-span-full">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load portfolio summary. Please try refreshing the page.
+            </AlertDescription>
+          </Alert>
         ) : (
           <>
             <SummaryCard
@@ -47,7 +64,7 @@ export function Dashboard() {
           <CardTitle>Investment Accounts</CardTitle>
         </CardHeader>
         <CardContent>
-          <AccountsGrid accounts={accounts} isLoading={accountsLoading} />
+          <AccountsGrid accounts={accounts} isLoading={accountsLoading} error={accountsError} />
         </CardContent>
       </Card>
     </div>
