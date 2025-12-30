@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { CenteredSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/lib/supabase';
 
 export const Route = createFileRoute('/_authenticated')({
@@ -14,4 +15,5 @@ export const Route = createFileRoute('/_authenticated')({
     }
   },
   component: AuthenticatedLayout,
+  pendingComponent: CenteredSpinner,
 });
