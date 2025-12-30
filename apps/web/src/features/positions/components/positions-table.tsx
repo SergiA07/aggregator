@@ -1,5 +1,7 @@
 import type { Position } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
+import { PieChart } from 'lucide-react';
+import { EmptyState } from '@/components/composed/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,8 +44,12 @@ export function PositionsTable() {
   if (!positions || positions.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <p className="text-muted-foreground">No positions yet. Import CSV data to get started.</p>
+        <CardContent>
+          <EmptyState
+            icon={PieChart}
+            title="No positions yet"
+            description="Import your broker CSV data to see your portfolio holdings and performance."
+          />
         </CardContent>
       </Card>
     );

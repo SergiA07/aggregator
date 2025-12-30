@@ -1,5 +1,6 @@
 import type { Account } from '@repo/shared-types';
-import { AlertTriangle, Inbox } from 'lucide-react';
+import { AlertTriangle, Wallet } from 'lucide-react';
+import { EmptyState } from '@/components/composed/empty-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,13 +35,11 @@ export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) 
 
   if (!accounts || accounts.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Inbox className="size-12 mx-auto text-muted-foreground" />
-        <p className="text-muted-foreground mt-2">No accounts yet</p>
-        <p className="text-sm text-muted-foreground">
-          Use the <span className="text-primary">Import</span> button in the header to get started
-        </p>
-      </div>
+      <EmptyState
+        icon={Wallet}
+        title="No accounts yet"
+        description="Use the Import button in the header to add your first brokerage account."
+      />
     );
   }
 

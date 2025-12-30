@@ -12,7 +12,7 @@ interface HeaderProps {
 export function Header({ user, onImportClick, onSignOut, isSigningOut }: HeaderProps) {
   return (
     <header className="bg-card border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-foreground">Portfolio Aggregator</h1>
         <div className="flex items-center gap-4">
           <Button onClick={onImportClick}>

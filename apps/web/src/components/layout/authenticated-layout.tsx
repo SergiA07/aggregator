@@ -37,7 +37,7 @@ export function AuthenticatedLayout() {
       />
 
       <nav className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="w-full px-4 md:px-6 lg:px-8">
           <div className="flex gap-1">
             <NavTab to="/dashboard" label="Overview" />
             <NavTab to="/positions" label="Positions" />

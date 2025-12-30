@@ -1,6 +1,8 @@
 import type { Transaction } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
+import { Receipt } from 'lucide-react';
 import { useState } from 'react';
+import { EmptyState } from '@/components/composed/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -79,10 +81,12 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
   if (!displayedTransactions || displayedTransactions.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <p className="text-muted-foreground">
-            No transactions yet. Import CSV data to get started.
-          </p>
+        <CardContent>
+          <EmptyState
+            icon={Receipt}
+            title="No transactions yet"
+            description="Import your broker CSV data to start tracking your investment transactions."
+          />
         </CardContent>
       </Card>
     );
