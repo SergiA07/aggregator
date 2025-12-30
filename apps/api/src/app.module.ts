@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
-import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth';
 import { PortfolioModule } from './modules/portfolio';
 import { DatabaseModule } from './shared/database';
 import { HttpExceptionFilter } from './shared/filters';
+import { HealthModule } from './shared/health';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -15,6 +15,7 @@ const isProd = process.env.NODE_ENV === 'production';
     DatabaseModule,
     AuthModule,
     PortfolioModule,
+    HealthModule,
     // Rate limiting: 100 requests per 60 seconds per IP
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60000, limit: 100 }],
@@ -31,7 +32,7 @@ const isProd = process.env.NODE_ENV === 'production';
       },
     }),
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
     // Apply rate limiting globally to all routes
     { provide: APP_GUARD, useClass: ThrottlerGuard },

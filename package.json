@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@fastify/helmet": "13.0.2",
+    "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "6.5.0"
   }
 }

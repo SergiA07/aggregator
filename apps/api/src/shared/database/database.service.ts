@@ -45,4 +45,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   // Expose $transaction for multi-model operations
   $transaction: PrismaClientType['$transaction'] = prisma.$transaction.bind(prisma);
+
+  // Expose $queryRawUnsafe for health checks (required by @nestjs/terminus PrismaHealthIndicator)
+  $queryRawUnsafe: PrismaClientType['$queryRawUnsafe'] = prisma.$queryRawUnsafe.bind(prisma);
 }
