@@ -3,6 +3,7 @@
   "globalDependencies": [".env", "tsconfig.json", "biome.json"],
   "globalEnv": [
     "NODE_ENV",
+    "AUTH_DEV_BYPASS",
     "DATABASE_URL",
     "SUPABASE_URL",
     "SUPABASE_PUBLISHABLE_KEY",

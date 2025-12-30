@@ -9,6 +9,18 @@ import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { AUTH_SERVICE, createDevUser, type IAuthService } from '../domain/interfaces';
 
 /**
+ * Check if dev auth bypass is enabled.
+ * Requires BOTH conditions:
+ * 1. NODE_ENV === 'development'
+ * 2. AUTH_DEV_BYPASS === 'true' (explicit opt-in)
+ *
+ * This prevents accidental auth bypass if NODE_ENV is misconfigured in production.
+ */
+function isDevAuthBypassEnabled(): boolean {
+  return process.env.NODE_ENV === 'development' && process.env.AUTH_DEV_BYPASS === 'true';
+}
+
+/**
  * AuthGuard - Application Layer
  *
  * Generic auth guard that uses IAuthService abstraction.
@@ -30,14 +42,15 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    // Development mode bypass - use mock user when no auth header and in dev mode
-    const isDev = process.env.NODE_ENV === 'development';
+    // Dev bypass requires explicit opt-in via AUTH_DEV_BYPASS=true
+    const devBypassEnabled = isDevAuthBypassEnabled();
 
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      if (isDev) {
-        // Use mock user in development
+      if (devBypassEnabled) {
+        // Use mock user in development (only when explicitly enabled)
+        this.logger.debug('Auth bypassed: using dev user (no auth header)');
         request.user = createDevUser();
         return true;
       }
@@ -51,10 +64,6 @@ export class AuthGuard implements CanActivate {
     const token = authHeader.replace('Bearer ', '');
 
     if (!token) {
-      if (isDev) {
-        request.user = createDevUser();
-        return true;
-      }
       this.logger.warn(
         { method: request.method, url: request.url, reason: 'empty_token' },
         'Auth failed',
@@ -65,10 +74,6 @@ export class AuthGuard implements CanActivate {
     const user = await this.authService.verifyToken(token);
 
     if (!user) {
-      if (isDev) {
-        request.user = createDevUser();
-        return true;
-      }
       this.logger.warn(
         { method: request.method, url: request.url, reason: 'invalid_token' },
         'Auth failed',
