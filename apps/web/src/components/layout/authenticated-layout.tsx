@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ImportModal } from '@/components/composed/import-modal';
+import { ImportModal } from '@/components/layout/import-modal';
 import { useAuth } from '@/features/auth';
 import { Header } from './header';
 import { NavTab } from './nav-tab';

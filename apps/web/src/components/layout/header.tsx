@@ -1,6 +1,6 @@
 import type { User } from '@supabase/supabase-js';
 import { Upload } from 'lucide-react';
-import { LanguagePicker } from '@/components/composed/language-picker';
+import { LanguagePicker } from '@/components/layout/language-picker';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/lib/i18n';
 
