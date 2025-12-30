@@ -7,7 +7,8 @@ A Turborepo monorepo for tracking investment portfolios across multiple brokers.
 - **Runtime**: Bun (package manager, test runner, dev server)
 - **Monorepo**: Turborepo with Bun workspaces
 - **API**: NestJS 11 + Fastify (not Express)
-- **Frontend**: React 19 + Vite 7 + TanStack Router + TanStack Query
+- **Frontend**: React 19 + Vite 7 + TanStack Router + TanStack Query + Shadcn/UI
+- **UI Components**: Shadcn/UI (Base Lyra style) + Tailwind CSS v4 + lucide-react icons
 - **Database**: PostgreSQL via Supabase + Prisma v7 (with driver adapters)
 - **Auth**: Supabase Auth
 - **Linting/Formatting**: Biome (not ESLint/Prettier)
@@ -87,3 +88,4 @@ Required in `.env` at monorepo root:
 - Use Vitest for frontend tests (when implemented)
 - Import from package barrel exports: `@repo/database`, `@repo/shared-types`
 - API follows Clean Architecture: domain > application > infrastructure > presentation
+- **UI Components**: Always use Shadcn/UI components. Install missing components with `bunx shadcn@latest add <component>`

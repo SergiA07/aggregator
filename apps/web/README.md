@@ -10,7 +10,7 @@ A modern React dashboard for tracking investment portfolios across multiple brok
 | **Routing** | TanStack Router (file-based) |
 | **Data Fetching** | TanStack Query v5 |
 | **State Management** | Zustand (client) + TanStack Query (server) |
-| **UI Components** | Shadcn/ui + Tailwind CSS v4 |
+| **UI Components** | Shadcn/UI (Base Lyra) + Tailwind CSS v4 + lucide-react |
 | **Forms** | React 19 Actions + useActionState |
 | **Authentication** | Supabase Auth |
 | **Notifications** | Sonner |
@@ -116,6 +116,22 @@ Code is organized by business domain, not technical concern. Each feature:
 | `components/ui/` | Shadcn primitives | No - treat as vendor |
 | `components/composed/` | Custom compositions | Yes |
 | `components/layout/` | App layout | Yes |
+
+### Shadcn/UI Components
+
+**Always prioritize using shadcn/ui components.** Install missing components:
+
+```bash
+bunx shadcn@latest add <component-name>
+```
+
+Configuration:
+- **Style**: Base Lyra (uses @base-ui/react primitives)
+- **Theme**: Orange accent, neutral base colors
+- **Font**: Outfit
+- **Border Radius**: None (sharp corners)
+
+Available components: button, card, dialog, input, label, select, table, badge, skeleton, textarea, tabs, tooltip, toggle, toggle-group
 
 ### State Management
 

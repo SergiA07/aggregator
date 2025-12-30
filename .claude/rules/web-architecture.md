@@ -124,21 +124,185 @@ function PositionsPage() {
 | `components/layout/` | App layout (Header, Sidebar) | Yes |
 | `features/*/components/` | Feature-specific components | Yes |
 
-### Shadcn Convention
+### Shadcn/UI Component Library
 
-Install Shadcn components to `components/ui/`:
+**IMPORTANT: Always prioritize using shadcn/ui components for UI development.**
+
+This project uses **shadcn/ui** with the following configuration:
+- **Style**: Base Lyra (uses @base-ui/react primitives)
+- **Theme**: Orange accent with neutral base colors
+- **Font**: Outfit (via @fontsource-variable/outfit)
+- **Border Radius**: None (sharp corners)
+- **CSS**: Tailwind CSS v4 with OKLCH colors
+
+#### Installing New Components
+
+When you need a UI component, **always check if shadcn has it first** and install it:
 
 ```bash
+# Install a shadcn component
+bunx shadcn@latest add <component-name>
+
+# Examples:
 bunx shadcn@latest add button
+bunx shadcn@latest add dialog
+bunx shadcn@latest add table
+bunx shadcn@latest add select
+bunx shadcn@latest add card
+bunx shadcn@latest add input
+bunx shadcn@latest add label
+bunx shadcn@latest add badge
+bunx shadcn@latest add skeleton
+bunx shadcn@latest add textarea
+bunx shadcn@latest add tabs
+bunx shadcn@latest add tooltip
+bunx shadcn@latest add toggle
+bunx shadcn@latest add toggle-group
 ```
 
-Create compositions in `components/composed/`:
+Components are installed to `src/components/ui/`. The CLI reads `components.json` for configuration.
+
+#### Available Components
+
+Currently installed shadcn components:
+- `button` - Buttons with variants (default, outline, secondary, ghost, destructive, link)
+- `card` - Card container with CardHeader, CardContent, CardFooter
+- `dialog` - Modal dialogs
+- `input` - Text inputs
+- `label` - Form labels
+- `select` - Dropdowns with SelectTrigger, SelectContent, SelectItem
+- `table` - Data tables with TableHeader, TableBody, TableRow, TableCell
+- `badge` - Status badges with variants
+- `skeleton` - Loading placeholders
+- `textarea` - Multi-line text input
+- `tabs` - Tab navigation
+- `tooltip` - Hover tooltips
+- `toggle` - Toggle buttons
+- `toggle-group` - Grouped toggles
+
+#### Using Components
+
+Always import from `@/components/ui/`:
+
+```typescript
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+```
+
+#### Button Variants
+
+```typescript
+<Button variant="default">Primary Action</Button>
+<Button variant="outline">Secondary Action</Button>
+<Button variant="ghost">Subtle Action</Button>
+<Button variant="destructive">Dangerous Action</Button>
+<Button variant="link">Link Style</Button>
+
+// Sizes
+<Button size="default">Default</Button>
+<Button size="sm">Small</Button>
+<Button size="lg">Large</Button>
+<Button size="icon">Icon Only</Button>
+```
+
+#### Creating Custom Toggle Groups
+
+Note: Base UI's ToggleGroup doesn't support `type="single"` like Radix. Use Button groups for single-select toggles:
+
+```typescript
+// Single-select toggle pattern
+<div className="flex w-full">
+  <Button
+    variant={selected === 'option1' ? 'default' : 'outline'}
+    className="flex-1 rounded-r-none"
+    onClick={() => setSelected('option1')}
+  >
+    Option 1
+  </Button>
+  <Button
+    variant={selected === 'option2' ? 'default' : 'outline'}
+    className="flex-1 rounded-l-none border-l-0"
+    onClick={() => setSelected('option2')}
+  >
+    Option 2
+  </Button>
+</div>
+```
+
+### Creating Compositions
+
+Create custom compositions in `components/composed/`:
 
 ```typescript
 // components/composed/data-table.tsx
-import { Table, TableBody, TableCell } from '@/components/ui/table';
-// Custom enhanced table with sorting, filtering
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Custom enhanced table with sorting, filtering, loading states
+export function DataTable({ data, isLoading, columns }) {
+  if (isLoading) {
+    return <Card><Skeleton className="h-64" /></Card>;
+  }
+  // ...
+}
 ```
+
+### Icons
+
+Use **lucide-react** for icons (consistent with shadcn):
+
+```typescript
+import { Upload, ChevronRight, AlertTriangle, Check, X, Loader2 } from 'lucide-react';
+
+<Button>
+  <Upload className="size-4" />
+  Upload File
+</Button>
+```
+
+### Styling with cn()
+
+Use the `cn()` utility for conditional classes:
+
+```typescript
+import { cn } from '@/lib/utils';
+
+<div className={cn(
+  'base-classes',
+  isActive && 'active-classes',
+  variant === 'danger' && 'text-destructive'
+)} />
+```
+
+### Semantic Colors
+
+Use Tailwind semantic color classes that respect light/dark themes:
+
+| Purpose | Class |
+|---------|-------|
+| Primary action | `bg-primary text-primary-foreground` |
+| Secondary | `bg-secondary text-secondary-foreground` |
+| Muted/subtle | `bg-muted text-muted-foreground` |
+| Destructive | `bg-destructive text-destructive` |
+| Background | `bg-background text-foreground` |
+| Card surface | `bg-card text-card-foreground` |
+| Borders | `border-border` |
+
+### DO NOT
+
+- **DO NOT** create custom UI primitives when shadcn has them
+- **DO NOT** edit files in `components/ui/` directly (treat as vendor code)
+- **DO NOT** use raw HTML elements when shadcn equivalents exist
+- **DO NOT** install other UI libraries (no Material UI, Chakra, etc.)
+- **DO NOT** create custom button/input/dialog components from scratch
 
 ## TanStack Router
 
