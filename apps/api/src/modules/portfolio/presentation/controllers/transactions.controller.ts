@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Inject,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -22,6 +21,7 @@ import {
 } from '@repo/shared-types/schemas';
 import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
 import { ZodValidationPipe } from '@/shared/pipes';
+import { assertFound } from '@/shared/utils';
 import { TransactionsService } from '../../application/services';
 
 @ApiTags('Transactions')
@@ -90,9 +90,7 @@ export class TransactionsController {
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async getTransaction(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const transaction = await this.transactionsService.findOne(user.id, id);
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
-    }
+    assertFound(transaction, 'Transaction not found');
     return transaction;
   }
 
@@ -126,9 +124,7 @@ export class TransactionsController {
       ...dto,
       date: dto.date ? new Date(dto.date) : undefined,
     });
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
-    }
+    assertFound(transaction, 'Transaction not found');
     return transaction;
   }
 
@@ -139,9 +135,7 @@ export class TransactionsController {
   @ApiResponse({ status: 404, description: 'Transaction not found' })
   async deleteTransaction(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.transactionsService.delete(user.id, id);
-    if (!deleted) {
-      throw new NotFoundException('Transaction not found');
-    }
+    assertFound(deleted, 'Transaction not found');
     return { message: 'Transaction deleted' };
   }
 }

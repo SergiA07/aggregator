@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CreateAccountInput,
@@ -19,6 +8,7 @@ import {
 } from '@repo/shared-types/schemas';
 import { type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
 import { ZodValidationPipe } from '@/shared/pipes';
+import { assertFound } from '@/shared/utils';
 import { AccountsService } from '../../application/services';
 
 @ApiTags('Accounts')
@@ -43,9 +33,7 @@ export class AccountsController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   async getAccount(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const account = await this.accountsService.findOne(user.id, id);
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
+    assertFound(account, 'Account not found');
     return account;
   }
 
@@ -73,9 +61,7 @@ export class AccountsController {
     @Body(new ZodValidationPipe(updateAccountSchema)) dto: UpdateAccountInput,
   ) {
     const account = await this.accountsService.update(user.id, id, dto);
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
+    assertFound(account, 'Account not found');
     return account;
   }
 
@@ -86,9 +72,7 @@ export class AccountsController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   async deleteAccount(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.accountsService.delete(user.id, id);
-    if (!deleted) {
-      throw new NotFoundException('Account not found');
-    }
+    assertFound(deleted, 'Account not found');
     return { message: 'Account deleted' };
   }
 }

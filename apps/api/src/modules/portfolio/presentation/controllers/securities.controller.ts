@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   Inject,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -22,6 +21,7 @@ import {
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { AdminGuard, type AuthUser, CurrentUser, SupabaseAuthGuard } from '@/modules/auth';
 import { ZodValidationPipe } from '@/shared/pipes';
+import { assertFound } from '@/shared/utils';
 import { SecuritiesService } from '../../application/services';
 
 @ApiTags('Securities')
@@ -66,9 +66,7 @@ export class SecuritiesController {
   @ApiResponse({ status: 404, description: 'Security not found' })
   async getSecurity(@Param('id') id: string) {
     const security = await this.securitiesService.findOne(id);
-    if (!security) {
-      throw new NotFoundException('Security not found');
-    }
+    assertFound(security, 'Security not found');
     return security;
   }
 
@@ -79,9 +77,7 @@ export class SecuritiesController {
   @ApiResponse({ status: 404, description: 'Security not found' })
   async getSecurityByIsin(@Param('isin') isin: string) {
     const security = await this.securitiesService.findByIsin(isin);
-    if (!security) {
-      throw new NotFoundException('Security not found');
-    }
+    assertFound(security, 'Security not found');
     return security;
   }
 
@@ -118,9 +114,7 @@ export class SecuritiesController {
     @Body(new ZodValidationPipe(updateSecuritySchema)) dto: UpdateSecurityInput,
   ) {
     const security = await this.securitiesService.update(id, dto);
-    if (!security) {
-      throw new NotFoundException('Security not found');
-    }
+    assertFound(security, 'Security not found');
     this.logger.info({ adminId: user.id, securityId: id }, 'Security updated');
     return security;
   }
@@ -134,9 +128,7 @@ export class SecuritiesController {
   @ApiResponse({ status: 404, description: 'Security not found' })
   async deleteSecurity(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.securitiesService.delete(id);
-    if (!deleted) {
-      throw new NotFoundException('Security not found');
-    }
+    assertFound(deleted, 'Security not found');
     this.logger.info({ adminId: user.id, securityId: id }, 'Security deleted');
     return { message: 'Security deleted' };
   }
