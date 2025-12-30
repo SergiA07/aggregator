@@ -15,6 +15,8 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@ne
 import {
   type CreateTransactionInput,
   createTransactionSchema,
+  type TransactionFiltersInput,
+  transactionFiltersSchema,
   type UpdateTransactionInput,
   updateTransactionSchema,
 } from '@repo/shared-types/schemas';
@@ -33,37 +35,52 @@ export class TransactionsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all transactions for current user' })
-  @ApiQuery({ name: 'accountId', required: false })
-  @ApiQuery({ name: 'securityId', required: false })
-  @ApiQuery({ name: 'type', required: false })
-  @ApiQuery({ name: 'startDate', required: false })
-  @ApiQuery({ name: 'endDate', required: false })
+  @ApiQuery({ name: 'accountId', required: false, description: 'Filter by account UUID' })
+  @ApiQuery({ name: 'securityId', required: false, description: 'Filter by security UUID' })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['buy', 'sell', 'dividend', 'fee', 'split', 'other'],
+    description: 'Filter by transaction type',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    example: '2024-01-01',
+    description: 'Start date (YYYY-MM-DD format)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    example: '2024-12-31',
+    description: 'End date (YYYY-MM-DD format)',
+  })
   @ApiResponse({ status: 200, description: 'List of transactions returned successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid query parameters' })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getTransactions(
     @CurrentUser() user: AuthUser,
-    @Query('accountId') accountId?: string,
-    @Query('securityId') securityId?: string,
-    @Query('type') type?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query(new ZodValidationPipe(transactionFiltersSchema)) filters: TransactionFiltersInput,
   ) {
     return this.transactionsService.findByUser(user.id, {
-      accountId,
-      securityId,
-      type,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
+      ...filters,
+      startDate: filters.startDate ? new Date(filters.startDate) : undefined,
+      endDate: filters.endDate ? new Date(filters.endDate) : undefined,
     });
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get transaction statistics' })
-  @ApiQuery({ name: 'accountId', required: false })
+  @ApiQuery({ name: 'accountId', required: false, description: 'Filter by account UUID' })
   @ApiResponse({ status: 200, description: 'Transaction statistics returned successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid query parameters' })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
-  async getStats(@CurrentUser() user: AuthUser, @Query('accountId') accountId?: string) {
-    return this.transactionsService.getStats(user.id, accountId);
+  async getStats(
+    @CurrentUser() user: AuthUser,
+    @Query(new ZodValidationPipe(transactionFiltersSchema.pick({ accountId: true })))
+    filters: Pick<TransactionFiltersInput, 'accountId'>,
+  ) {
+    return this.transactionsService.getStats(user.id, filters.accountId);
   }
 
   @Get(':id')
