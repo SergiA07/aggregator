@@ -23,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { transactionListOptions } from '@/lib/api/queries/transactions';
+import { useTranslation } from '@/lib/i18n';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 
 type TransactionType = 'buy' | 'sell' | 'dividend' | 'fee' | 'split' | 'other';
@@ -43,6 +44,7 @@ interface TransactionsTableProps {
 }
 
 export function TransactionsTable({ accountId, limit }: TransactionsTableProps) {
+  const { t } = useTranslation();
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const {
@@ -70,7 +72,7 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-destructive">Error loading transactions</p>
+          <p className="text-destructive">{t('transactions.error')}</p>
         </CardContent>
       </Card>
     );
@@ -84,8 +86,8 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
         <CardContent>
           <EmptyState
             icon={Receipt}
-            title="No transactions yet"
-            description="Import your broker CSV data to start tracking your investment transactions."
+            title={t('transactions.empty.title')}
+            description={t('transactions.empty.description')}
           />
         </CardContent>
       </Card>
@@ -96,40 +98,40 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
     <Card>
       {/* Filters */}
       <div className="p-4 border-b border-border flex items-center gap-4">
-        <Label htmlFor="type-filter">Filter by type:</Label>
+        <Label htmlFor="type-filter">{t('transactions.filterByType')}</Label>
         <Select value={typeFilter} onValueChange={(value) => value && setTypeFilter(value)}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="buy">Buy</SelectItem>
-            <SelectItem value="sell">Sell</SelectItem>
-            <SelectItem value="dividend">Dividend</SelectItem>
-            <SelectItem value="fee">Fee</SelectItem>
+            <SelectItem value="all">{t('common.all')}</SelectItem>
+            <SelectItem value="buy">{t('transactions.types.buy')}</SelectItem>
+            <SelectItem value="sell">{t('transactions.types.sell')}</SelectItem>
+            <SelectItem value="dividend">{t('transactions.types.dividend')}</SelectItem>
+            <SelectItem value="fee">{t('transactions.types.fee')}</SelectItem>
           </SelectContent>
         </Select>
         <span className="text-sm text-muted-foreground">
-          {displayedTransactions.length} transaction{displayedTransactions.length !== 1 ? 's' : ''}
+          {t('transactions.count', { count: displayedTransactions.length })}
           {limit &&
             transactions &&
             transactions.length > limit &&
-            ` (showing ${limit} of ${transactions.length})`}
+            ` ${t('transactions.showing', { shown: limit, total: transactions.length })}`}
         </span>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Symbol</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="text-right">Qty</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            <TableHead className="text-right">Fees</TableHead>
-            <TableHead>Account</TableHead>
+            <TableHead>{t('transactions.table.date')}</TableHead>
+            <TableHead>{t('transactions.table.type')}</TableHead>
+            <TableHead>{t('transactions.table.symbol')}</TableHead>
+            <TableHead>{t('transactions.table.name')}</TableHead>
+            <TableHead className="text-right">{t('transactions.table.quantity')}</TableHead>
+            <TableHead className="text-right">{t('transactions.table.price')}</TableHead>
+            <TableHead className="text-right">{t('transactions.table.amount')}</TableHead>
+            <TableHead className="text-right">{t('transactions.table.fees')}</TableHead>
+            <TableHead>{t('transactions.table.account')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,7 +140,7 @@ export function TransactionsTable({ accountId, limit }: TransactionsTableProps) 
               <TableCell className="whitespace-nowrap">{formatDate(tx.date)}</TableCell>
               <TableCell>
                 <Badge variant={TYPE_VARIANTS[tx.type as TransactionType] ?? 'secondary'}>
-                  {tx.type.toUpperCase()}
+                  {t(`transactions.types.${tx.type as TransactionType}`)}
                 </Badge>
               </TableCell>
               <TableCell>

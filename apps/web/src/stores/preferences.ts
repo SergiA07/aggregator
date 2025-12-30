@@ -13,13 +13,13 @@ function detectBrowserLocale(): SupportedLocale {
   const browserLocales = navigator.languages ?? [navigator.language];
 
   for (const browserLocale of browserLocales) {
-    // Check for exact match (e.g., 'es')
-    if (browserLocale === 'en' || browserLocale === 'es') {
+    // Check for exact match (e.g., 'es', 'ca')
+    if (browserLocale === 'en' || browserLocale === 'es' || browserLocale === 'ca') {
       return browserLocale;
     }
-    // Check for language-only match (e.g., 'es-MX' -> 'es')
+    // Check for language-only match (e.g., 'es-MX' -> 'es', 'ca-ES' -> 'ca')
     const lang = browserLocale.split('-')[0];
-    if (lang === 'en' || lang === 'es') {
+    if (lang === 'en' || lang === 'es' || lang === 'ca') {
       return lang as SupportedLocale;
     }
   }

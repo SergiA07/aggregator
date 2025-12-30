@@ -15,10 +15,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { positionListOptions } from '@/lib/api/queries/positions';
+import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
 export function PositionsTable() {
+  const { t } = useTranslation();
   const { data: positions, isLoading, error } = useQuery(positionListOptions());
 
   if (isLoading) {
@@ -35,7 +37,7 @@ export function PositionsTable() {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-destructive">Error loading positions</p>
+          <p className="text-destructive">{t('positions.error')}</p>
         </CardContent>
       </Card>
     );
@@ -47,8 +49,8 @@ export function PositionsTable() {
         <CardContent>
           <EmptyState
             icon={PieChart}
-            title="No positions yet"
-            description="Import your broker CSV data to see your portfolio holdings and performance."
+            title={t('positions.empty.title')}
+            description={t('positions.empty.description')}
           />
         </CardContent>
       </Card>
@@ -65,15 +67,15 @@ export function PositionsTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Symbol</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="text-right">Qty</TableHead>
-            <TableHead className="text-right">Avg Cost</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-right">Value</TableHead>
-            <TableHead className="text-right">P&L</TableHead>
-            <TableHead className="text-right">P&L %</TableHead>
-            <TableHead>Account</TableHead>
+            <TableHead>{t('positions.table.symbol')}</TableHead>
+            <TableHead>{t('positions.table.name')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.quantity')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.avgCost')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.price')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.value')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.pnl')}</TableHead>
+            <TableHead className="text-right">{t('positions.table.pnlPercent')}</TableHead>
+            <TableHead>{t('positions.table.account')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -132,7 +134,7 @@ export function PositionsTable() {
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5}>Total</TableCell>
+            <TableCell colSpan={5}>{t('positions.table.total')}</TableCell>
             <TableCell className="text-right font-medium">{formatCurrency(totalValue)}</TableCell>
             <TableCell
               className={cn(

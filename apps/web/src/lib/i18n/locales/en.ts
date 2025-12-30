@@ -11,6 +11,7 @@
  * - dashboard: Dashboard page
  * - positions: Positions page
  * - transactions: Transactions page
+ * - import: Import modal
  * - errors: Error messages
  */
 
@@ -33,6 +34,11 @@ export const en = {
     filter: 'Filter',
     all: 'All',
     currency: 'Currency',
+    total: 'Total',
+    tryAgain: 'Try again',
+    goToDashboard: 'Go to Dashboard',
+    showDetails: 'Show error details',
+    pleaseWait: 'Please wait...',
   },
 
   // =========================================================================
@@ -49,10 +55,15 @@ export const en = {
   // =========================================================================
   auth: {
     signIn: 'Sign In',
+    signUp: 'Sign Up',
     signOut: 'Sign Out',
     signingOut: 'Signing out...',
     email: 'Email',
     password: 'Password',
+    authFailed: 'Authentication failed',
+    signOutFailed: 'Failed to sign out',
+    hasAccount: 'Already have an account? Sign In',
+    noAccount: "Don't have an account? Sign Up",
   },
 
   // =========================================================================
@@ -71,6 +82,7 @@ export const en = {
     totalCost: 'Total Cost',
     totalPnl: 'Total P&L',
     return: 'Return',
+    loadError: 'Failed to load portfolio summary. Please try refreshing the page.',
     accounts: {
       title: 'Investment Accounts',
       empty: {
@@ -137,31 +149,66 @@ export const en = {
       description: 'Import your broker CSV data to start tracking your investment transactions.',
     },
     error: 'Error loading transactions',
-    // Example of plural usage
     count: dt('{count:plural}', {
       count: {
         one: '{?} transaction',
         other: '{?} transactions',
       },
     }),
-    showing: dt('showing {shown:number} of {total:number}', {
+    showing: dt('(showing {shown:number} of {total:number})', {
       shown: {},
       total: {},
     }),
   },
 
   // =========================================================================
-  // IMPORT
+  // IMPORT MODAL
   // =========================================================================
   import: {
     title: 'Import Data',
     description: 'Upload your broker CSV file to import transactions.',
-    selectBroker: 'Select broker',
-    selectFile: 'Select file',
-    dropzone: 'Drop your CSV file here or click to browse',
+    importType: 'Import Type',
+    investmentAccount: 'Investment Account',
+    bankAccount: 'Bank Account',
+    selectBroker: 'Select Broker/Bank',
+    howToExport: dt('How to export from {broker}:', { broker: {} }),
+    importMethod: 'Import Method',
+    uploadFile: 'Upload File',
+    pasteCSV: 'Paste CSV',
+    clickToUpload: 'Click to upload CSV file',
+    dragAndDrop: 'or drag and drop',
+    pasteHere: 'Paste your CSV content here...',
     importing: 'Importing...',
-    success: 'Import successful!',
-    error: 'Import failed. Please check your file format.',
+    importData: 'Import Data',
+
+    // Validation
+    validating: 'Validating...',
+    validFormat: dt('Valid {broker} format', { broker: {} }),
+    validCSV: 'Valid CSV format',
+    formatWithWarnings: dt('{broker} format with warnings', { broker: {} }),
+    csvWithWarnings: 'CSV format with warnings',
+    invalidFile: 'Invalid file',
+    rows: 'rows',
+    errors: 'Errors:',
+    warnings: 'Warnings:',
+
+    // Preview
+    hidePreview: 'Hide preview',
+    showPreview: dt('Preview ({shown:number} of {total:number} rows)', {
+      shown: {},
+      total: {},
+    }),
+    moreColumns: dt('+{count:number} more', { count: {} }),
+
+    // Result
+    success: 'Import Successful!',
+    completedWithErrors: 'Import Completed with Errors',
+    broker: dt('Broker: {name}', { name: {} }),
+    transactionsCount: 'Transactions',
+    positionsCount: 'Positions',
+    securitiesCount: 'Securities',
+    warningsCount: dt('Warnings ({count:number})', { count: {} }),
+    andMore: dt('...and {count:number} more', { count: {} }),
   },
 
   // =========================================================================
@@ -169,23 +216,20 @@ export const en = {
   // =========================================================================
   errors: {
     generic: 'Something went wrong. Please try again.',
+    unexpected: 'An unexpected error occurred',
     notFound: 'Page not found',
     unauthorized: 'You must be signed in to view this page.',
     network: 'Network error. Please check your connection.',
+    failedToLoad: dt('Failed to load {page}', { page: {} }),
   },
 
   // =========================================================================
-  // FORMATTING (for reference, used with formatters)
+  // LANGUAGES
   // =========================================================================
-  formatting: {
-    // Example of date formatting
-    date: dt('Date: {value:date}', {
-      value: { dateStyle: 'medium' },
-    }),
-    // Example of currency (though we use formatCurrency directly)
-    currency: dt('{value:number}', {
-      value: { style: 'currency', currency: 'USD' },
-    }),
+  languages: {
+    en: 'English',
+    es: 'Spanish',
+    ca: 'Catalan',
   },
 } as const;
 

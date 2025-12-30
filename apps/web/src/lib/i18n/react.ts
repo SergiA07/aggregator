@@ -6,6 +6,7 @@
 
 import { usePreferences } from '@/stores/preferences';
 import { createTranslator } from './engine';
+import { ca } from './locales/ca';
 import { en } from './locales/en';
 import { es } from './locales/es';
 import type {
@@ -24,6 +25,7 @@ import type {
 const messages: Record<string, I18nMessages> = {
   en,
   es,
+  ca,
 };
 
 // =============================================================================

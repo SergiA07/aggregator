@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ImportModal } from '@/components/layout/import-modal';
 import { useAuth } from '@/features/auth';
+import { useTranslation } from '@/lib/i18n';
 import { Header } from './header';
 import { NavTab } from './nav-tab';
 import { PageLayout } from './page-layout';
@@ -10,6 +11,7 @@ import { PageLayout } from './page-layout';
 export function AuthenticatedLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -20,7 +22,7 @@ export function AuthenticatedLayout() {
       await signOut();
       navigate({ to: '/login' });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to sign out';
+      const message = error instanceof Error ? error.message : t('auth.signOutFailed');
       toast.error(message);
     } finally {
       setIsSigningOut(false);
@@ -39,9 +41,9 @@ export function AuthenticatedLayout() {
       <nav className="border-b border-border bg-card">
         <div className="w-full px-4 md:px-6 lg:px-8">
           <div className="flex gap-1">
-            <NavTab to="/dashboard" label="Overview" />
-            <NavTab to="/positions" label="Positions" />
-            <NavTab to="/transactions" label="Transactions" />
+            <NavTab to="/dashboard" label={t('nav.overview')} />
+            <NavTab to="/positions" label={t('nav.positions')} />
+            <NavTab to="/transactions" label={t('nav.transactions')} />
           </div>
         </div>
       </nav>

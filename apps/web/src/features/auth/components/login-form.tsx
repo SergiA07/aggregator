@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/lib/i18n';
 import { useAuth } from '../hooks/use-auth';
 
 type FieldErrors = {
@@ -25,9 +26,11 @@ const initialState: AuthState = {
 
 function SubmitButton({ isSignUp }: { isSignUp: boolean }) {
   const { pending } = useFormStatus();
+  const { t } = useTranslation();
+
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+      {pending ? t('common.pleaseWait') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
     </Button>
   );
 }
@@ -35,6 +38,7 @@ function SubmitButton({ isSignUp }: { isSignUp: boolean }) {
 export function LoginForm() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+  const { t } = useTranslation();
   const [isSignUp, setIsSignUp] = useState(false);
 
   const authAction = async (_prevState: AuthState, formData: FormData): Promise<AuthState> => {
@@ -67,7 +71,7 @@ export function LoginForm() {
     } catch (err) {
       return {
         fieldErrors: {},
-        formError: err instanceof Error ? err.message : 'Authentication failed',
+        formError: err instanceof Error ? err.message : t('auth.authFailed'),
       };
     }
   };
@@ -78,12 +82,12 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center text-xl">Portfolio Aggregator</CardTitle>
+          <CardTitle className="text-center text-xl">{t('common.appName')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -98,7 +102,7 @@ export function LoginForm() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 name="password"
@@ -120,7 +124,7 @@ export function LoginForm() {
               onClick={() => setIsSignUp(!isSignUp)}
               className="w-full"
             >
-              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              {isSignUp ? t('auth.hasAccount') : t('auth.noAccount')}
             </Button>
           </form>
         </CardContent>

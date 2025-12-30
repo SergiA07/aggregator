@@ -20,7 +20,8 @@ import { type SupportedLocale, useLocale } from '@/lib/i18n';
  */
 const LANGUAGES: { code: SupportedLocale; name: string; nativeName: string }[] = [
   { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Espanol' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español' },
+  { code: 'ca', name: 'Catalan', nativeName: 'Català' },
 ];
 
 export function LanguagePicker() {

@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { accountListOptions } from '@/lib/api/queries/accounts';
 import { positionSummaryOptions } from '@/lib/api/queries/positions';
+import { useTranslation } from '@/lib/i18n';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import { AccountsGrid } from './accounts-grid';
 import { SummaryCard } from './summary-card';
 
 export function Dashboard() {
+  const { t } = useTranslation();
   const {
     data: summary,
     isLoading: summaryLoading,
@@ -30,25 +32,26 @@ export function Dashboard() {
         ) : summaryError ? (
           <Alert variant="destructive" className="col-span-full">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load portfolio summary. Please try refreshing the page.
-            </AlertDescription>
+            <AlertDescription>{t('dashboard.loadError')}</AlertDescription>
           </Alert>
         ) : (
           <>
             <SummaryCard
-              title="Total Value"
+              title={t('dashboard.totalValue')}
               value={formatCurrency(summary?.totalValue ?? 0)}
               variant="info"
             />
-            <SummaryCard title="Total Cost" value={formatCurrency(summary?.totalCost ?? 0)} />
             <SummaryCard
-              title="Total P&L"
+              title={t('dashboard.totalCost')}
+              value={formatCurrency(summary?.totalCost ?? 0)}
+            />
+            <SummaryCard
+              title={t('dashboard.totalPnl')}
               value={formatCurrency(summary?.totalPnl ?? 0)}
               variant={summary?.totalPnl && summary.totalPnl >= 0 ? 'success' : 'destructive'}
             />
             <SummaryCard
-              title="Return"
+              title={t('dashboard.return')}
               value={formatPercent(summary?.pnlPercentage ?? 0)}
               variant={
                 summary?.pnlPercentage && summary.pnlPercentage >= 0 ? 'success' : 'destructive'
@@ -61,7 +64,7 @@ export function Dashboard() {
       {/* Accounts Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Investment Accounts</CardTitle>
+          <CardTitle>{t('dashboard.accounts.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <AccountsGrid accounts={accounts} isLoading={accountsLoading} error={accountsError} />

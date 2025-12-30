@@ -220,7 +220,7 @@ export type ExtractDefinitionOptions<S extends string> =
 /**
  * Supported locales. Add more as needed.
  */
-export type SupportedLocale = 'en' | 'es' | 'en-US' | 'es-ES';
+export type SupportedLocale = 'en' | 'es' | 'ca' | 'en-US' | 'es-ES' | 'ca-ES';
 
 /**
  * Configuration for initializing the i18n system.
