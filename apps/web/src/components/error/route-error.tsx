@@ -1,4 +1,7 @@
 import type { ErrorComponentProps } from '@tanstack/react-router';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface RouteErrorProps extends ErrorComponentProps {
   /** The name of the page/feature that failed */
@@ -13,48 +16,31 @@ interface RouteErrorProps extends ErrorComponentProps {
  */
 export function RouteError({ error, reset, pageName, retryLabel = 'Try again' }: RouteErrorProps) {
   return (
-    <div className="bg-slate-800 rounded-lg p-8 text-center">
-      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-red-900/50 flex items-center justify-center">
-        <svg
-          className="w-6 h-6 text-red-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
+    <Card className="p-8 text-center">
+      <CardContent className="p-0">
+        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10">
+          <AlertTriangle className="size-6 text-destructive" aria-hidden="true" />
+        </div>
 
-      <h2 className="text-lg font-semibold text-white mb-2">Failed to load {pageName}</h2>
+        <h2 className="mb-2 text-lg font-semibold">Failed to load {pageName}</h2>
 
-      <p className="text-slate-400 text-sm mb-4">
-        {error instanceof Error ? error.message : 'An unexpected error occurred'}
-      </p>
+        <p className="mb-4 text-sm text-muted-foreground">
+          {error instanceof Error ? error.message : 'An unexpected error occurred'}
+        </p>
 
-      <button
-        type="button"
-        onClick={reset}
-        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md transition-colors"
-      >
-        {retryLabel}
-      </button>
+        <Button onClick={reset}>{retryLabel}</Button>
 
-      {import.meta.env.DEV && error instanceof Error && error.stack && (
-        <details className="mt-6 text-left">
-          <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400">
-            Error details
-          </summary>
-          <pre className="mt-2 p-3 bg-slate-900 rounded text-xs text-red-400 overflow-x-auto">
-            {error.stack}
-          </pre>
-        </details>
-      )}
-    </div>
+        {import.meta.env.DEV && error instanceof Error && error.stack && (
+          <details className="mt-6 text-left">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+              Error details
+            </summary>
+            <pre className="mt-2 overflow-x-auto rounded-none bg-muted p-3 text-xs text-destructive">
+              {error.stack}
+            </pre>
+          </details>
+        )}
+      </CardContent>
+    </Card>
   );
 }
