@@ -112,144 +112,270 @@ export class ImportTransactionsUseCase {
 
   private async importParsedData(userId: string, parseResult: ParseResult): Promise<ImportResult> {
     const errors: string[] = [...parseResult.errors];
-    let transactionsImported = 0;
-    let positionsCreated = 0;
-    let securitiesCreated = 0;
 
-    // 1. Get or create account
-    const account = await this.getOrCreateAccount(userId, parseResult.broker);
+    // Prepare security type lookups before transaction (external API call should not be in transaction)
+    const openFigiTypes = await this.prepareSecurityTypes(parseResult);
 
-    // 2. Create securities first
-    const { map: securityMap, created } = await this.createSecurities(parseResult, errors);
-    securitiesCreated = created;
+    // Use interactive transaction for atomicity and to prevent race conditions.
+    // This ensures concurrent imports don't create duplicates or corrupt data.
+    // Prisma's interactive transactions use row-level locking.
+    const result = await this.db.$transaction(
+      async (tx) => {
+        let transactionsImported = 0;
+        let positionsCreated = 0;
+        let securitiesCreated = 0;
 
-    // 3. Import transactions
-    for (const tx of parseResult.transactions) {
-      try {
-        const securityId = securityMap.get(tx.isin || tx.symbol);
-        if (!securityId) {
-          errors.push(`Could not find security for transaction: ${tx.symbol} (${tx.isin})`);
-          continue;
-        }
-
-        // Generate fingerprint for deduplication (used when externalId not available)
-        const fingerprint = tx.externalId
-          ? undefined
-          : generateTransactionFingerprint({
-              accountId: account.id,
-              securityId,
-              date: tx.date,
-              type: tx.type,
-              quantity: tx.quantity,
-              price: tx.price,
-              amount: tx.amount,
-            });
-
-        // Check for duplicate using externalId or fingerprint (both have unique constraints)
-        const existing = await this.db.transaction.findFirst({
-          where: tx.externalId
-            ? { userId, accountId: account.id, externalId: tx.externalId }
-            : { userId, fingerprint },
-        });
-        if (existing) {
-          continue; // Skip duplicate
-        }
-
-        await this.db.transaction.create({
-          data: {
-            userId,
-            accountId: account.id,
-            securityId,
-            date: tx.date,
-            type: tx.type,
-            quantity: tx.quantity,
-            price: tx.price,
-            amount: tx.amount,
-            fees: tx.fees,
-            currency: tx.currency,
-            externalId: tx.externalId,
-            fingerprint,
-          },
-        });
-
-        transactionsImported++;
-      } catch (error) {
-        // P2002 = Unique constraint violation (duplicate transaction)
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-          continue;
-        }
-        const message = error instanceof Error ? error.message : 'Unknown';
-        errors.push(`Failed to import transaction: ${message}`);
-      }
-    }
-
-    // 4. Upsert positions
-    for (const pos of parseResult.positions) {
-      try {
-        const securityId = securityMap.get(pos.isin || pos.symbol);
-        if (!securityId) continue;
-
-        const existing = await this.db.position.findUnique({
+        // 1. Get or create account (upsert is atomic)
+        const account = await tx.account.upsert({
           where: {
-            userId_accountId_securityId: {
-              userId,
-              accountId: account.id,
-              securityId,
-            },
-          },
-        });
-
-        await this.db.position.upsert({
-          where: {
-            userId_accountId_securityId: {
-              userId,
-              accountId: account.id,
-              securityId,
-            },
+            userId_broker: { userId, broker: parseResult.broker },
           },
           create: {
             userId,
-            accountId: account.id,
-            securityId,
-            quantity: pos.quantity,
-            avgCost: pos.avgCost,
-            totalCost: pos.totalCost,
-            currency: pos.currency,
+            broker: parseResult.broker,
+            accountId: `${parseResult.broker}-${Date.now()}`,
+            accountName: `${parseResult.broker.charAt(0).toUpperCase() + parseResult.broker.slice(1)} Account`,
+            currency: 'EUR',
           },
-          update: {
-            quantity: pos.quantity,
-            avgCost: pos.avgCost,
-            totalCost: pos.totalCost,
-          },
+          update: {},
         });
 
-        if (!existing) {
-          positionsCreated++;
-        }
-      } catch (error) {
-        errors.push(
-          `Failed to create position: ${error instanceof Error ? error.message : 'Unknown'}`,
-        );
-      }
-    }
+        // 2. Batch fetch existing securities to minimize queries
+        const securitiesToCreate = this.collectSecuritiesFromParseResult(parseResult);
+        const isinsToCheck = [...securitiesToCreate.values()]
+          .map((s) => s.isin)
+          .filter((isin): isin is string => !!isin);
+        const symbolsToCheck = [...securitiesToCreate.values()]
+          .filter((s) => !s.isin)
+          .map((s) => s.symbol);
 
-    const result = {
-      success: errors.length < parseResult.transactions.length,
-      broker: parseResult.broker,
-      accountId: account.id,
-      transactionsImported,
-      positionsCreated,
-      securitiesCreated,
-      errors,
-    };
+        // Batch lookup existing securities
+        const [existingByIsin, existingBySymbol] = await Promise.all([
+          isinsToCheck.length > 0
+            ? tx.security.findMany({
+                where: { isin: { in: isinsToCheck } },
+                select: { id: true, isin: true },
+              })
+            : [],
+          symbolsToCheck.length > 0
+            ? tx.security.findMany({
+                where: { symbol: { in: symbolsToCheck }, isin: null },
+                select: { id: true, symbol: true },
+              })
+            : [],
+        ]);
+
+        const existingIsinMap = new Map<string, string>(
+          existingByIsin.map((s) => [s.isin!, s.id] as const),
+        );
+        const existingSymbolMap = new Map<string, string>(
+          existingBySymbol.map((s) => [s.symbol, s.id] as const),
+        );
+        const securityMap = new Map<string, string>();
+
+        // Create only missing securities
+        for (const [key, sec] of securitiesToCreate) {
+          try {
+            // Check if already exists from batch lookup
+            const existingId = sec.isin
+              ? existingIsinMap.get(sec.isin)
+              : existingSymbolMap.get(sec.symbol);
+
+            if (existingId) {
+              securityMap.set(key, existingId);
+              continue;
+            }
+
+            const securityType =
+              (sec.isin && openFigiTypes.get(sec.isin)) || SecurityEntity.inferType(sec.name);
+
+            // Use upsert for ISIN (handles concurrent creates), create for symbol-only
+            const security = sec.isin
+              ? await tx.security.upsert({
+                  where: { isin: sec.isin },
+                  create: {
+                    symbol: sec.symbol,
+                    isin: sec.isin,
+                    name: sec.name,
+                    securityType,
+                    currency: sec.currency,
+                  },
+                  update: {},
+                })
+              : await tx.security.create({
+                  data: {
+                    symbol: sec.symbol,
+                    name: sec.name,
+                    securityType,
+                    currency: sec.currency,
+                  },
+                });
+
+            securityMap.set(key, security.id);
+            securitiesCreated++;
+            this.logger.debug(
+              { symbol: sec.symbol, isin: sec.isin, securityType },
+              'Security created',
+            );
+          } catch (error) {
+            // P2002 = Unique constraint - security was created by concurrent transaction
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+              const existing = sec.isin
+                ? await tx.security.findUnique({ where: { isin: sec.isin } })
+                : await tx.security.findFirst({ where: { symbol: sec.symbol } });
+              if (existing) {
+                securityMap.set(key, existing.id);
+                continue;
+              }
+            }
+            errors.push(
+              `Failed to create security ${sec.symbol}: ${error instanceof Error ? error.message : 'Unknown'}`,
+            );
+          }
+        }
+
+        // 3. Import transactions - rely on unique constraints for deduplication
+        for (const txData of parseResult.transactions) {
+          try {
+            const securityId = securityMap.get(txData.isin || txData.symbol);
+            if (!securityId) {
+              errors.push(
+                `Could not find security for transaction: ${txData.symbol} (${txData.isin})`,
+              );
+              continue;
+            }
+
+            const fingerprint = txData.externalId
+              ? undefined
+              : generateTransactionFingerprint({
+                  accountId: account.id,
+                  securityId,
+                  date: txData.date,
+                  type: txData.type,
+                  quantity: txData.quantity,
+                  price: txData.price,
+                  amount: txData.amount,
+                });
+
+            // Create directly - unique constraint prevents duplicates
+            await tx.transaction.create({
+              data: {
+                userId,
+                accountId: account.id,
+                securityId,
+                date: txData.date,
+                type: txData.type,
+                quantity: txData.quantity,
+                price: txData.price,
+                amount: txData.amount,
+                fees: txData.fees,
+                currency: txData.currency,
+                externalId: txData.externalId,
+                fingerprint,
+              },
+            });
+
+            transactionsImported++;
+          } catch (error) {
+            // P2002 = Duplicate transaction (already exists)
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+              continue;
+            }
+            const message = error instanceof Error ? error.message : 'Unknown';
+            errors.push(`Failed to import transaction: ${message}`);
+          }
+        }
+
+        // 4. Batch fetch existing positions, then upsert only what's needed
+        const positionKeys = parseResult.positions
+          .map((pos) => {
+            const securityId = securityMap.get(pos.isin || pos.symbol);
+            return securityId ? { securityId, accountId: account.id } : null;
+          })
+          .filter((k): k is { securityId: string; accountId: string } => k !== null);
+
+        const existingPositions =
+          positionKeys.length > 0
+            ? await tx.position.findMany({
+                where: {
+                  userId,
+                  accountId: account.id,
+                  securityId: { in: positionKeys.map((k) => k.securityId) },
+                },
+                select: { securityId: true },
+              })
+            : [];
+        const existingPositionSet = new Set(existingPositions.map((p) => p.securityId));
+
+        for (const pos of parseResult.positions) {
+          try {
+            const securityId = securityMap.get(pos.isin || pos.symbol);
+            if (!securityId) continue;
+
+            const isNew = !existingPositionSet.has(securityId);
+
+            await tx.position.upsert({
+              where: {
+                userId_accountId_securityId: {
+                  userId,
+                  accountId: account.id,
+                  securityId,
+                },
+              },
+              create: {
+                userId,
+                accountId: account.id,
+                securityId,
+                quantity: pos.quantity,
+                avgCost: pos.avgCost,
+                totalCost: pos.totalCost,
+                currency: pos.currency,
+              },
+              update: {
+                quantity: pos.quantity,
+                avgCost: pos.avgCost,
+                totalCost: pos.totalCost,
+              },
+            });
+
+            if (isNew) {
+              positionsCreated++;
+            }
+          } catch (error) {
+            errors.push(
+              `Failed to create position: ${error instanceof Error ? error.message : 'Unknown'}`,
+            );
+          }
+        }
+
+        return {
+          success: errors.length < parseResult.transactions.length,
+          broker: parseResult.broker,
+          accountId: account.id,
+          transactionsImported,
+          positionsCreated,
+          securitiesCreated,
+          errors,
+        };
+      },
+      {
+        // Transaction timeout configuration per Prisma best practices:
+        // - maxWait: Time to wait to acquire a connection from pool (default 2s)
+        // - timeout: Max time for transaction to complete (default 5s)
+        // Increased slightly for imports with many records, but kept reasonable
+        // to avoid holding locks too long which can cause deadlocks.
+        maxWait: 5000,
+        timeout: 15000,
+      },
+    );
 
     this.logger.info(
       {
-        accountId: account.id,
-        transactionsImported,
-        positionsCreated,
-        securitiesCreated,
-        errorCount: errors.length,
+        accountId: result.accountId,
+        transactionsImported: result.transactionsImported,
+        positionsCreated: result.positionsCreated,
+        securitiesCreated: result.securitiesCreated,
+        errorCount: result.errors.length,
       },
       'Import completed',
     );
@@ -257,31 +383,26 @@ export class ImportTransactionsUseCase {
     return result;
   }
 
-  private async getOrCreateAccount(userId: string, broker: string) {
-    // Use database-level upsert to prevent race conditions
-    // The @@unique([userId, broker]) constraint ensures atomic operation
-    return this.db.account.upsert({
-      where: {
-        userId_broker: { userId, broker },
-      },
-      create: {
-        userId,
-        broker,
-        accountId: `${broker}-${Date.now()}`,
-        accountName: `${broker.charAt(0).toUpperCase() + broker.slice(1)} Account`,
-        currency: 'EUR',
-      },
-      update: {}, // No-op if account already exists
-    });
+  /**
+   * Prepare security type lookups via OpenFIGI API.
+   * This is done outside the transaction to avoid holding locks during external API calls.
+   */
+  private async prepareSecurityTypes(parseResult: ParseResult): Promise<Map<string, string>> {
+    const isins = [
+      ...parseResult.transactions.map((tx) => tx.isin),
+      ...parseResult.positions.map((pos) => pos.isin),
+    ].filter((isin): isin is string => !!isin);
+
+    const uniqueIsins = [...new Set(isins)];
+    return this.openFigiService.lookupByIsin(uniqueIsins);
   }
 
-  private async createSecurities(
+  /**
+   * Collect unique securities from parse result.
+   */
+  private collectSecuritiesFromParseResult(
     parseResult: ParseResult,
-    errors: string[],
-  ): Promise<{ map: Map<string, string>; created: number }> {
-    const securityMap = new Map<string, string>();
-    let created = 0;
-
+  ): Map<string, { symbol: string; isin?: string; name: string; currency: string }> {
     const securitiesToCreate = new Map<
       string,
       { symbol: string; isin?: string; name: string; currency: string }
@@ -311,54 +432,6 @@ export class ImportTransactionsUseCase {
       }
     }
 
-    // Batch lookup security types via OpenFIGI for all ISINs
-    const isins = Array.from(securitiesToCreate.values())
-      .map((s) => s.isin)
-      .filter((isin): isin is string => !!isin);
-
-    const openFigiTypes = await this.openFigiService.lookupByIsin(isins);
-
-    for (const [key, sec] of securitiesToCreate) {
-      try {
-        let security = sec.isin
-          ? await this.db.security.findUnique({ where: { isin: sec.isin } })
-          : await this.db.security.findFirst({ where: { symbol: sec.symbol } });
-
-        if (!security) {
-          // Use OpenFIGI result if available, otherwise fall back to keyword inference
-          const securityType =
-            (sec.isin && openFigiTypes.get(sec.isin)) || SecurityEntity.inferType(sec.name);
-
-          security = await this.db.security.create({
-            data: {
-              symbol: sec.symbol,
-              isin: sec.isin,
-              name: sec.name,
-              securityType,
-              currency: sec.currency,
-            },
-          });
-          created++;
-
-          this.logger.debug(
-            {
-              symbol: sec.symbol,
-              isin: sec.isin,
-              securityType,
-              source: sec.isin && openFigiTypes.has(sec.isin) ? 'openfigi' : 'inference',
-            },
-            'Security created',
-          );
-        }
-
-        securityMap.set(key, security.id);
-      } catch (error) {
-        errors.push(
-          `Failed to create security ${sec.symbol}: ${error instanceof Error ? error.message : 'Unknown'}`,
-        );
-      }
-    }
-
-    return { map: securityMap, created };
+    return securitiesToCreate;
   }
 }
