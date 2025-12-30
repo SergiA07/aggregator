@@ -11,7 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CreateTransactionInput,
   createTransactionSchema,
@@ -38,6 +38,8 @@ export class TransactionsController {
   @ApiQuery({ name: 'type', required: false })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
+  @ApiResponse({ status: 200, description: 'List of transactions returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getTransactions(
     @CurrentUser() user: AuthUser,
     @Query('accountId') accountId?: string,
@@ -58,12 +60,17 @@ export class TransactionsController {
   @Get('stats')
   @ApiOperation({ summary: 'Get transaction statistics' })
   @ApiQuery({ name: 'accountId', required: false })
+  @ApiResponse({ status: 200, description: 'Transaction statistics returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getStats(@CurrentUser() user: AuthUser, @Query('accountId') accountId?: string) {
     return this.transactionsService.getStats(user.id, accountId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get transaction by ID' })
+  @ApiResponse({ status: 200, description: 'Transaction returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
   async getTransaction(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const transaction = await this.transactionsService.findOne(user.id, id);
     if (!transaction) {
@@ -74,6 +81,9 @@ export class TransactionsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new transaction' })
+  @ApiResponse({ status: 201, description: 'Transaction created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async createTransaction(
     @CurrentUser() user: AuthUser,
     @Body(new ZodValidationPipe(createTransactionSchema)) dto: CreateTransactionInput,
@@ -86,6 +96,10 @@ export class TransactionsController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a transaction' })
+  @ApiResponse({ status: 200, description: 'Transaction updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
   async updateTransaction(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
@@ -103,6 +117,9 @@ export class TransactionsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a transaction' })
+  @ApiResponse({ status: 200, description: 'Transaction deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
   async deleteTransaction(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.transactionsService.delete(user.id, id);
     if (!deleted) {

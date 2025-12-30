@@ -10,7 +10,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   FILE_UPLOAD,
   formatMaxFileSize,
@@ -44,6 +51,8 @@ export class ImportController {
 
   @Get('brokers')
   @ApiOperation({ summary: 'Get list of supported brokers for investments' })
+  @ApiResponse({ status: 200, description: 'List of supported brokers returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   getSupportedBrokers() {
     return {
       investment: this.importUseCase.getSupportedBrokers(),
@@ -52,6 +61,9 @@ export class ImportController {
 
   @Post('csv')
   @ApiOperation({ summary: 'Import CSV content directly' })
+  @ApiResponse({ status: 201, description: 'CSV imported successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid CSV content or format' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async importCSV(@CurrentUser() user: AuthUser, @Body() dto: ImportCsvDto) {
     return this.importUseCase.execute(user.id, dto.content, dto.filename, dto.broker);
   }
@@ -69,6 +81,10 @@ export class ImportController {
       },
     },
   })
+  @ApiResponse({ status: 201, description: 'File imported successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid file type, empty file, or invalid content' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 413, description: 'File too large' })
   async importFile(@CurrentUser() user: AuthUser, @Req() req: FastifyMultipartRequest) {
     const data = await req.file();
 

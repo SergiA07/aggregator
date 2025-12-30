@@ -146,11 +146,12 @@ export class AccountRepository implements IAccountRepository {
 
 ### Presentation Layer
 
-Controllers handle HTTP:
+Controllers handle HTTP with complete Swagger documentation:
 
 ```typescript
 // presentation/controllers/accounts.controller.ts
 @ApiTags('Accounts')
+@ApiBearerAuth()
 @Controller('accounts')
 @UseGuards(SupabaseAuthGuard)
 export class AccountsController {
@@ -158,10 +159,86 @@ export class AccountsController {
 
   @Get()
   @ApiOperation({ summary: 'List all accounts' })
+  @ApiResponse({ status: 200, description: 'List of accounts returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   findAll(@CurrentUser() user: AuthUser) {
     return this.accountsService.findByUserId(user.id);
   }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get account by ID' })
+  @ApiResponse({ status: 200, description: 'Account returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  findOne(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.accountsService.findById(user.id, id);
+  }
 }
+```
+
+## Swagger Documentation Requirements
+
+**All controller endpoints MUST have complete Swagger documentation:**
+
+### Required Decorators
+
+1. **Class-level decorators:**
+   - `@ApiTags('ResourceName')` - Groups endpoints in Swagger UI
+   - `@ApiBearerAuth()` - Indicates JWT authentication required
+
+2. **Method-level decorators (REQUIRED for every endpoint):**
+   - `@ApiOperation({ summary: '...' })` - Brief description of endpoint
+   - `@ApiResponse({ status: xxx, description: '...' })` - For each possible response
+
+### Standard Response Codes
+
+Document all applicable response codes for each endpoint:
+
+| Code | When to use |
+|------|-------------|
+| 200 | Successful GET, PUT, DELETE |
+| 201 | Successful POST (resource created) |
+| 400 | Validation error, bad request |
+| 401 | Missing or invalid auth token (all protected endpoints) |
+| 403 | Forbidden - admin access required |
+| 404 | Resource not found |
+| 413 | Payload too large (file uploads) |
+
+### Examples
+
+```typescript
+// GET list endpoint
+@Get()
+@ApiOperation({ summary: 'Get all transactions for current user' })
+@ApiResponse({ status: 200, description: 'List of transactions returned successfully' })
+@ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+async getTransactions(@CurrentUser() user: AuthUser) { ... }
+
+// POST create endpoint
+@Post()
+@ApiOperation({ summary: 'Create a new account' })
+@ApiResponse({ status: 201, description: 'Account created successfully' })
+@ApiResponse({ status: 400, description: 'Invalid request body' })
+@ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+async createAccount(@Body() dto: CreateAccountInput) { ... }
+
+// GET by ID endpoint
+@Get(':id')
+@ApiOperation({ summary: 'Get account by ID' })
+@ApiResponse({ status: 200, description: 'Account returned successfully' })
+@ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+@ApiResponse({ status: 404, description: 'Account not found' })
+async getAccount(@Param('id') id: string) { ... }
+
+// Admin-only endpoint
+@Post()
+@UseGuards(AdminGuard)
+@ApiOperation({ summary: 'Create a new security (admin only)' })
+@ApiResponse({ status: 201, description: 'Security created successfully' })
+@ApiResponse({ status: 400, description: 'Invalid request body' })
+@ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+@ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+async createSecurity(@Body() dto: CreateSecurityInput) { ... }
 ```
 
 ## Platform: Fastify

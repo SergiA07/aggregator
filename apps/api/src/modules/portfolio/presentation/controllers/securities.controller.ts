@@ -12,7 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CreateSecurityInput,
   createSecuritySchema,
@@ -41,6 +41,9 @@ export class SecuritiesController {
     required: false,
     description: 'Search by symbol, name, or ISIN (max 100 chars)',
   })
+  @ApiResponse({ status: 200, description: 'List of securities returned successfully' })
+  @ApiResponse({ status: 400, description: 'Search query too long' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getSecurities(@Query('search') search?: string) {
     if (search && search.length > 100) {
       throw new BadRequestException('Search query too long (max 100 characters)');
@@ -50,12 +53,17 @@ export class SecuritiesController {
 
   @Get('my-holdings')
   @ApiOperation({ summary: 'Get securities that user has positions in' })
+  @ApiResponse({ status: 200, description: 'List of user securities returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getMySecurities(@CurrentUser() user: AuthUser) {
     return this.securitiesService.getSecuritiesWithPositions(user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get security by ID' })
+  @ApiResponse({ status: 200, description: 'Security returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Security not found' })
   async getSecurity(@Param('id') id: string) {
     const security = await this.securitiesService.findOne(id);
     if (!security) {
@@ -66,6 +74,9 @@ export class SecuritiesController {
 
   @Get('isin/:isin')
   @ApiOperation({ summary: 'Get security by ISIN' })
+  @ApiResponse({ status: 200, description: 'Security returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Security not found' })
   async getSecurityByIsin(@Param('isin') isin: string) {
     const security = await this.securitiesService.findByIsin(isin);
     if (!security) {
@@ -77,6 +88,10 @@ export class SecuritiesController {
   @Post()
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Create a new security (admin only)' })
+  @ApiResponse({ status: 201, description: 'Security created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
   async createSecurity(
     @CurrentUser() user: AuthUser,
     @Body(new ZodValidationPipe(createSecuritySchema)) dto: CreateSecurityInput,
@@ -92,6 +107,11 @@ export class SecuritiesController {
   @Put(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Update a security (admin only)' })
+  @ApiResponse({ status: 200, description: 'Security updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Security not found' })
   async updateSecurity(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
@@ -108,6 +128,10 @@ export class SecuritiesController {
   @Delete(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Delete a security (admin only)' })
+  @ApiResponse({ status: 200, description: 'Security deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Security not found' })
   async deleteSecurity(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.securitiesService.delete(id);
     if (!deleted) {

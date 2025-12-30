@@ -10,7 +10,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CreateAccountInput,
   createAccountSchema,
@@ -30,12 +30,17 @@ export class AccountsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all accounts for current user' })
+  @ApiResponse({ status: 200, description: 'List of accounts returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async getAccounts(@CurrentUser() user: AuthUser) {
     return this.accountsService.findByUser(user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get account by ID' })
+  @ApiResponse({ status: 200, description: 'Account returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
   async getAccount(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const account = await this.accountsService.findOne(user.id, id);
     if (!account) {
@@ -46,6 +51,9 @@ export class AccountsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new account' })
+  @ApiResponse({ status: 201, description: 'Account created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
   async createAccount(
     @CurrentUser() user: AuthUser,
     @Body(new ZodValidationPipe(createAccountSchema)) dto: CreateAccountInput,
@@ -55,6 +63,10 @@ export class AccountsController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update an account' })
+  @ApiResponse({ status: 200, description: 'Account updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
   async updateAccount(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
@@ -69,6 +81,9 @@ export class AccountsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an account' })
+  @ApiResponse({ status: 200, description: 'Account deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
   async deleteAccount(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     const deleted = await this.accountsService.delete(user.id, id);
     if (!deleted) {
