@@ -3,22 +3,27 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
+import type { Env } from './shared/config';
 
 async function bootstrap() {
   // Create NestJS app with Fastify adapter
   // Logging is handled by nestjs-pino (configured in AppModule)
-  const isProd = process.env.NODE_ENV === 'production';
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
     { bufferLogs: true }, // Buffer logs until nestjs-pino is ready
   );
+
+  // Get typed ConfigService (env vars already validated by ConfigModule)
+  const configService = app.get(ConfigService<Env, true>);
+  const isProd = configService.get('NODE_ENV') === 'production';
 
   // Use nestjs-pino as the application logger
   app.useLogger(app.get(Logger));
@@ -31,10 +36,8 @@ async function bootstrap() {
 
   // Register CORS at Fastify level (before any NestJS middleware)
   // Using app.register is the recommended approach for Fastify plugins
-  const frontendUrl = process.env.FRONTEND_URL;
-  if (isProd && !frontendUrl) {
-    throw new Error('FRONTEND_URL environment variable is required in production');
-  }
+  // FRONTEND_URL is validated as required in production by ConfigModule
+  const frontendUrl = configService.get('FRONTEND_URL');
   await app.register(cors, {
     origin: isProd ? [frontendUrl!] : ['http://localhost:5173'],
     credentials: true, // Allow cookies/auth headers
@@ -86,9 +89,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT ?? 3333;
-  await app.listen({ port: Number(port), host: '0.0.0.0' });
-  console.log(`API running on port ${port} (${process.env.NODE_ENV ?? 'development'})`);
+  const port = configService.get('PORT');
+  const nodeEnv = configService.get('NODE_ENV');
+  await app.listen({ port, host: '0.0.0.0' });
+  console.log(`API running on port ${port} (${nodeEnv})`);
   console.log(`Swagger docs available at /api/docs`);
 }
 

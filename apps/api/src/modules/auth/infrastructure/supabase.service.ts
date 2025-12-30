@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { Env } from '@/shared/config';
 import type { AuthUser, IAuthService } from '../domain/interfaces';
 
 /**
@@ -13,16 +15,18 @@ import type { AuthUser, IAuthService } from '../domain/interfaces';
 export class SupabaseAuthService implements IAuthService {
   private readonly client: SupabaseClient | null = null;
 
-  constructor() {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+  constructor(private readonly config: ConfigService<Env, true>) {
+    const supabaseUrl = this.config.get('SUPABASE_URL');
+    const supabaseKey = this.config.get('SUPABASE_SECRET_KEY');
+    const nodeEnv = this.config.get('NODE_ENV');
 
     if (!supabaseUrl || !supabaseKey) {
       // In dev mode, we can skip Supabase client initialization
-      if (process.env.NODE_ENV === 'development') {
+      if (nodeEnv === 'development') {
         console.warn('Supabase credentials not set, running in dev mode without auth');
         return;
       }
+      // This should never happen - ConfigModule validates required vars in production
       throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY must be set');
     }
 
