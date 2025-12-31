@@ -688,6 +688,126 @@ import { usePreferences } from '@/stores/preferences';
 - **Components**: PascalCase (`SubmitButton`)
 - **Hooks**: camelCase with `use` prefix (`usePositions`)
 
+## Responsive Layout
+
+The app uses different navigation patterns for mobile and desktop:
+
+| Breakpoint | Navigation | Header |
+|------------|------------|--------|
+| Mobile (`< md`) | Bottom nav bar | Icon-only buttons, no title |
+| Desktop (`≥ md`) | Collapsible sidebar | Full buttons with labels, title visible |
+
+### Layout Components
+
+```
+components/layout/
+├── authenticated-layout.tsx  # Main layout wrapper
+├── header.tsx                # Top header bar
+├── sidebar.tsx               # Desktop collapsible sidebar
+├── bottom-nav.tsx            # Mobile bottom navigation
+├── page-layout.tsx           # Page content wrapper
+└── language-picker.tsx       # Language selector dropdown
+```
+
+### Sidebar Behavior
+
+- **Collapsed state**: Persisted in Zustand (`usePreferences` store)
+- **Toggle button**: Circular button at bottom edge (`-right-3 bottom-6`)
+- **Collapsed nav items**: Show tooltips on hover
+- **Width**: 224px expanded (`w-56`), 64px collapsed (`w-16`)
+
+### Mobile Bottom Navigation
+
+- Fixed at bottom with icon + label for each nav item
+- Uses `useMatchRoute` with `fuzzy: true` for active state
+- Hidden on desktop (`md:hidden`)
+
+## Internationalization (i18n)
+
+Custom type-safe i18n system using native Intl APIs. No external dependencies.
+
+### Structure
+
+```
+lib/i18n/
+├── index.ts           # Public API (useTranslation, LanguageProvider)
+├── context.tsx        # React context for current language
+├── translations.ts    # Translation lookup logic
+├── define.ts          # dt() helper for dynamic translations
+└── locales/
+    ├── en.ts          # English (base - defines the type)
+    ├── es.ts          # Spanish
+    └── ca.ts          # Catalan
+```
+
+### Usage
+
+```typescript
+import { useTranslation } from '@/lib/i18n';
+
+function MyComponent() {
+  const { t, language, setLanguage } = useTranslation();
+
+  return (
+    <div>
+      <h1>{t('common.appName')}</h1>
+      <p>{t('dashboard.title')}</p>
+    </div>
+  );
+}
+```
+
+### Adding Translations
+
+1. Add the key to `locales/en.ts` (this defines the type)
+2. Add translations to `es.ts` and `ca.ts`
+3. Use with `t('section.key')`
+
+```typescript
+// locales/en.ts
+export const en = {
+  nav: {
+    overview: 'Overview',
+    positions: 'Positions',
+    // Add new keys here
+  },
+} as const;
+```
+
+### Dynamic Translations
+
+Use `dt()` for translations with interpolation or pluralization:
+
+```typescript
+import { dt } from '../define';
+
+export const en = {
+  transactions: {
+    // Simple interpolation
+    showing: dt('(showing {shown:number} of {total:number})', {
+      shown: {},
+      total: {},
+    }),
+
+    // Pluralization
+    count: dt('{count:plural}', {
+      count: {
+        one: '{?} transaction',
+        other: '{?} transactions',
+      },
+    }),
+  },
+};
+
+// Usage
+t('transactions.showing', { shown: 10, total: 100 });  // "(showing 10 of 100)"
+t('transactions.count', { count: 5 });                  // "5 transactions"
+```
+
+### Language Persistence
+
+Language preference is stored in localStorage via Zustand persist middleware in the `usePreferences` store.
+
 ## Performance
 
 - React Compiler handles memoization automatically
