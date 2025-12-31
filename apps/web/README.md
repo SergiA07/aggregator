@@ -236,9 +236,29 @@ bunx biome check --write .
 
 ## Navigation
 
-- **Sidebar**: Primary navigation (Dashboard, Positions, Transactions, Accounts)
+| Breakpoint | Navigation | Header |
+|------------|------------|--------|
+| Mobile (`< md`) | Bottom nav bar | Icon-only buttons |
+| Desktop (`≥ md`) | Collapsible sidebar | Full buttons with labels |
+
+- **Sidebar**: Collapsible with circular edge toggle button, tooltips when collapsed
+- **Bottom Nav**: Mobile-only, fixed at bottom with icon + label
 - **Tabs**: Sub-views within pages
-- **Command Menu (Cmd+K)**: Quick navigation (future)
+
+## Internationalization
+
+Custom type-safe i18n using native Intl APIs (no dependencies).
+
+```typescript
+import { useTranslation } from '@/lib/i18n';
+
+const { t, language, setLanguage } = useTranslation();
+t('common.appName');  // "Portfolio Aggregator"
+```
+
+- **Languages**: English (base), Spanish, Catalan
+- **Dynamic translations**: Interpolation and pluralization via `dt()` helper
+- **Persistence**: Language stored in localStorage via Zustand
 
 ## Error Handling
 
