@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6
 
 # Stage 1: Prune monorepo for minimal Docker context
-FROM oven/bun:1.3.5 AS pruner
+FROM oven/bun:1.3.6@sha256:f20d9cf365ab35529384f1717687c739c92e6f39157a35a95ef06f4049a10e4a AS pruner
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN turbo prune @repo/api --docker
 
 # Stage 2: Install dependencies
-FROM oven/bun:1.3.5 AS installer
+FROM oven/bun:1.3.6@sha256:f20d9cf365ab35529384f1717687c739c92e6f39157a35a95ef06f4049a10e4a AS installer
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ COPY --from=pruner /app/out/json/ .
 RUN bun install
 
 # Stage 3: Build the application
-FROM oven/bun:1.3.5 AS builder
+FROM oven/bun:1.3.6@sha256:f20d9cf365ab35529384f1717687c739c92e6f39157a35a95ef06f4049a10e4a AS builder
 
 WORKDIR /app
 
@@ -45,7 +45,7 @@ RUN cd packages/database && bun run db:generate
 RUN cd apps/api && bun run build
 
 # Stage 4: Production dependencies only
-FROM oven/bun:1.3.5 AS prod-deps
+FROM oven/bun:1.3.6@sha256:f20d9cf365ab35529384f1717687c739c92e6f39157a35a95ef06f4049a10e4a AS prod-deps
 
 WORKDIR /app
 
@@ -57,7 +57,7 @@ COPY --from=pruner /app/out/json/ .
 RUN bun install --production --ignore-scripts
 
 # Stage 5: Production runtime
-FROM oven/bun:1.3.5-alpine AS runner
+FROM oven/bun:1.3.6-alpine@sha256:819f91180e721ba09e0e5d3eb7fb985832fd23f516e18ddad7e55aaba8100be7 AS runner
 
 WORKDIR /app
 
