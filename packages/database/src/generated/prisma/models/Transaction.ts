@@ -31,6 +31,9 @@ export type TransactionAvgAggregateOutputType = {
   price: runtime.Decimal | null
   amount: runtime.Decimal | null
   fees: runtime.Decimal | null
+  fxRate: runtime.Decimal | null
+  localAmount: runtime.Decimal | null
+  autoFxCost: runtime.Decimal | null
 }
 
 export type TransactionSumAggregateOutputType = {
@@ -38,6 +41,9 @@ export type TransactionSumAggregateOutputType = {
   price: runtime.Decimal | null
   amount: runtime.Decimal | null
   fees: runtime.Decimal | null
+  fxRate: runtime.Decimal | null
+  localAmount: runtime.Decimal | null
+  autoFxCost: runtime.Decimal | null
 }
 
 export type TransactionMinAggregateOutputType = {
@@ -46,12 +52,18 @@ export type TransactionMinAggregateOutputType = {
   accountId: string | null
   securityId: string | null
   date: Date | null
-  type: string | null
+  type: $Enums.TransactionType | null
   quantity: runtime.Decimal | null
   price: runtime.Decimal | null
   amount: runtime.Decimal | null
   fees: runtime.Decimal | null
   currency: string | null
+  fxRate: runtime.Decimal | null
+  localCurrency: string | null
+  localAmount: runtime.Decimal | null
+  autoFxCost: runtime.Decimal | null
+  description: string | null
+  category: string | null
   notes: string | null
   externalId: string | null
   fingerprint: string | null
@@ -65,12 +77,18 @@ export type TransactionMaxAggregateOutputType = {
   accountId: string | null
   securityId: string | null
   date: Date | null
-  type: string | null
+  type: $Enums.TransactionType | null
   quantity: runtime.Decimal | null
   price: runtime.Decimal | null
   amount: runtime.Decimal | null
   fees: runtime.Decimal | null
   currency: string | null
+  fxRate: runtime.Decimal | null
+  localCurrency: string | null
+  localAmount: runtime.Decimal | null
+  autoFxCost: runtime.Decimal | null
+  description: string | null
+  category: string | null
   notes: string | null
   externalId: string | null
   fingerprint: string | null
@@ -90,6 +108,12 @@ export type TransactionCountAggregateOutputType = {
   amount: number
   fees: number
   currency: number
+  fxRate: number
+  localCurrency: number
+  localAmount: number
+  autoFxCost: number
+  description: number
+  category: number
   notes: number
   externalId: number
   fingerprint: number
@@ -104,6 +128,9 @@ export type TransactionAvgAggregateInputType = {
   price?: true
   amount?: true
   fees?: true
+  fxRate?: true
+  localAmount?: true
+  autoFxCost?: true
 }
 
 export type TransactionSumAggregateInputType = {
@@ -111,6 +138,9 @@ export type TransactionSumAggregateInputType = {
   price?: true
   amount?: true
   fees?: true
+  fxRate?: true
+  localAmount?: true
+  autoFxCost?: true
 }
 
 export type TransactionMinAggregateInputType = {
@@ -125,6 +155,12 @@ export type TransactionMinAggregateInputType = {
   amount?: true
   fees?: true
   currency?: true
+  fxRate?: true
+  localCurrency?: true
+  localAmount?: true
+  autoFxCost?: true
+  description?: true
+  category?: true
   notes?: true
   externalId?: true
   fingerprint?: true
@@ -144,6 +180,12 @@ export type TransactionMaxAggregateInputType = {
   amount?: true
   fees?: true
   currency?: true
+  fxRate?: true
+  localCurrency?: true
+  localAmount?: true
+  autoFxCost?: true
+  description?: true
+  category?: true
   notes?: true
   externalId?: true
   fingerprint?: true
@@ -163,6 +205,12 @@ export type TransactionCountAggregateInputType = {
   amount?: true
   fees?: true
   currency?: true
+  fxRate?: true
+  localCurrency?: true
+  localAmount?: true
+  autoFxCost?: true
+  description?: true
+  category?: true
   notes?: true
   externalId?: true
   fingerprint?: true
@@ -261,14 +309,20 @@ export type TransactionGroupByOutputType = {
   id: string
   userId: string
   accountId: string
-  securityId: string
+  securityId: string | null
   date: Date
-  type: string
-  quantity: runtime.Decimal
-  price: runtime.Decimal
+  type: $Enums.TransactionType
+  quantity: runtime.Decimal | null
+  price: runtime.Decimal | null
   amount: runtime.Decimal
   fees: runtime.Decimal
   currency: string
+  fxRate: runtime.Decimal | null
+  localCurrency: string | null
+  localAmount: runtime.Decimal | null
+  autoFxCost: runtime.Decimal | null
+  description: string | null
+  category: string | null
   notes: string | null
   externalId: string | null
   fingerprint: string | null
@@ -303,35 +357,47 @@ export type TransactionWhereInput = {
   id?: Prisma.StringFilter<"Transaction"> | string
   userId?: Prisma.StringFilter<"Transaction"> | string
   accountId?: Prisma.StringFilter<"Transaction"> | string
-  securityId?: Prisma.StringFilter<"Transaction"> | string
+  securityId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  type?: Prisma.StringFilter<"Transaction"> | string
-  quantity?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
+  quantity?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Transaction"> | string
+  fxRate?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  localAmount?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  category?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
-  security?: Prisma.XOR<Prisma.SecurityScalarRelationFilter, Prisma.SecurityWhereInput>
+  security?: Prisma.XOR<Prisma.SecurityNullableScalarRelationFilter, Prisma.SecurityWhereInput> | null
 }
 
 export type TransactionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
-  securityId?: Prisma.SortOrder
+  securityId?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   type?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
+  quantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  price?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  localCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
+  localAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   fingerprint?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -350,35 +416,47 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   userId?: Prisma.StringFilter<"Transaction"> | string
   accountId?: Prisma.StringFilter<"Transaction"> | string
-  securityId?: Prisma.StringFilter<"Transaction"> | string
+  securityId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  type?: Prisma.StringFilter<"Transaction"> | string
-  quantity?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
+  quantity?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Transaction"> | string
+  fxRate?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  localAmount?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  category?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
-  security?: Prisma.XOR<Prisma.SecurityScalarRelationFilter, Prisma.SecurityWhereInput>
+  security?: Prisma.XOR<Prisma.SecurityNullableScalarRelationFilter, Prisma.SecurityWhereInput> | null
 }, "id" | "userId_accountId_externalId" | "userId_fingerprint">
 
 export type TransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   accountId?: Prisma.SortOrder
-  securityId?: Prisma.SortOrder
+  securityId?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   type?: Prisma.SortOrder
-  quantity?: Prisma.SortOrder
-  price?: Prisma.SortOrder
+  quantity?: Prisma.SortOrderInput | Prisma.SortOrder
+  price?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  localCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
+  localAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   fingerprint?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -398,14 +476,20 @@ export type TransactionScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   accountId?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
-  securityId?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
+  securityId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   date?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
-  type?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
-  quantity?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
+  quantity?: Prisma.DecimalNullableWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalNullableWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
+  fxRate?: Prisma.DecimalNullableWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  localAmount?: Prisma.DecimalNullableWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.DecimalNullableWithAggregatesFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  category?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   fingerprint?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
@@ -417,33 +501,45 @@ export type TransactionCreateInput = {
   id?: string
   userId: string
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutTransactionsInput
-  security: Prisma.SecurityCreateNestedOneWithoutTransactionsInput
+  security?: Prisma.SecurityCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateInput = {
   id?: string
   userId: string
   accountId: string
-  securityId: string
+  securityId?: string | null
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -455,33 +551,45 @@ export type TransactionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutTransactionsNestedInput
-  security?: Prisma.SecurityUpdateOneRequiredWithoutTransactionsNestedInput
+  security?: Prisma.SecurityUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  securityId?: Prisma.StringFieldUpdateOperationsInput | string
+  securityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -493,14 +601,20 @@ export type TransactionCreateManyInput = {
   id?: string
   userId: string
   accountId: string
-  securityId: string
+  securityId?: string | null
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -512,12 +626,18 @@ export type TransactionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -529,14 +649,20 @@ export type TransactionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  securityId?: Prisma.StringFieldUpdateOperationsInput | string
+  securityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -577,6 +703,12 @@ export type TransactionCountOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrder
+  localCurrency?: Prisma.SortOrder
+  localAmount?: Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -589,6 +721,9 @@ export type TransactionAvgOrderByAggregateInput = {
   price?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrder
+  localAmount?: Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrder
 }
 
 export type TransactionMaxOrderByAggregateInput = {
@@ -603,6 +738,12 @@ export type TransactionMaxOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrder
+  localCurrency?: Prisma.SortOrder
+  localAmount?: Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -622,6 +763,12 @@ export type TransactionMinOrderByAggregateInput = {
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrder
+  localCurrency?: Prisma.SortOrder
+  localAmount?: Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   fingerprint?: Prisma.SortOrder
@@ -634,6 +781,9 @@ export type TransactionSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   fees?: Prisma.SortOrder
+  fxRate?: Prisma.SortOrder
+  localAmount?: Prisma.SortOrder
+  autoFxCost?: Prisma.SortOrder
 }
 
 export type TransactionCreateNestedManyWithoutAccountInput = {
@@ -720,8 +870,12 @@ export type TransactionUncheckedUpdateManyWithoutSecurityNestedInput = {
   deleteMany?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
 }
 
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
+export type EnumTransactionTypeFieldUpdateOperationsInput = {
+  set?: $Enums.TransactionType
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -732,31 +886,43 @@ export type TransactionCreateWithoutAccountInput = {
   id?: string
   userId: string
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  security: Prisma.SecurityCreateNestedOneWithoutTransactionsInput
+  security?: Prisma.SecurityCreateNestedOneWithoutTransactionsInput
 }
 
 export type TransactionUncheckedCreateWithoutAccountInput = {
   id?: string
   userId: string
-  securityId: string
+  securityId?: string | null
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -797,14 +963,20 @@ export type TransactionScalarWhereInput = {
   id?: Prisma.StringFilter<"Transaction"> | string
   userId?: Prisma.StringFilter<"Transaction"> | string
   accountId?: Prisma.StringFilter<"Transaction"> | string
-  securityId?: Prisma.StringFilter<"Transaction"> | string
+  securityId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
-  type?: Prisma.StringFilter<"Transaction"> | string
-  quantity?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
+  quantity?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Transaction"> | string
+  fxRate?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  localAmount?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.DecimalNullableFilter<"Transaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  category?: Prisma.StringNullableFilter<"Transaction"> | string | null
   notes?: Prisma.StringNullableFilter<"Transaction"> | string | null
   externalId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   fingerprint?: Prisma.StringNullableFilter<"Transaction"> | string | null
@@ -816,12 +988,18 @@ export type TransactionCreateWithoutSecurityInput = {
   id?: string
   userId: string
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -835,12 +1013,18 @@ export type TransactionUncheckedCreateWithoutSecurityInput = {
   userId: string
   accountId: string
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -877,14 +1061,20 @@ export type TransactionUpdateManyWithWhereWithoutSecurityInput = {
 export type TransactionCreateManyAccountInput = {
   id?: string
   userId: string
-  securityId: string
+  securityId?: string | null
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -896,31 +1086,43 @@ export type TransactionUpdateWithoutAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  security?: Prisma.SecurityUpdateOneRequiredWithoutTransactionsNestedInput
+  security?: Prisma.SecurityUpdateOneWithoutTransactionsNestedInput
 }
 
 export type TransactionUncheckedUpdateWithoutAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  securityId?: Prisma.StringFieldUpdateOperationsInput | string
+  securityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -931,14 +1133,20 @@ export type TransactionUncheckedUpdateWithoutAccountInput = {
 export type TransactionUncheckedUpdateManyWithoutAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  securityId?: Prisma.StringFieldUpdateOperationsInput | string
+  securityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -951,12 +1159,18 @@ export type TransactionCreateManySecurityInput = {
   userId: string
   accountId: string
   date: Date | string
-  type: string
-  quantity: runtime.Decimal | runtime.DecimalJsLike | number | string
-  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.TransactionType
+  quantity?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
+  fxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: string | null
+  localAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: string | null
+  category?: string | null
   notes?: string | null
   externalId?: string | null
   fingerprint?: string | null
@@ -968,12 +1182,18 @@ export type TransactionUpdateWithoutSecurityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -987,12 +1207,18 @@ export type TransactionUncheckedUpdateWithoutSecurityInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   accountId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1005,12 +1231,18 @@ export type TransactionUncheckedUpdateManyWithoutSecurityInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   accountId?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  quantity?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  quantity?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   fees?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  fxRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  localCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  autoFxCost?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fingerprint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1032,13 +1264,19 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   amount?: boolean
   fees?: boolean
   currency?: boolean
+  fxRate?: boolean
+  localCurrency?: boolean
+  localAmount?: boolean
+  autoFxCost?: boolean
+  description?: boolean
+  category?: boolean
   notes?: boolean
   externalId?: boolean
   fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1053,13 +1291,19 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   amount?: boolean
   fees?: boolean
   currency?: boolean
+  fxRate?: boolean
+  localCurrency?: boolean
+  localAmount?: boolean
+  autoFxCost?: boolean
+  description?: boolean
+  category?: boolean
   notes?: boolean
   externalId?: boolean
   fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1074,13 +1318,19 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   amount?: boolean
   fees?: boolean
   currency?: boolean
+  fxRate?: boolean
+  localCurrency?: boolean
+  localAmount?: boolean
+  autoFxCost?: boolean
+  description?: boolean
+  category?: boolean
   notes?: boolean
   externalId?: boolean
   fingerprint?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectScalar = {
@@ -1095,6 +1345,12 @@ export type TransactionSelectScalar = {
   amount?: boolean
   fees?: boolean
   currency?: boolean
+  fxRate?: boolean
+  localCurrency?: boolean
+  localAmount?: boolean
+  autoFxCost?: boolean
+  description?: boolean
+  category?: boolean
   notes?: boolean
   externalId?: boolean
   fingerprint?: boolean
@@ -1102,38 +1358,44 @@ export type TransactionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "securityId" | "date" | "type" | "quantity" | "price" | "amount" | "fees" | "currency" | "notes" | "externalId" | "fingerprint" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "accountId" | "securityId" | "date" | "type" | "quantity" | "price" | "amount" | "fees" | "currency" | "fxRate" | "localCurrency" | "localAmount" | "autoFxCost" | "description" | "category" | "notes" | "externalId" | "fingerprint" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }
 export type TransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }
 export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
-  security?: boolean | Prisma.SecurityDefaultArgs<ExtArgs>
+  security?: boolean | Prisma.Transaction$securityArgs<ExtArgs>
 }
 
 export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Transaction"
   objects: {
     account: Prisma.$AccountPayload<ExtArgs>
-    security: Prisma.$SecurityPayload<ExtArgs>
+    security: Prisma.$SecurityPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
     accountId: string
-    securityId: string
+    securityId: string | null
     date: Date
-    type: string
-    quantity: runtime.Decimal
-    price: runtime.Decimal
+    type: $Enums.TransactionType
+    quantity: runtime.Decimal | null
+    price: runtime.Decimal | null
     amount: runtime.Decimal
     fees: runtime.Decimal
     currency: string
+    fxRate: runtime.Decimal | null
+    localCurrency: string | null
+    localAmount: runtime.Decimal | null
+    autoFxCost: runtime.Decimal | null
+    description: string | null
+    category: string | null
     notes: string | null
     externalId: string | null
     fingerprint: string | null
@@ -1534,7 +1796,7 @@ readonly fields: TransactionFieldRefs;
 export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   account<T extends Prisma.AccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AccountDefaultArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  security<T extends Prisma.SecurityDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SecurityDefaultArgs<ExtArgs>>): Prisma.Prisma__SecurityClient<runtime.Types.Result.GetResult<Prisma.$SecurityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  security<T extends Prisma.Transaction$securityArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Transaction$securityArgs<ExtArgs>>): Prisma.Prisma__SecurityClient<runtime.Types.Result.GetResult<Prisma.$SecurityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1569,12 +1831,18 @@ export interface TransactionFieldRefs {
   readonly accountId: Prisma.FieldRef<"Transaction", 'String'>
   readonly securityId: Prisma.FieldRef<"Transaction", 'String'>
   readonly date: Prisma.FieldRef<"Transaction", 'DateTime'>
-  readonly type: Prisma.FieldRef<"Transaction", 'String'>
+  readonly type: Prisma.FieldRef<"Transaction", 'TransactionType'>
   readonly quantity: Prisma.FieldRef<"Transaction", 'Decimal'>
   readonly price: Prisma.FieldRef<"Transaction", 'Decimal'>
   readonly amount: Prisma.FieldRef<"Transaction", 'Decimal'>
   readonly fees: Prisma.FieldRef<"Transaction", 'Decimal'>
   readonly currency: Prisma.FieldRef<"Transaction", 'String'>
+  readonly fxRate: Prisma.FieldRef<"Transaction", 'Decimal'>
+  readonly localCurrency: Prisma.FieldRef<"Transaction", 'String'>
+  readonly localAmount: Prisma.FieldRef<"Transaction", 'Decimal'>
+  readonly autoFxCost: Prisma.FieldRef<"Transaction", 'Decimal'>
+  readonly description: Prisma.FieldRef<"Transaction", 'String'>
+  readonly category: Prisma.FieldRef<"Transaction", 'String'>
   readonly notes: Prisma.FieldRef<"Transaction", 'String'>
   readonly externalId: Prisma.FieldRef<"Transaction", 'String'>
   readonly fingerprint: Prisma.FieldRef<"Transaction", 'String'>
@@ -1973,6 +2241,25 @@ export type TransactionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many Transactions to delete.
    */
   limit?: number
+}
+
+/**
+ * Transaction.security
+ */
+export type Transaction$securityArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Security
+   */
+  select?: Prisma.SecuritySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Security
+   */
+  omit?: Prisma.SecurityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SecurityInclude<ExtArgs> | null
+  where?: Prisma.SecurityWhereInput
 }
 
 /**

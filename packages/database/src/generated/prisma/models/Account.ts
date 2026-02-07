@@ -27,10 +27,14 @@ export type AggregateAccount = {
 export type AccountMinAggregateOutputType = {
   id: string | null
   userId: string | null
-  broker: string | null
-  accountId: string | null
-  accountName: string | null
-  currency: string | null
+  type: $Enums.AccountType | null
+  institution: string | null
+  name: string | null
+  externalId: string | null
+  baseCurrency: string | null
+  isActive: boolean | null
+  lastImportAt: Date | null
+  notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,10 +42,14 @@ export type AccountMinAggregateOutputType = {
 export type AccountMaxAggregateOutputType = {
   id: string | null
   userId: string | null
-  broker: string | null
-  accountId: string | null
-  accountName: string | null
-  currency: string | null
+  type: $Enums.AccountType | null
+  institution: string | null
+  name: string | null
+  externalId: string | null
+  baseCurrency: string | null
+  isActive: boolean | null
+  lastImportAt: Date | null
+  notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -49,10 +57,14 @@ export type AccountMaxAggregateOutputType = {
 export type AccountCountAggregateOutputType = {
   id: number
   userId: number
-  broker: number
-  accountId: number
-  accountName: number
-  currency: number
+  type: number
+  institution: number
+  name: number
+  externalId: number
+  baseCurrency: number
+  isActive: number
+  lastImportAt: number
+  notes: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,10 +74,14 @@ export type AccountCountAggregateOutputType = {
 export type AccountMinAggregateInputType = {
   id?: true
   userId?: true
-  broker?: true
-  accountId?: true
-  accountName?: true
-  currency?: true
+  type?: true
+  institution?: true
+  name?: true
+  externalId?: true
+  baseCurrency?: true
+  isActive?: true
+  lastImportAt?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -73,10 +89,14 @@ export type AccountMinAggregateInputType = {
 export type AccountMaxAggregateInputType = {
   id?: true
   userId?: true
-  broker?: true
-  accountId?: true
-  accountName?: true
-  currency?: true
+  type?: true
+  institution?: true
+  name?: true
+  externalId?: true
+  baseCurrency?: true
+  isActive?: true
+  lastImportAt?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -84,10 +104,14 @@ export type AccountMaxAggregateInputType = {
 export type AccountCountAggregateInputType = {
   id?: true
   userId?: true
-  broker?: true
-  accountId?: true
-  accountName?: true
-  currency?: true
+  type?: true
+  institution?: true
+  name?: true
+  externalId?: true
+  baseCurrency?: true
+  isActive?: true
+  lastImportAt?: true
+  notes?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -168,10 +192,14 @@ export type AccountGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type AccountGroupByOutputType = {
   id: string
   userId: string
-  broker: string
-  accountId: string
-  accountName: string | null
-  currency: string
+  type: $Enums.AccountType
+  institution: string
+  name: string
+  externalId: string | null
+  baseCurrency: string
+  isActive: boolean
+  lastImportAt: Date | null
+  notes: string | null
   createdAt: Date
   updatedAt: Date
   _count: AccountCountAggregateOutputType | null
@@ -200,54 +228,72 @@ export type AccountWhereInput = {
   NOT?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
   id?: Prisma.StringFilter<"Account"> | string
   userId?: Prisma.StringFilter<"Account"> | string
-  broker?: Prisma.StringFilter<"Account"> | string
-  accountId?: Prisma.StringFilter<"Account"> | string
-  accountName?: Prisma.StringNullableFilter<"Account"> | string | null
-  currency?: Prisma.StringFilter<"Account"> | string
+  type?: Prisma.EnumAccountTypeFilter<"Account"> | $Enums.AccountType
+  institution?: Prisma.StringFilter<"Account"> | string
+  name?: Prisma.StringFilter<"Account"> | string
+  externalId?: Prisma.StringNullableFilter<"Account"> | string | null
+  baseCurrency?: Prisma.StringFilter<"Account"> | string
+  isActive?: Prisma.BoolFilter<"Account"> | boolean
+  lastImportAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"Account"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   positions?: Prisma.PositionListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
+  balances?: Prisma.AccountBalanceListRelationFilter
 }
 
 export type AccountOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  broker?: Prisma.SortOrder
-  accountId?: Prisma.SortOrder
-  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
-  currency?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  institution?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  baseCurrency?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  lastImportAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   positions?: Prisma.PositionOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
+  balances?: Prisma.AccountBalanceOrderByRelationAggregateInput
 }
 
 export type AccountWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_broker?: Prisma.AccountUserId_brokerCompoundUniqueInput
-  userId_broker_accountId?: Prisma.AccountUserIdBrokerAccountIdCompoundUniqueInput
+  userId_institution_externalId?: Prisma.AccountUserIdInstitutionExternalIdCompoundUniqueInput
   AND?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
   OR?: Prisma.AccountWhereInput[]
   NOT?: Prisma.AccountWhereInput | Prisma.AccountWhereInput[]
   userId?: Prisma.StringFilter<"Account"> | string
-  broker?: Prisma.StringFilter<"Account"> | string
-  accountId?: Prisma.StringFilter<"Account"> | string
-  accountName?: Prisma.StringNullableFilter<"Account"> | string | null
-  currency?: Prisma.StringFilter<"Account"> | string
+  type?: Prisma.EnumAccountTypeFilter<"Account"> | $Enums.AccountType
+  institution?: Prisma.StringFilter<"Account"> | string
+  name?: Prisma.StringFilter<"Account"> | string
+  externalId?: Prisma.StringNullableFilter<"Account"> | string | null
+  baseCurrency?: Prisma.StringFilter<"Account"> | string
+  isActive?: Prisma.BoolFilter<"Account"> | boolean
+  lastImportAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  notes?: Prisma.StringNullableFilter<"Account"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   positions?: Prisma.PositionListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
-}, "id" | "userId_broker" | "userId_broker_accountId">
+  balances?: Prisma.AccountBalanceListRelationFilter
+}, "id" | "userId_institution_externalId">
 
 export type AccountOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  broker?: Prisma.SortOrder
-  accountId?: Prisma.SortOrder
-  accountName?: Prisma.SortOrderInput | Prisma.SortOrder
-  currency?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  institution?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
+  baseCurrency?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  lastImportAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AccountCountOrderByAggregateInput
@@ -261,10 +307,14 @@ export type AccountScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AccountScalarWhereWithAggregatesInput | Prisma.AccountScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Account"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Account"> | string
-  broker?: Prisma.StringWithAggregatesFilter<"Account"> | string
-  accountId?: Prisma.StringWithAggregatesFilter<"Account"> | string
-  accountName?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
-  currency?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  type?: Prisma.EnumAccountTypeWithAggregatesFilter<"Account"> | $Enums.AccountType
+  institution?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  name?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  externalId?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
+  baseCurrency?: Prisma.StringWithAggregatesFilter<"Account"> | string
+  isActive?: Prisma.BoolWithAggregatesFilter<"Account"> | boolean
+  lastImportAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
+  notes?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
 }
@@ -272,62 +322,86 @@ export type AccountScalarWhereWithAggregatesInput = {
 export type AccountCreateInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionCreateNestedManyWithoutAccountInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutAccountInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUpdateManyWithoutAccountNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUncheckedUpdateManyWithoutAccountNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUncheckedUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountCreateManyInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -335,10 +409,14 @@ export type AccountCreateManyInput = {
 export type AccountUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -346,32 +424,35 @@ export type AccountUpdateManyMutationInput = {
 export type AccountUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AccountUserId_brokerCompoundUniqueInput = {
+export type AccountUserIdInstitutionExternalIdCompoundUniqueInput = {
   userId: string
-  broker: string
-}
-
-export type AccountUserIdBrokerAccountIdCompoundUniqueInput = {
-  userId: string
-  broker: string
-  accountId: string
+  institution: string
+  externalId: string
 }
 
 export type AccountCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  broker?: Prisma.SortOrder
-  accountId?: Prisma.SortOrder
-  accountName?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  institution?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
+  baseCurrency?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  lastImportAt?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -379,10 +460,14 @@ export type AccountCountOrderByAggregateInput = {
 export type AccountMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  broker?: Prisma.SortOrder
-  accountId?: Prisma.SortOrder
-  accountName?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  institution?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
+  baseCurrency?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  lastImportAt?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -390,10 +475,14 @@ export type AccountMaxOrderByAggregateInput = {
 export type AccountMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  broker?: Prisma.SortOrder
-  accountId?: Prisma.SortOrder
-  accountName?: Prisma.SortOrder
-  currency?: Prisma.SortOrder
+  type?: Prisma.SortOrder
+  institution?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
+  baseCurrency?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  lastImportAt?: Prisma.SortOrder
+  notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -407,12 +496,38 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
+export type EnumAccountTypeFieldUpdateOperationsInput = {
+  set?: $Enums.AccountType
+}
+
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type AccountCreateNestedOneWithoutBalancesInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutBalancesInput, Prisma.AccountUncheckedCreateWithoutBalancesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutBalancesInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutBalancesNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutBalancesInput, Prisma.AccountUncheckedCreateWithoutBalancesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutBalancesInput
+  upsert?: Prisma.AccountUpsertWithoutBalancesInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutBalancesInput, Prisma.AccountUpdateWithoutBalancesInput>, Prisma.AccountUncheckedUpdateWithoutBalancesInput>
 }
 
 export type AccountCreateNestedOneWithoutTransactionsInput = {
@@ -443,28 +558,122 @@ export type AccountUpdateOneRequiredWithoutPositionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutPositionsInput, Prisma.AccountUpdateWithoutPositionsInput>, Prisma.AccountUncheckedUpdateWithoutPositionsInput>
 }
 
-export type AccountCreateWithoutTransactionsInput = {
+export type AccountCreateWithoutBalancesInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionCreateNestedManyWithoutAccountInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutAccountInput
+}
+
+export type AccountUncheckedCreateWithoutBalancesInput = {
+  id?: string
+  userId: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  positions?: Prisma.PositionUncheckedCreateNestedManyWithoutAccountInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAccountInput
+}
+
+export type AccountCreateOrConnectWithoutBalancesInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutBalancesInput, Prisma.AccountUncheckedCreateWithoutBalancesInput>
+}
+
+export type AccountUpsertWithoutBalancesInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutBalancesInput, Prisma.AccountUncheckedUpdateWithoutBalancesInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutBalancesInput, Prisma.AccountUncheckedCreateWithoutBalancesInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutBalancesInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutBalancesInput, Prisma.AccountUncheckedUpdateWithoutBalancesInput>
+}
+
+export type AccountUpdateWithoutBalancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  positions?: Prisma.PositionUpdateManyWithoutAccountNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutBalancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  positions?: Prisma.PositionUncheckedUpdateManyWithoutAccountNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountCreateWithoutTransactionsInput = {
+  id?: string
+  userId: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  positions?: Prisma.PositionCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutTransactionsInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   positions?: Prisma.PositionUncheckedCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutTransactionsInput = {
@@ -486,49 +695,69 @@ export type AccountUpdateToOneWithWhereWithoutTransactionsInput = {
 export type AccountUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   positions?: Prisma.PositionUncheckedUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUncheckedUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountCreateWithoutPositionsInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceCreateNestedManyWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutPositionsInput = {
   id?: string
   userId: string
-  broker: string
-  accountId: string
-  accountName?: string | null
-  currency?: string
+  type?: $Enums.AccountType
+  institution: string
+  name: string
+  externalId?: string | null
+  baseCurrency?: string
+  isActive?: boolean
+  lastImportAt?: Date | string | null
+  notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutAccountInput
+  balances?: Prisma.AccountBalanceUncheckedCreateNestedManyWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutPositionsInput = {
@@ -550,25 +779,35 @@ export type AccountUpdateToOneWithWhereWithoutPositionsInput = {
 export type AccountUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUpdateManyWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  broker?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  accountName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  institution?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  baseCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastImportAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutAccountNestedInput
+  balances?: Prisma.AccountBalanceUncheckedUpdateManyWithoutAccountNestedInput
 }
 
 
@@ -579,11 +818,13 @@ export type AccountUncheckedUpdateWithoutPositionsInput = {
 export type AccountCountOutputType = {
   positions: number
   transactions: number
+  balances: number
 }
 
 export type AccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   positions?: boolean | AccountCountOutputTypeCountPositionsArgs
   transactions?: boolean | AccountCountOutputTypeCountTransactionsArgs
+  balances?: boolean | AccountCountOutputTypeCountBalancesArgs
 }
 
 /**
@@ -610,28 +851,44 @@ export type AccountCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime.
   where?: Prisma.TransactionWhereInput
 }
 
+/**
+ * AccountCountOutputType without action
+ */
+export type AccountCountOutputTypeCountBalancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountBalanceWhereInput
+}
+
 
 export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  broker?: boolean
-  accountId?: boolean
-  accountName?: boolean
-  currency?: boolean
+  type?: boolean
+  institution?: boolean
+  name?: boolean
+  externalId?: boolean
+  baseCurrency?: boolean
+  isActive?: boolean
+  lastImportAt?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   positions?: boolean | Prisma.Account$positionsArgs<ExtArgs>
   transactions?: boolean | Prisma.Account$transactionsArgs<ExtArgs>
+  balances?: boolean | Prisma.Account$balancesArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["account"]>
 
 export type AccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  broker?: boolean
-  accountId?: boolean
-  accountName?: boolean
-  currency?: boolean
+  type?: boolean
+  institution?: boolean
+  name?: boolean
+  externalId?: boolean
+  baseCurrency?: boolean
+  isActive?: boolean
+  lastImportAt?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["account"]>
@@ -639,10 +896,14 @@ export type AccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  broker?: boolean
-  accountId?: boolean
-  accountName?: boolean
-  currency?: boolean
+  type?: boolean
+  institution?: boolean
+  name?: boolean
+  externalId?: boolean
+  baseCurrency?: boolean
+  isActive?: boolean
+  lastImportAt?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["account"]>
@@ -650,18 +911,23 @@ export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 export type AccountSelectScalar = {
   id?: boolean
   userId?: boolean
-  broker?: boolean
-  accountId?: boolean
-  accountName?: boolean
-  currency?: boolean
+  type?: boolean
+  institution?: boolean
+  name?: boolean
+  externalId?: boolean
+  baseCurrency?: boolean
+  isActive?: boolean
+  lastImportAt?: boolean
+  notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "broker" | "accountId" | "accountName" | "currency" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
+export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "type" | "institution" | "name" | "externalId" | "baseCurrency" | "isActive" | "lastImportAt" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
 export type AccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   positions?: boolean | Prisma.Account$positionsArgs<ExtArgs>
   transactions?: boolean | Prisma.Account$transactionsArgs<ExtArgs>
+  balances?: boolean | Prisma.Account$balancesArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -672,14 +938,19 @@ export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     positions: Prisma.$PositionPayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
+    balances: Prisma.$AccountBalancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
-    broker: string
-    accountId: string
-    accountName: string | null
-    currency: string
+    type: $Enums.AccountType
+    institution: string
+    name: string
+    externalId: string | null
+    baseCurrency: string
+    isActive: boolean
+    lastImportAt: Date | null
+    notes: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["account"]>
@@ -1078,6 +1349,7 @@ export interface Prisma__AccountClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   positions<T extends Prisma.Account$positionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$positionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.Account$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  balances<T extends Prisma.Account$balancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$balancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1109,10 +1381,14 @@ export interface Prisma__AccountClient<T, Null = never, ExtArgs extends runtime.
 export interface AccountFieldRefs {
   readonly id: Prisma.FieldRef<"Account", 'String'>
   readonly userId: Prisma.FieldRef<"Account", 'String'>
-  readonly broker: Prisma.FieldRef<"Account", 'String'>
-  readonly accountId: Prisma.FieldRef<"Account", 'String'>
-  readonly accountName: Prisma.FieldRef<"Account", 'String'>
-  readonly currency: Prisma.FieldRef<"Account", 'String'>
+  readonly type: Prisma.FieldRef<"Account", 'AccountType'>
+  readonly institution: Prisma.FieldRef<"Account", 'String'>
+  readonly name: Prisma.FieldRef<"Account", 'String'>
+  readonly externalId: Prisma.FieldRef<"Account", 'String'>
+  readonly baseCurrency: Prisma.FieldRef<"Account", 'String'>
+  readonly isActive: Prisma.FieldRef<"Account", 'Boolean'>
+  readonly lastImportAt: Prisma.FieldRef<"Account", 'DateTime'>
+  readonly notes: Prisma.FieldRef<"Account", 'String'>
   readonly createdAt: Prisma.FieldRef<"Account", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Account", 'DateTime'>
 }
@@ -1548,6 +1824,30 @@ export type Account$transactionsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[]
+}
+
+/**
+ * Account.balances
+ */
+export type Account$balancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AccountBalance
+   */
+  select?: Prisma.AccountBalanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AccountBalance
+   */
+  omit?: Prisma.AccountBalanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AccountBalanceInclude<ExtArgs> | null
+  where?: Prisma.AccountBalanceWhereInput
+  orderBy?: Prisma.AccountBalanceOrderByWithRelationInput | Prisma.AccountBalanceOrderByWithRelationInput[]
+  cursor?: Prisma.AccountBalanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountBalanceScalarFieldEnum | Prisma.AccountBalanceScalarFieldEnum[]
 }
 
 /**

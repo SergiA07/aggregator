@@ -27,6 +27,7 @@ export type AggregateSecurity = {
 export type SecurityMinAggregateOutputType = {
   id: string | null
   symbol: string | null
+  yahooSymbol: string | null
   isin: string | null
   name: string | null
   securityType: string | null
@@ -40,6 +41,7 @@ export type SecurityMinAggregateOutputType = {
 export type SecurityMaxAggregateOutputType = {
   id: string | null
   symbol: string | null
+  yahooSymbol: string | null
   isin: string | null
   name: string | null
   securityType: string | null
@@ -53,6 +55,7 @@ export type SecurityMaxAggregateOutputType = {
 export type SecurityCountAggregateOutputType = {
   id: number
   symbol: number
+  yahooSymbol: number
   isin: number
   name: number
   securityType: number
@@ -68,6 +71,7 @@ export type SecurityCountAggregateOutputType = {
 export type SecurityMinAggregateInputType = {
   id?: true
   symbol?: true
+  yahooSymbol?: true
   isin?: true
   name?: true
   securityType?: true
@@ -81,6 +85,7 @@ export type SecurityMinAggregateInputType = {
 export type SecurityMaxAggregateInputType = {
   id?: true
   symbol?: true
+  yahooSymbol?: true
   isin?: true
   name?: true
   securityType?: true
@@ -94,6 +99,7 @@ export type SecurityMaxAggregateInputType = {
 export type SecurityCountAggregateInputType = {
   id?: true
   symbol?: true
+  yahooSymbol?: true
   isin?: true
   name?: true
   securityType?: true
@@ -180,6 +186,7 @@ export type SecurityGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type SecurityGroupByOutputType = {
   id: string
   symbol: string
+  yahooSymbol: string | null
   isin: string | null
   name: string
   securityType: string
@@ -214,6 +221,7 @@ export type SecurityWhereInput = {
   NOT?: Prisma.SecurityWhereInput | Prisma.SecurityWhereInput[]
   id?: Prisma.StringFilter<"Security"> | string
   symbol?: Prisma.StringFilter<"Security"> | string
+  yahooSymbol?: Prisma.StringNullableFilter<"Security"> | string | null
   isin?: Prisma.StringNullableFilter<"Security"> | string | null
   name?: Prisma.StringFilter<"Security"> | string
   securityType?: Prisma.StringFilter<"Security"> | string
@@ -230,6 +238,7 @@ export type SecurityWhereInput = {
 export type SecurityOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   symbol?: Prisma.SortOrder
+  yahooSymbol?: Prisma.SortOrderInput | Prisma.SortOrder
   isin?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   securityType?: Prisma.SortOrder
@@ -250,6 +259,7 @@ export type SecurityWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SecurityWhereInput[]
   NOT?: Prisma.SecurityWhereInput | Prisma.SecurityWhereInput[]
   symbol?: Prisma.StringFilter<"Security"> | string
+  yahooSymbol?: Prisma.StringNullableFilter<"Security"> | string | null
   name?: Prisma.StringFilter<"Security"> | string
   securityType?: Prisma.StringFilter<"Security"> | string
   currency?: Prisma.StringFilter<"Security"> | string
@@ -265,6 +275,7 @@ export type SecurityWhereUniqueInput = Prisma.AtLeast<{
 export type SecurityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   symbol?: Prisma.SortOrder
+  yahooSymbol?: Prisma.SortOrderInput | Prisma.SortOrder
   isin?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   securityType?: Prisma.SortOrder
@@ -284,6 +295,7 @@ export type SecurityScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SecurityScalarWhereWithAggregatesInput | Prisma.SecurityScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Security"> | string
   symbol?: Prisma.StringWithAggregatesFilter<"Security"> | string
+  yahooSymbol?: Prisma.StringNullableWithAggregatesFilter<"Security"> | string | null
   isin?: Prisma.StringNullableWithAggregatesFilter<"Security"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"Security"> | string
   securityType?: Prisma.StringWithAggregatesFilter<"Security"> | string
@@ -297,6 +309,7 @@ export type SecurityScalarWhereWithAggregatesInput = {
 export type SecurityCreateInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -313,6 +326,7 @@ export type SecurityCreateInput = {
 export type SecurityUncheckedCreateInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -329,6 +343,7 @@ export type SecurityUncheckedCreateInput = {
 export type SecurityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -345,6 +360,7 @@ export type SecurityUpdateInput = {
 export type SecurityUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -361,6 +377,7 @@ export type SecurityUncheckedUpdateInput = {
 export type SecurityCreateManyInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -374,6 +391,7 @@ export type SecurityCreateManyInput = {
 export type SecurityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -387,6 +405,7 @@ export type SecurityUpdateManyMutationInput = {
 export type SecurityUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -400,6 +419,7 @@ export type SecurityUncheckedUpdateManyInput = {
 export type SecurityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   symbol?: Prisma.SortOrder
+  yahooSymbol?: Prisma.SortOrder
   isin?: Prisma.SortOrder
   name?: Prisma.SortOrder
   securityType?: Prisma.SortOrder
@@ -413,6 +433,7 @@ export type SecurityCountOrderByAggregateInput = {
 export type SecurityMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   symbol?: Prisma.SortOrder
+  yahooSymbol?: Prisma.SortOrder
   isin?: Prisma.SortOrder
   name?: Prisma.SortOrder
   securityType?: Prisma.SortOrder
@@ -426,6 +447,7 @@ export type SecurityMaxOrderByAggregateInput = {
 export type SecurityMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   symbol?: Prisma.SortOrder
+  yahooSymbol?: Prisma.SortOrder
   isin?: Prisma.SortOrder
   name?: Prisma.SortOrder
   securityType?: Prisma.SortOrder
@@ -434,6 +456,11 @@ export type SecurityMinOrderByAggregateInput = {
   sector?: Prisma.SortOrder
   industry?: Prisma.SortOrder
   country?: Prisma.SortOrder
+}
+
+export type SecurityNullableScalarRelationFilter = {
+  is?: Prisma.SecurityWhereInput | null
+  isNot?: Prisma.SecurityWhereInput | null
 }
 
 export type SecurityScalarRelationFilter = {
@@ -447,10 +474,12 @@ export type SecurityCreateNestedOneWithoutTransactionsInput = {
   connect?: Prisma.SecurityWhereUniqueInput
 }
 
-export type SecurityUpdateOneRequiredWithoutTransactionsNestedInput = {
+export type SecurityUpdateOneWithoutTransactionsNestedInput = {
   create?: Prisma.XOR<Prisma.SecurityCreateWithoutTransactionsInput, Prisma.SecurityUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.SecurityCreateOrConnectWithoutTransactionsInput
   upsert?: Prisma.SecurityUpsertWithoutTransactionsInput
+  disconnect?: Prisma.SecurityWhereInput | boolean
+  delete?: Prisma.SecurityWhereInput | boolean
   connect?: Prisma.SecurityWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.SecurityUpdateToOneWithWhereWithoutTransactionsInput, Prisma.SecurityUpdateWithoutTransactionsInput>, Prisma.SecurityUncheckedUpdateWithoutTransactionsInput>
 }
@@ -486,6 +515,7 @@ export type SecurityUpdateOneRequiredWithoutPriceHistoryNestedInput = {
 export type SecurityCreateWithoutTransactionsInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -501,6 +531,7 @@ export type SecurityCreateWithoutTransactionsInput = {
 export type SecurityUncheckedCreateWithoutTransactionsInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -532,6 +563,7 @@ export type SecurityUpdateToOneWithWhereWithoutTransactionsInput = {
 export type SecurityUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -547,6 +579,7 @@ export type SecurityUpdateWithoutTransactionsInput = {
 export type SecurityUncheckedUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -562,6 +595,7 @@ export type SecurityUncheckedUpdateWithoutTransactionsInput = {
 export type SecurityCreateWithoutPositionsInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -577,6 +611,7 @@ export type SecurityCreateWithoutPositionsInput = {
 export type SecurityUncheckedCreateWithoutPositionsInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -608,6 +643,7 @@ export type SecurityUpdateToOneWithWhereWithoutPositionsInput = {
 export type SecurityUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -623,6 +659,7 @@ export type SecurityUpdateWithoutPositionsInput = {
 export type SecurityUncheckedUpdateWithoutPositionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -638,6 +675,7 @@ export type SecurityUncheckedUpdateWithoutPositionsInput = {
 export type SecurityCreateWithoutPriceHistoryInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -653,6 +691,7 @@ export type SecurityCreateWithoutPriceHistoryInput = {
 export type SecurityUncheckedCreateWithoutPriceHistoryInput = {
   id?: string
   symbol: string
+  yahooSymbol?: string | null
   isin?: string | null
   name: string
   securityType: string
@@ -684,6 +723,7 @@ export type SecurityUpdateToOneWithWhereWithoutPriceHistoryInput = {
 export type SecurityUpdateWithoutPriceHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -699,6 +739,7 @@ export type SecurityUpdateWithoutPriceHistoryInput = {
 export type SecurityUncheckedUpdateWithoutPriceHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
+  yahooSymbol?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   securityType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -763,6 +804,7 @@ export type SecurityCountOutputTypeCountPriceHistoryArgs<ExtArgs extends runtime
 export type SecuritySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   symbol?: boolean
+  yahooSymbol?: boolean
   isin?: boolean
   name?: boolean
   securityType?: boolean
@@ -780,6 +822,7 @@ export type SecuritySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type SecuritySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   symbol?: boolean
+  yahooSymbol?: boolean
   isin?: boolean
   name?: boolean
   securityType?: boolean
@@ -793,6 +836,7 @@ export type SecuritySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type SecuritySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   symbol?: boolean
+  yahooSymbol?: boolean
   isin?: boolean
   name?: boolean
   securityType?: boolean
@@ -806,6 +850,7 @@ export type SecuritySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type SecuritySelectScalar = {
   id?: boolean
   symbol?: boolean
+  yahooSymbol?: boolean
   isin?: boolean
   name?: boolean
   securityType?: boolean
@@ -816,7 +861,7 @@ export type SecuritySelectScalar = {
   country?: boolean
 }
 
-export type SecurityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "symbol" | "isin" | "name" | "securityType" | "currency" | "exchange" | "sector" | "industry" | "country", ExtArgs["result"]["security"]>
+export type SecurityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "symbol" | "yahooSymbol" | "isin" | "name" | "securityType" | "currency" | "exchange" | "sector" | "industry" | "country", ExtArgs["result"]["security"]>
 export type SecurityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   positions?: boolean | Prisma.Security$positionsArgs<ExtArgs>
   transactions?: boolean | Prisma.Security$transactionsArgs<ExtArgs>
@@ -836,6 +881,7 @@ export type $SecurityPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     symbol: string
+    yahooSymbol: string | null
     isin: string | null
     name: string
     securityType: string
@@ -1272,6 +1318,7 @@ export interface Prisma__SecurityClient<T, Null = never, ExtArgs extends runtime
 export interface SecurityFieldRefs {
   readonly id: Prisma.FieldRef<"Security", 'String'>
   readonly symbol: Prisma.FieldRef<"Security", 'String'>
+  readonly yahooSymbol: Prisma.FieldRef<"Security", 'String'>
   readonly isin: Prisma.FieldRef<"Security", 'String'>
   readonly name: Prisma.FieldRef<"Security", 'String'>
   readonly securityType: Prisma.FieldRef<"Security", 'String'>

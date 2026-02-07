@@ -23,6 +23,11 @@ export * from './enums.ts';
  */
 export type Account = Prisma.AccountModel
 /**
+ * Model AccountBalance
+ * 
+ */
+export type AccountBalance = Prisma.AccountBalanceModel
+/**
  * Model Security
  * 
  */
@@ -52,3 +57,13 @@ export type BankTransaction = Prisma.BankTransactionModel
  * 
  */
 export type PriceHistory = Prisma.PriceHistoryModel
+/**
+ * Model Lot
+ * 
+ */
+export type Lot = Prisma.LotModel
+/**
+ * Model LotDisposal
+ * 
+ */
+export type LotDisposal = Prisma.LotDisposalModel

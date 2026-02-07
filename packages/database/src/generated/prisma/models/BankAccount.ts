@@ -477,10 +477,6 @@ export type BankAccountScalarRelationFilter = {
   isNot?: Prisma.BankAccountWhereInput
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type BankAccountCreateNestedOneWithoutTransactionsInput = {
   create?: Prisma.XOR<Prisma.BankAccountCreateWithoutTransactionsInput, Prisma.BankAccountUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.BankAccountCreateOrConnectWithoutTransactionsInput

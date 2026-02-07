@@ -7,29 +7,59 @@ datasource db {
   provider = "postgresql"
 }
 
-// Investment account (broker accounts)
+// Account types for unified account management
+enum AccountType {
+  broker // DeGiro, IBKR, Trade Republic
+  bank // Sabadell, BBVA, Pibank
+  pension // Caser, Indexa
+  crypto // Kraken, Binance (future)
+  real_estate // Properties (future)
+  other // Manual/catch-all
+}
+
+// Unified account model (brokers, banks, pensions, etc.)
 model Account {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id") // Supabase auth.users.id
-  broker      String   // degiro, trade-republic, interactive-brokers, etc.
-  accountId   String   @map("account_id") // External account identifier
-  accountName String?  @map("account_name")
-  currency    String   @default("EUR")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String      @id @default(uuid())
+  userId       String      @map("user_id") // Supabase auth.users.id
+  type         AccountType @default(broker)
+  institution  String // degiro, sabadell, caser, manual, etc.
+  name         String // User's display name for the account
+  externalId   String?     @map("external_id") // External account identifier (optional)
+  baseCurrency String      @default("EUR") @map("base_currency") // For reporting
+  isActive     Boolean     @default(true) @map("is_active")
+  lastImportAt DateTime?   @map("last_import_at")
+  notes        String?
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   positions    Position[]
   transactions Transaction[]
+  balances     AccountBalance[]
 
-  @@unique([userId, broker], name: "userId_broker")
-  @@unique([userId, broker, accountId])
+  @@unique([userId, institution, externalId])
+  @@index([userId])
   @@map("accounts")
+}
+
+// Multi-currency cash balances per account
+model AccountBalance {
+  id        String   @id @default(uuid())
+  accountId String   @map("account_id")
+  currency  String // EUR, USD, GBP, etc.
+  balance   Decimal  @db.Decimal(18, 4)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, currency])
+  @@map("account_balances")
 }
 
 // Securities (stocks, ETFs, bonds, etc.) - shared across users
 model Security {
   id           String  @id @default(uuid())
-  symbol       String  // Ticker symbol
+  symbol       String  // Ticker symbol (may be ISIN if not resolved)
+  yahooSymbol  String? @map("yahoo_symbol") // Yahoo Finance ticker for price lookups
   isin         String? @unique // International Securities Identification Number
   name         String
   securityType String  @map("security_type") // stock, etf, bond, fund, etc.
@@ -43,33 +73,69 @@ model Security {
   transactions Transaction[]
   priceHistory PriceHistory[]
 
+  @@index([yahooSymbol])
   @@map("securities")
 }
 
-// Transactions (buy, sell, dividend, etc.)
-model Transaction {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  accountId   String   @map("account_id")
-  securityId  String   @map("security_id")
-  date        DateTime
-  type        String   // buy, sell, dividend, split, transfer
-  quantity    Decimal  @db.Decimal(18, 8)
-  price       Decimal  @db.Decimal(18, 8)
-  amount      Decimal  @db.Decimal(18, 2) // Total amount (quantity * price)
-  fees        Decimal  @default(0) @db.Decimal(18, 2)
-  currency    String   @default("EUR")
-  notes       String?
-  externalId  String?  @map("external_id") // ID from broker for deduplication
-  fingerprint String?  // Hash of transaction fields for deduplication without externalId
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+// Extended transaction types for all account types
+enum TransactionType {
+  // Investment transactions
+  buy
+  sell
+  dividend
+  fee
+  split
+  // Cash movements
+  deposit
+  withdrawal
+  transfer_in
+  transfer_out
+  // Banking
+  interest
+  // Pension/Manual
+  contribution
+  valuation
+  // FX
+  fx_conversion
+  // Other
+  other
+}
 
-  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  security Security @relation(fields: [securityId], references: [id])
+// Transactions (unified for all account types)
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      String          @map("user_id")
+  accountId   String          @map("account_id")
+  securityId  String?         @map("security_id") // Optional: not needed for bank/pension transactions
+  date        DateTime
+  type        TransactionType
+  quantity    Decimal?        @db.Decimal(18, 8) // Optional: not needed for cash transactions
+  price       Decimal?        @db.Decimal(18, 8) // Optional: not needed for cash transactions
+  amount      Decimal         @db.Decimal(18, 4) // Total amount (positive = inflow, negative = outflow)
+  fees        Decimal         @default(0) @db.Decimal(18, 4)
+  currency    String          @default("EUR")
+  // FX rate data for multi-currency transactions (stored from CSV at import time)
+  fxRate        Decimal?      @map("fx_rate") @db.Decimal(12, 6) // FX rate at transaction time (e.g., 1.1723 USD/EUR)
+  localCurrency String?       @map("local_currency") // Original currency before conversion (e.g., "USD")
+  localAmount   Decimal?      @map("local_amount") @db.Decimal(18, 4) // Amount in original currency
+  autoFxCost    Decimal?      @map("auto_fx_cost") @db.Decimal(18, 4) // AutoFX commission charged by broker
+  description String? // For bank transactions, pension contributions, etc.
+  category    String? // Optional categorization
+  notes       String?
+  externalId  String?         @map("external_id") // ID from broker/bank for deduplication
+  fingerprint String? // Hash of transaction fields for deduplication without externalId
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  security Security? @relation(fields: [securityId], references: [id])
 
   @@unique([userId, accountId, externalId])
   @@unique([userId, fingerprint])
+  @@index([userId])
+  @@index([accountId])
+  @@index([securityId])
+  @@index([date])
   @@map("transactions")
 }
 
@@ -92,10 +158,13 @@ model Position {
   security Security @relation(fields: [securityId], references: [id])
 
   @@unique([userId, accountId, securityId])
+  @@index([userId])
+  @@index([accountId])
   @@map("positions")
 }
 
-// Bank accounts
+// @deprecated - Use Account with type=bank instead. Will be removed in future migration.
+// Bank accounts (legacy - kept for backwards compatibility)
 model BankAccount {
   id          String    @id @default(uuid())
   userId      String    @map("user_id")
@@ -114,7 +183,8 @@ model BankAccount {
   @@map("bank_accounts")
 }
 
-// Bank transactions
+// @deprecated - Use Transaction with bank account instead. Will be removed in future migration.
+// Bank transactions (legacy - kept for backwards compatibility)
 model BankTransaction {
   id            String   @id @default(uuid())
   userId        String   @map("user_id")
@@ -148,4 +218,55 @@ model PriceHistory {
 
   @@unique([securityId, date])
   @@map("price_history")
+}
+
+// Lot - Individual purchase lot for FIFO cost basis tracking
+// Each buy transaction creates a lot; sell transactions consume lots in FIFO order
+model Lot {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  accountId        String   @map("account_id")
+  securityId       String   @map("security_id")
+  buyTransactionId String   @map("buy_transaction_id") // The buy transaction that created this lot
+  purchaseDate     DateTime @map("purchase_date")
+  originalQuantity Decimal  @map("original_quantity") @db.Decimal(18, 8) // Quantity when lot was created
+  remainingQuantity Decimal @map("remaining_quantity") @db.Decimal(18, 8) // Quantity still held (decreases with sells)
+  costPerShare     Decimal  @map("cost_per_share") @db.Decimal(18, 8) // Cost basis per share (including fees) in EUR
+  totalCost        Decimal  @map("total_cost") @db.Decimal(18, 4) // Total cost for this lot in EUR
+  currency         String   @default("EUR")
+  // FX data for multi-currency purchases (preserved from transaction at creation time)
+  fxRate            Decimal?  @map("fx_rate") @db.Decimal(12, 6) // FX rate at purchase time
+  localCurrency     String?   @map("local_currency") // Original currency of purchase (e.g., "USD")
+  localCostPerShare Decimal?  @map("local_cost_per_share") @db.Decimal(18, 8) // Cost per share in original currency
+  isClosed         Boolean  @default(false) @map("is_closed") // True when remainingQuantity = 0
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Lot disposals track how this lot was consumed by sell transactions
+  disposals LotDisposal[]
+
+  @@index([userId, accountId, securityId])
+  @@index([userId, securityId, purchaseDate]) // For FIFO ordering
+  @@index([isClosed])
+  @@map("lots")
+}
+
+// LotDisposal - Records when a lot is partially or fully sold
+// Links sell transactions to the lots they consumed (FIFO)
+model LotDisposal {
+  id                String   @id @default(uuid())
+  lotId             String   @map("lot_id")
+  sellTransactionId String   @map("sell_transaction_id") // The sell transaction that consumed this lot
+  quantity          Decimal  @db.Decimal(18, 8) // Quantity sold from this lot
+  costBasis         Decimal  @map("cost_basis") @db.Decimal(18, 4) // Cost basis of shares sold
+  proceeds          Decimal  @db.Decimal(18, 4) // Sale proceeds for these shares
+  realizedPnl       Decimal  @map("realized_pnl") @db.Decimal(18, 4) // Profit/loss from this disposal
+  disposalDate      DateTime @map("disposal_date")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  lot Lot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  @@index([lotId])
+  @@index([sellTransactionId])
+  @@map("lot_disposals")
 }

@@ -9,10 +9,13 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Account.ts'
+export type * from './models/AccountBalance.ts'
 export type * from './models/Security.ts'
 export type * from './models/Transaction.ts'
 export type * from './models/Position.ts'
 export type * from './models/BankAccount.ts'
 export type * from './models/BankTransaction.ts'
 export type * from './models/PriceHistory.ts'
+export type * from './models/Lot.ts'
+export type * from './models/LotDisposal.ts'
 export type * from './commonInputTypes.ts'

@@ -28,6 +28,12 @@ REVOKE ALL ON bank_accounts FROM authenticated;
 REVOKE ALL ON bank_transactions FROM authenticated;
 REVOKE ALL ON price_history FROM authenticated;
 
--- Revoke access to Prisma's internal migration tracking table
-REVOKE ALL ON _prisma_migrations FROM anon;
-REVOKE ALL ON _prisma_migrations FROM authenticated;
+-- Revoke access to Prisma's internal migration tracking table (if exists)
+-- Note: We use IF EXISTS pattern via DO block since REVOKE doesn't support IF EXISTS
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '_prisma_migrations') THEN
+    EXECUTE 'REVOKE ALL ON _prisma_migrations FROM anon';
+    EXECUTE 'REVOKE ALL ON _prisma_migrations FROM authenticated';
+  END IF;
+END $$;

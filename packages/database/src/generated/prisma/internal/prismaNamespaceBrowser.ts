@@ -52,12 +52,15 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Account: 'Account',
+  AccountBalance: 'AccountBalance',
   Security: 'Security',
   Transaction: 'Transaction',
   Position: 'Position',
   BankAccount: 'BankAccount',
   BankTransaction: 'BankTransaction',
-  PriceHistory: 'PriceHistory'
+  PriceHistory: 'PriceHistory',
+  Lot: 'Lot',
+  LotDisposal: 'LotDisposal'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -79,10 +82,14 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const AccountScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  broker: 'broker',
-  accountId: 'accountId',
-  accountName: 'accountName',
-  currency: 'currency',
+  type: 'type',
+  institution: 'institution',
+  name: 'name',
+  externalId: 'externalId',
+  baseCurrency: 'baseCurrency',
+  isActive: 'isActive',
+  lastImportAt: 'lastImportAt',
+  notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -90,9 +97,21 @@ export const AccountScalarFieldEnum = {
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
 
 
+export const AccountBalanceScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  currency: 'currency',
+  balance: 'balance',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AccountBalanceScalarFieldEnum = (typeof AccountBalanceScalarFieldEnum)[keyof typeof AccountBalanceScalarFieldEnum]
+
+
 export const SecurityScalarFieldEnum = {
   id: 'id',
   symbol: 'symbol',
+  yahooSymbol: 'yahooSymbol',
   isin: 'isin',
   name: 'name',
   securityType: 'securityType',
@@ -118,6 +137,12 @@ export const TransactionScalarFieldEnum = {
   amount: 'amount',
   fees: 'fees',
   currency: 'currency',
+  fxRate: 'fxRate',
+  localCurrency: 'localCurrency',
+  localAmount: 'localAmount',
+  autoFxCost: 'autoFxCost',
+  description: 'description',
+  category: 'category',
   notes: 'notes',
   externalId: 'externalId',
   fingerprint: 'fingerprint',
@@ -190,6 +215,44 @@ export const PriceHistoryScalarFieldEnum = {
 } as const
 
 export type PriceHistoryScalarFieldEnum = (typeof PriceHistoryScalarFieldEnum)[keyof typeof PriceHistoryScalarFieldEnum]
+
+
+export const LotScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  accountId: 'accountId',
+  securityId: 'securityId',
+  buyTransactionId: 'buyTransactionId',
+  purchaseDate: 'purchaseDate',
+  originalQuantity: 'originalQuantity',
+  remainingQuantity: 'remainingQuantity',
+  costPerShare: 'costPerShare',
+  totalCost: 'totalCost',
+  currency: 'currency',
+  fxRate: 'fxRate',
+  localCurrency: 'localCurrency',
+  localCostPerShare: 'localCostPerShare',
+  isClosed: 'isClosed',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LotScalarFieldEnum = (typeof LotScalarFieldEnum)[keyof typeof LotScalarFieldEnum]
+
+
+export const LotDisposalScalarFieldEnum = {
+  id: 'id',
+  lotId: 'lotId',
+  sellTransactionId: 'sellTransactionId',
+  quantity: 'quantity',
+  costBasis: 'costBasis',
+  proceeds: 'proceeds',
+  realizedPnl: 'realizedPnl',
+  disposalDate: 'disposalDate',
+  createdAt: 'createdAt'
+} as const
+
+export type LotDisposalScalarFieldEnum = (typeof LotDisposalScalarFieldEnum)[keyof typeof LotDisposalScalarFieldEnum]
 
 
 export const SortOrder = {
