@@ -23,7 +23,8 @@ export interface AuthUser {
  */
 export function createDevUser(): AuthUser {
   return {
-    id: 'dev-user-00000000-0000-0000-0000-000000000000',
+    // Use test user ID for local development
+    id: 'a26043e1-b282-49ae-9614-3fbfd33b00b2',
     email: 'dev@localhost',
     role: 'admin',
     metadata: {},

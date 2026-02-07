@@ -30,6 +30,7 @@ export const es: I18nMessages = {
     goToDashboard: 'Ir al Panel',
     showDetails: 'Mostrar detalles del error',
     pleaseWait: 'Por favor, espere...',
+    more: 'Más opciones',
   },
 
   // =========================================================================
@@ -37,6 +38,8 @@ export const es: I18nMessages = {
   // =========================================================================
   nav: {
     overview: 'Resumen',
+    dashboard: 'Panel',
+    investments: 'Inversiones',
     positions: 'Posiciones',
     transactions: 'Transacciones',
     collapse: 'Contraer',
@@ -89,6 +92,75 @@ export const es: I18nMessages = {
       mainAccount: 'Cuenta principal',
     },
     recentTransactions: 'Transacciones recientes',
+  },
+
+  // =========================================================================
+  // OVERVIEW PAGE
+  // =========================================================================
+  overview: {
+    loadError: 'Error al cargar el resumen. Por favor, actualice la página.',
+    netWorth: {
+      title: 'Patrimonio Neto',
+      cash: 'Efectivo',
+      invested: 'Invertido',
+      pnl: 'G/P no realizada',
+    },
+    stats: {
+      cash: 'Efectivo',
+      invested: 'Invertido',
+      unrealizedPnl: 'G/P no realizada',
+      ytdChange: 'Cambio YTD',
+      accounts: 'Cuentas',
+    },
+    allocation: {
+      byType: 'Distribución por tipo',
+      byInstitution: 'Distribución por institución',
+    },
+    accountType: {
+      broker: 'Bróker',
+      bank: 'Banco',
+      pension: 'Pensión',
+      crypto: 'Cripto',
+      real_estate: 'Inmobiliario',
+      other: 'Otro',
+    },
+    accounts: {
+      title: 'Todas las cuentas',
+      empty: 'Sin cuentas aún. Importe su primera cuenta para comenzar.',
+      loadError: 'Error al cargar las cuentas.',
+      inactive: 'Inactiva',
+      lastUpdate: 'Actualizado',
+      updateBalance: 'Actualizar saldo',
+      importCSV: 'Importar CSV',
+    },
+    activity: {
+      title: 'Actividad reciente',
+      empty: 'Sin actividad reciente.',
+      loadError: 'Error al cargar la actividad reciente.',
+    },
+  },
+
+  // =========================================================================
+  // INVESTMENTS
+  // =========================================================================
+  investments: {
+    title: 'Inversiones',
+    tabs: {
+      positions: 'Posiciones',
+      accounts: 'Cuentas',
+    },
+    accounts: {
+      loadError: 'Error al cargar las cuentas.',
+      empty: 'Sin cuentas de bróker aún. Importe su primera cuenta para comenzar.',
+      totalInvested: 'Total invertido',
+      unrealizedPnl: 'G/P no realizada',
+      ytdChange: 'Cambio YTD',
+      ytdPercent: 'YTD %',
+      lastUpdate: 'Actualizado',
+      totalValue: 'Total',
+      change: 'Cambio',
+      allTime: 'Todo',
+    },
   },
 
   // =========================================================================
@@ -159,8 +231,87 @@ export const es: I18nMessages = {
   },
 
   // =========================================================================
-  // IMPORT MODAL
+  // ADD DATA MODAL (formerly Import Modal)
   // =========================================================================
+  addData: {
+    title: 'Añadir datos',
+    description: 'Importe desde su bróker o añada una cuenta manual.',
+
+    // Data source selection
+    dataSource: 'Origen de datos',
+    importFromBroker: 'Importar de Bróker/Banco',
+    importFromBrokerDesc: 'Subir CSV o sincronizar vía API',
+    manualAccount: 'Cuenta manual',
+    manualAccountDesc: 'Fondo de pensiones, efectivo, etc.',
+
+    // Import type
+    importType: 'Tipo de importación',
+    investmentAccount: 'Cuenta de inversión',
+    bankAccount: 'Cuenta bancaria',
+    selectBroker: 'Seleccionar bróker/banco',
+    howToExport: dt('Cómo exportar desde {broker}:', { broker: {} }),
+    importMethod: 'Método de importación',
+    uploadFile: 'Subir archivo',
+    pasteCSV: 'Pegar CSV',
+    clickToUpload: 'Haga clic para subir un archivo CSV',
+    dragAndDrop: 'o arrastre y suelte',
+    pasteHere: 'Pegue el contenido CSV aquí...',
+    importing: 'Importando...',
+    importData: 'Importar datos',
+    syncViaAPI: 'Sincronizar vía API (Recomendado)',
+
+    // Manual account form
+    accountType: 'Tipo de cuenta',
+    pensionFund: 'Fondo de pensiones',
+    pensionFundDesc: 'Caser, Indexa, etc.',
+    otherAccount: 'Otro',
+    otherAccountDesc: 'Efectivo en casa, etc.',
+    pensionProvider: 'Gestor del fondo',
+    selectProvider: 'Seleccionar gestor',
+    providerName: 'Nombre del gestor',
+    enterProviderName: 'Introduzca el nombre del gestor',
+    accountName: 'Nombre de la cuenta',
+    accountNamePlaceholder: 'Ej. Plan de Pensiones',
+    otherAccountNamePlaceholder: 'Ej. Efectivo casa',
+    institutionLabel: 'Descripción',
+    institutionPlaceholder: 'Ej. Efectivo en casa, Caja fuerte',
+    notes: 'Notas (opcional)',
+    notesPlaceholder: 'Notas adicionales...',
+    createAccount: 'Crear cuenta',
+    creating: 'Creando...',
+
+    // Validation
+    validating: 'Validando...',
+    validFormat: dt('Formato {broker} válido', { broker: {} }),
+    validCSV: 'Formato CSV válido',
+    formatWithWarnings: dt('Formato {broker} con advertencias', { broker: {} }),
+    csvWithWarnings: 'Formato CSV con advertencias',
+    invalidFile: 'Archivo inválido',
+    rows: 'filas',
+    errors: 'Errores:',
+    warnings: 'Advertencias:',
+
+    // Preview
+    hidePreview: 'Ocultar vista previa',
+    showPreview: dt('Vista previa ({shown:number} de {total:number} filas)', {
+      shown: {},
+      total: {},
+    }),
+    moreColumns: dt('+{count:number} más', { count: {} }),
+
+    // Result
+    success: '¡Importación exitosa!',
+    accountCreated: '¡Cuenta creada!',
+    completedWithErrors: 'Importación completada con errores',
+    broker: dt('Bróker: {name}', { name: {} }),
+    transactionsCount: 'Transacciones',
+    positionsCount: 'Posiciones',
+    securitiesCount: 'Valores',
+    warningsCount: dt('Advertencias ({count:number})', { count: {} }),
+    andMore: dt('...y {count:number} más', { count: {} }),
+  },
+
+  // Keep 'import' for backwards compatibility
   import: {
     title: 'Importar datos',
     description: 'Suba el archivo CSV de su bróker para importar transacciones.',
@@ -209,6 +360,23 @@ export const es: I18nMessages = {
   },
 
   // =========================================================================
+  // VALUATION MODAL
+  // =========================================================================
+  valuation: {
+    title: 'Actualizar valoración',
+    description: dt('Introduzca el valor actual de {name}', { name: {} }),
+    currentValue: dt('Valor actual: {value}', { value: {} }),
+    amount: dt('Valor actual ({currency})', { currency: {} }),
+    date: 'Fecha de valoración',
+    notes: 'Notas (opcional)',
+    notesPlaceholder: 'Ej. Actualización mensual, revisión de rendimiento...',
+    save: 'Guardar valoración',
+    saving: 'Guardando...',
+    valued: 'Valorado',
+    ytd: 'YTD',
+  },
+
+  // =========================================================================
   // ERRORS
   // =========================================================================
   errors: {
@@ -218,6 +386,25 @@ export const es: I18nMessages = {
     unauthorized: 'Debe iniciar sesión para ver esta página.',
     network: 'Error de red. Por favor, compruebe su conexión.',
     failedToLoad: dt('Error al cargar {page}', { page: {} }),
+  },
+
+  // =========================================================================
+  // TABLE PAGINATION
+  // =========================================================================
+  table: {
+    pagination: {
+      showing: dt('Mostrando {from:number}-{to:number} de {total:number}', {
+        from: {},
+        to: {},
+        total: {},
+      }),
+      rowsPerPage: 'Filas por página',
+      page: dt('Página {current:number} de {total:number}', { current: {}, total: {} }),
+      goToFirst: 'Ir a la primera página',
+      goToPrevious: 'Ir a la página anterior',
+      goToNext: 'Ir a la página siguiente',
+      goToLast: 'Ir a la última página',
+    },
   },
 
   // =========================================================================

@@ -2,34 +2,54 @@ import { createHash } from 'node:crypto';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/database';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
-import { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '@/shared/database';
 import { SecurityEntity } from '../../domain/entities';
-import { OpenFigiService } from '../../infrastructure/services';
+import { OpenFigiService, YahooFinanceService } from '../../infrastructure/services';
 import type { BaseParser, ParseResult } from '../parsers';
 
 /** Injection token for CSV parsers */
 export const CSV_PARSERS = Symbol('CSV_PARSERS');
 
+/** Map broker IDs to account types */
+const BROKER_ACCOUNT_TYPES: Record<string, 'broker' | 'bank' | 'pension' | 'other'> = {
+  degiro: 'broker',
+  ibkr: 'broker',
+  'trade-republic': 'broker',
+  sabadell: 'bank',
+  bbva: 'bank',
+  pibank: 'bank',
+  caser: 'pension',
+};
+
+function getAccountTypeForBroker(brokerId: string): 'broker' | 'bank' | 'pension' | 'other' {
+  return BROKER_ACCOUNT_TYPES[brokerId.toLowerCase()] || 'broker';
+}
+
 /**
  * Generate a deterministic fingerprint for a transaction.
  * Uses SHA-256 hash of key fields to create a unique identifier.
  * This allows efficient duplicate detection via indexed lookup.
+ *
+ * IMPORTANT: The fingerprint should NOT include 'type' because:
+ * 1. Type classification might change in parser updates (e.g., dividend → interest)
+ * 2. The same real-world transaction should have the same fingerprint regardless of type
+ * 3. Including type would cause duplicates when re-importing with updated parsers
  */
 function generateTransactionFingerprint(params: {
   accountId: string;
-  securityId: string;
+  securityId: string | null;
+  name: string;
   date: Date;
-  type: string;
   quantity: number;
   price: number;
   amount: number;
 }): string {
   // Use fixed-precision string representation to avoid float comparison issues
+  // For transactions without a security (e.g., interest), use name for uniqueness
   const data = [
     params.accountId,
-    params.securityId,
+    params.securityId ?? params.name, // Use name if no security (for interest/fees)
     params.date.toISOString().split('T')[0], // Date only (YYYY-MM-DD)
-    params.type,
     params.quantity.toFixed(8),
     params.price.toFixed(8),
     params.amount.toFixed(2),
@@ -61,6 +81,7 @@ export class ImportTransactionsUseCase {
     @InjectPinoLogger(ImportTransactionsUseCase.name) private readonly logger: PinoLogger,
     @Inject(CSV_PARSERS) private readonly parsers: BaseParser[],
     @Inject(OpenFigiService) private readonly openFigiService: OpenFigiService,
+    @Inject(YahooFinanceService) private readonly yahooFinanceService: YahooFinanceService,
   ) {}
 
   async execute(
@@ -106,6 +127,28 @@ export class ImportTransactionsUseCase {
     return this.importParsedData(userId, parseResult);
   }
 
+  /**
+   * Import pre-parsed data directly (e.g., from Trade Republic API sync).
+   * This bypasses CSV parsing and accepts structured transaction/position data.
+   */
+  async executeFromParsedData(userId: string, parseResult: ParseResult): Promise<ImportResult> {
+    this.logger.info(
+      {
+        userId,
+        broker: parseResult.broker,
+        transactionCount: parseResult.transactions.length,
+        positionCount: parseResult.positions.length,
+      },
+      'Import from parsed data started',
+    );
+
+    if (parseResult.transactions.length === 0 && parseResult.positions.length === 0) {
+      throw new BadRequestException('No transactions or positions to import');
+    }
+
+    return this.importParsedData(userId, parseResult);
+  }
+
   getSupportedBrokers(): string[] {
     return this.parsers.map((p) => p.broker);
   }
@@ -113,8 +156,9 @@ export class ImportTransactionsUseCase {
   private async importParsedData(userId: string, parseResult: ParseResult): Promise<ImportResult> {
     const errors: string[] = [...parseResult.errors];
 
-    // Prepare security type lookups before transaction (external API call should not be in transaction)
+    // Prepare security lookups before transaction (external API calls should not be in transaction)
     const openFigiTypes = await this.prepareSecurityTypes(parseResult);
+    const yahooSymbols = await this.prepareYahooSymbols(parseResult);
 
     // Use interactive transaction for atomicity and to prevent race conditions.
     // This ensures concurrent imports don't create duplicates or corrupt data.
@@ -125,20 +169,25 @@ export class ImportTransactionsUseCase {
         let positionsCreated = 0;
         let securitiesCreated = 0;
 
-        // 1. Get or create account (upsert is atomic)
-        const account = await tx.account.upsert({
-          where: {
-            userId_broker: { userId, broker: parseResult.broker },
-          },
-          create: {
-            userId,
-            broker: parseResult.broker,
-            accountId: `${parseResult.broker}-${Date.now()}`,
-            accountName: `${parseResult.broker.charAt(0).toUpperCase() + parseResult.broker.slice(1)} Account`,
-            currency: 'EUR',
-          },
-          update: {},
+        // 1. Get or create account
+        // First try to find existing account by institution
+        let account = await tx.account.findFirst({
+          where: { userId, institution: parseResult.broker },
         });
+
+        if (!account) {
+          // Create new account if doesn't exist
+          const accountType = getAccountTypeForBroker(parseResult.broker);
+          account = await tx.account.create({
+            data: {
+              userId,
+              type: accountType,
+              institution: parseResult.broker,
+              name: `${parseResult.broker.charAt(0).toUpperCase() + parseResult.broker.slice(1)} Account`,
+              baseCurrency: 'EUR',
+            },
+          });
+        }
 
         // 2. Batch fetch existing securities to minimize queries
         const securitiesToCreate = this.collectSecuritiesFromParseResult(parseResult);
@@ -188,6 +237,7 @@ export class ImportTransactionsUseCase {
 
             const securityType =
               (sec.isin && openFigiTypes.get(sec.isin)) || SecurityEntity.inferType(sec.name);
+            const yahooSymbol = sec.isin ? yahooSymbols.get(sec.isin) : undefined;
 
             // Use upsert for ISIN (handles concurrent creates), create for symbol-only
             const security = sec.isin
@@ -199,6 +249,7 @@ export class ImportTransactionsUseCase {
                     name: sec.name,
                     securityType,
                     currency: sec.currency,
+                    yahooSymbol,
                   },
                   update: {},
                 })
@@ -208,6 +259,7 @@ export class ImportTransactionsUseCase {
                     name: sec.name,
                     securityType,
                     currency: sec.currency,
+                    yahooSymbol,
                   },
                 });
 
@@ -235,34 +287,37 @@ export class ImportTransactionsUseCase {
         }
 
         // 3. Import transactions - rely on unique constraints for deduplication
-        for (const txData of parseResult.transactions) {
+        // Transactions without a security (e.g., interest on cash) are allowed
+        // Also create/dispose lots for FIFO cost basis tracking
+        // IMPORTANT: Sort by date to ensure buys are processed before their corresponding sells (FIFO)
+        const sortedTransactions = [...parseResult.transactions].sort(
+          (a, b) => a.date.getTime() - b.date.getTime(),
+        );
+
+        for (const txData of sortedTransactions) {
           try {
-            const securityId = securityMap.get(txData.isin || txData.symbol);
-            if (!securityId) {
-              errors.push(
-                `Could not find security for transaction: ${txData.symbol} (${txData.isin})`,
-              );
-              continue;
-            }
+            // Security is optional - bank transactions and interest/fees don't need one
+            const securityKey = txData.isin || txData.symbol;
+            const securityId = securityKey ? (securityMap.get(securityKey) ?? null) : null;
 
             const fingerprint = txData.externalId
               ? undefined
               : generateTransactionFingerprint({
                   accountId: account.id,
                   securityId,
+                  name: txData.name,
                   date: txData.date,
-                  type: txData.type,
                   quantity: txData.quantity,
                   price: txData.price,
                   amount: txData.amount,
                 });
 
             // Create directly - unique constraint prevents duplicates
-            await tx.transaction.create({
+            const transaction = await tx.transaction.create({
               data: {
                 userId,
                 accountId: account.id,
-                securityId,
+                securityId, // Can be null for interest/fees
                 date: txData.date,
                 type: txData.type,
                 quantity: txData.quantity,
@@ -272,8 +327,78 @@ export class ImportTransactionsUseCase {
                 currency: txData.currency,
                 externalId: txData.externalId,
                 fingerprint,
+                // FX rate data for multi-currency transactions (from CSV)
+                ...(txData.fxRate && {
+                  fxRate: txData.fxRate,
+                  localCurrency: txData.localCurrency,
+                  localAmount: txData.localAmount,
+                  autoFxCost: txData.autoFxCost,
+                }),
               },
             });
+
+            // Handle lot tracking for buy/sell transactions
+            if (securityId && txData.quantity > 0) {
+              if (txData.type === 'buy') {
+                // Create a new lot for this buy transaction
+                // Total cost includes fees AND AutoFX commission
+                const totalFees = txData.fees + (txData.autoFxCost || 0);
+                const totalCost = txData.quantity * txData.price + totalFees;
+                const costPerShare = totalCost / txData.quantity;
+
+                await tx.lot.create({
+                  data: {
+                    userId,
+                    accountId: account.id,
+                    securityId,
+                    buyTransactionId: transaction.id,
+                    purchaseDate: txData.date,
+                    originalQuantity: txData.quantity,
+                    remainingQuantity: txData.quantity,
+                    costPerShare,
+                    totalCost,
+                    currency: txData.currency,
+                    isClosed: false,
+                    // Store FX data for multi-currency lots
+                    ...(txData.fxRate &&
+                      txData.localCurrency && {
+                        fxRate: txData.fxRate,
+                        localCurrency: txData.localCurrency,
+                        localCostPerShare: txData.localPrice,
+                      }),
+                  },
+                });
+
+                this.logger.debug(
+                  {
+                    transactionId: transaction.id,
+                    securityId,
+                    quantity: txData.quantity,
+                    totalCost,
+                    ...(txData.fxRate && {
+                      fxRate: txData.fxRate,
+                      localCurrency: txData.localCurrency,
+                    }),
+                  },
+                  'Created lot for buy transaction',
+                );
+              } else if (txData.type === 'sell') {
+                // Dispose lots using FIFO for this sell transaction
+                // Total fees include transaction fees AND AutoFX commission
+                const totalSellFees = txData.fees + (txData.autoFxCost || 0);
+                await this.disposeLotsFIFOInTransaction(
+                  tx,
+                  userId,
+                  account.id,
+                  securityId,
+                  transaction.id,
+                  txData.date,
+                  txData.quantity,
+                  txData.price,
+                  totalSellFees,
+                );
+              }
+            }
 
             transactionsImported++;
           } catch (error) {
@@ -348,6 +473,38 @@ export class ImportTransactionsUseCase {
           }
         }
 
+        // 5. Import cash balances (upsert per currency)
+        if (parseResult.cashBalances && parseResult.cashBalances.length > 0) {
+          for (const cash of parseResult.cashBalances) {
+            try {
+              await tx.accountBalance.upsert({
+                where: {
+                  accountId_currency: {
+                    accountId: account.id,
+                    currency: cash.currency,
+                  },
+                },
+                create: {
+                  accountId: account.id,
+                  currency: cash.currency,
+                  balance: cash.amount,
+                },
+                update: {
+                  balance: cash.amount,
+                },
+              });
+              this.logger.debug(
+                { currency: cash.currency, amount: cash.amount },
+                'Cash balance updated',
+              );
+            } catch (error) {
+              errors.push(
+                `Failed to update cash balance: ${error instanceof Error ? error.message : 'Unknown'}`,
+              );
+            }
+          }
+        }
+
         return {
           success: errors.length < parseResult.transactions.length,
           broker: parseResult.broker,
@@ -398,6 +555,59 @@ export class ImportTransactionsUseCase {
   }
 
   /**
+   * Prepare Yahoo Finance symbol lookups.
+   * This is done outside the transaction to avoid holding locks during external API calls.
+   * Returns a map of ISIN -> Yahoo ticker symbol.
+   */
+  private async prepareYahooSymbols(parseResult: ParseResult): Promise<Map<string, string>> {
+    const result = new Map<string, string>();
+
+    // Collect unique securities with ISINs
+    const securities = this.collectSecuritiesFromParseResult(parseResult);
+    const securitiesWithIsin = [...securities.entries()].filter(([, sec]) => !!sec.isin);
+
+    if (securitiesWithIsin.length === 0) return result;
+
+    this.logger.debug(
+      { count: securitiesWithIsin.length },
+      'Resolving Yahoo symbols for new securities',
+    );
+
+    // Resolve each security's Yahoo symbol
+    for (const [, sec] of securitiesWithIsin) {
+      if (!sec.isin) continue;
+
+      try {
+        const yahooSymbol = await this.yahooFinanceService.resolveYahooSymbol(
+          sec.isin,
+          sec.name,
+          sec.symbol,
+        );
+
+        if (yahooSymbol) {
+          result.set(sec.isin, yahooSymbol);
+          this.logger.debug({ isin: sec.isin, yahooSymbol }, 'Yahoo symbol resolved');
+        }
+      } catch (error) {
+        this.logger.warn(
+          { isin: sec.isin, error: error instanceof Error ? error.message : 'Unknown' },
+          'Failed to resolve Yahoo symbol',
+        );
+      }
+
+      // Small delay to avoid rate limiting
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    this.logger.info(
+      { total: securitiesWithIsin.length, resolved: result.size },
+      'Yahoo symbol resolution completed',
+    );
+
+    return result;
+  }
+
+  /**
    * Collect unique securities from parse result.
    */
   private collectSecuritiesFromParseResult(
@@ -409,10 +619,12 @@ export class ImportTransactionsUseCase {
     >();
 
     for (const tx of parseResult.transactions) {
-      const key = tx.isin || tx.symbol;
+      // Skip transactions without a symbol (pure cash transactions)
+      if (!tx.symbol && !tx.isin) continue;
+      const key = tx.isin || tx.symbol!;
       if (!securitiesToCreate.has(key)) {
         securitiesToCreate.set(key, {
-          symbol: tx.symbol,
+          symbol: tx.symbol!,
           isin: tx.isin,
           name: tx.name,
           currency: tx.currency,
@@ -433,5 +645,122 @@ export class ImportTransactionsUseCase {
     }
 
     return securitiesToCreate;
+  }
+
+  /**
+   * Dispose lots using FIFO within an existing Prisma transaction.
+   * This is used during import to handle sell transactions.
+   *
+   * @param tx - Prisma transaction client
+   * @param userId - User ID
+   * @param accountId - Account ID
+   * @param securityId - Security ID being sold
+   * @param sellTransactionId - The sell transaction ID
+   * @param sellDate - Date of the sale
+   * @param sellQuantity - Quantity being sold
+   * @param sellPrice - Price per share
+   * @param fees - Transaction fees
+   */
+  private async disposeLotsFIFOInTransaction(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    accountId: string,
+    securityId: string,
+    sellTransactionId: string,
+    sellDate: Date,
+    sellQuantity: number,
+    sellPrice: number,
+    fees: number,
+  ): Promise<void> {
+    // Find open lots ordered by purchase date (FIFO)
+    const openLots = await tx.lot.findMany({
+      where: {
+        userId,
+        accountId,
+        securityId,
+        isClosed: false,
+        remainingQuantity: { gt: 0 },
+      },
+      orderBy: { purchaseDate: 'asc' },
+    });
+
+    if (openLots.length === 0) {
+      this.logger.warn(
+        { userId, accountId, securityId, sellQuantity },
+        'No open lots found for sell transaction - skipping lot disposal',
+      );
+      return;
+    }
+
+    let remainingToSell = sellQuantity;
+    const totalProceeds = sellQuantity * sellPrice - fees;
+    let totalDisposedQuantity = 0;
+
+    for (const lot of openLots) {
+      if (remainingToSell <= 0) break;
+
+      const lotRemaining = Number(lot.remainingQuantity);
+      const disposeQuantity = Math.min(lotRemaining, remainingToSell);
+      const costPerShare = Number(lot.costPerShare);
+
+      // Calculate cost basis and proceeds for this disposal
+      const costBasis = disposeQuantity * costPerShare;
+      // Proportional proceeds based on quantity disposed
+      const proceedsForDisposal = (disposeQuantity / sellQuantity) * totalProceeds;
+      const realizedPnl = proceedsForDisposal - costBasis;
+
+      // Create lot disposal record
+      await tx.lotDisposal.create({
+        data: {
+          lotId: lot.id,
+          sellTransactionId,
+          quantity: disposeQuantity,
+          costBasis,
+          proceeds: proceedsForDisposal,
+          realizedPnl,
+          disposalDate: sellDate,
+        },
+      });
+
+      // Update lot remaining quantity
+      const newRemaining = lotRemaining - disposeQuantity;
+      await tx.lot.update({
+        where: { id: lot.id },
+        data: {
+          remainingQuantity: newRemaining,
+          isClosed: newRemaining <= 0,
+        },
+      });
+
+      remainingToSell -= disposeQuantity;
+      totalDisposedQuantity += disposeQuantity;
+
+      this.logger.debug(
+        {
+          lotId: lot.id,
+          disposeQuantity,
+          costBasis,
+          proceeds: proceedsForDisposal,
+          realizedPnl,
+          newRemaining,
+        },
+        'Disposed lot (FIFO)',
+      );
+    }
+
+    if (remainingToSell > 0.0001) {
+      // Small tolerance for floating point
+      this.logger.warn(
+        {
+          userId,
+          accountId,
+          securityId,
+          sellQuantity,
+          disposed: totalDisposedQuantity,
+          remaining: remainingToSell,
+        },
+        'Insufficient lots to cover sell quantity - possible short sale or missing buy transactions',
+      );
+    }
   }
 }

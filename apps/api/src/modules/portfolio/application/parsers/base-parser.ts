@@ -2,10 +2,27 @@ import BigNumber from 'bignumber.js';
 import { parse } from 'csv-parse/sync';
 import type { PinoLogger } from 'nestjs-pino';
 
+/** Transaction types matching Prisma TransactionType enum */
+export type ParsedTransactionType =
+  | 'buy'
+  | 'sell'
+  | 'dividend'
+  | 'interest'
+  | 'fee'
+  | 'split'
+  | 'deposit'
+  | 'withdrawal'
+  | 'transfer_in'
+  | 'transfer_out'
+  | 'contribution'
+  | 'valuation'
+  | 'fx_conversion'
+  | 'other';
+
 export interface ParsedTransaction {
   date: Date;
-  type: 'buy' | 'sell' | 'dividend' | 'fee' | 'split' | 'other';
-  symbol: string;
+  type: ParsedTransactionType;
+  symbol?: string; // Optional: not needed for pure cash transactions (bank deposits/withdrawals)
   isin?: string;
   name: string;
   quantity: number;
@@ -14,6 +31,12 @@ export interface ParsedTransaction {
   fees: number;
   currency: string;
   externalId?: string;
+  // FX rate data for multi-currency transactions (from CSV at import time)
+  fxRate?: number; // FX rate at transaction time (e.g., 1.1723 USD/EUR)
+  localCurrency?: string; // Original currency before conversion (e.g., "USD")
+  localAmount?: number; // Amount in original currency
+  localPrice?: number; // Price per share in original currency
+  autoFxCost?: number; // AutoFX commission charged by broker
 }
 
 export interface ParsedPosition {
@@ -26,9 +49,15 @@ export interface ParsedPosition {
   currency: string;
 }
 
+export interface ParsedCashBalance {
+  currency: string;
+  amount: number;
+}
+
 export interface ParseResult {
   transactions: ParsedTransaction[];
   positions: ParsedPosition[];
+  cashBalances?: ParsedCashBalance[];
   errors: string[];
   broker: string;
 }
@@ -244,8 +273,10 @@ export abstract class BaseParser {
 
     for (const tx of sorted) {
       if (tx.type !== 'buy' && tx.type !== 'sell') continue;
+      // Skip transactions without a symbol (e.g., pure cash movements)
+      if (!tx.symbol && !tx.isin) continue;
 
-      const key = tx.isin || tx.symbol;
+      const key = tx.isin || tx.symbol!;
       const existing = positionMap.get(key);
 
       if (tx.type === 'buy') {
@@ -258,7 +289,7 @@ export abstract class BaseParser {
           existing.totalCost = existing.totalCost.plus(txAmount).plus(txFees);
         } else {
           positionMap.set(key, {
-            symbol: tx.symbol,
+            symbol: tx.symbol!, // Safe: we checked tx.symbol || tx.isin above
             isin: tx.isin,
             name: tx.name,
             quantity: txQuantity,

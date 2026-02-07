@@ -50,7 +50,7 @@ async function main() {
     include: { security: true },
   });
 
-  console.log('Found ' + positions.length + ' positions to update');
+  console.log(`Found ${positions.length} positions to update`);
 
   // Separate ETFs from stocks
   const etfPositions = positions.filter(
@@ -67,17 +67,15 @@ async function main() {
     const currency = JUSTETF_CURRENCY[isin] || 'EUR';
     try {
       const response = await fetch(
-        'https://www.justetf.com/api/etfs/' + isin + '/quote?locale=en&currency=' + currency,
+        `https://www.justetf.com/api/etfs/${isin}/quote?locale=en&currency=${currency}`,
       );
       const data = await response.json();
       if (data.latestQuote?.raw) {
         etfQuotes.set(pos.securityId, { price: data.latestQuote.raw, currency });
-        console.log(
-          'justETF: ' + pos.security.symbol + ' = ' + data.latestQuote.raw + ' ' + currency,
-        );
+        console.log(`justETF: ${pos.security.symbol} = ${data.latestQuote.raw} ${currency}`);
       }
-    } catch (e) {
-      console.log('Failed to fetch justETF for ' + isin);
+    } catch (_e) {
+      console.log(`Failed to fetch justETF for ${isin}`);
     }
     await new Promise((r) => setTimeout(r, 200)); // Rate limit
   }
@@ -93,7 +91,7 @@ async function main() {
     } else if (isin?.startsWith('US')) {
       symbol = pos.security.symbol;
     } else if (isin?.startsWith('CA')) {
-      symbol = pos.security.symbol + '.TO';
+      symbol = `${pos.security.symbol}.TO`;
     }
     yahooSymbols.push(symbol);
     symbolToSecurityId.set(symbol, pos.securityId);
@@ -101,7 +99,7 @@ async function main() {
 
   // Fetch Yahoo quotes
   const yahooQuotes = await yf.quote(yahooSymbols);
-  const yahooMap = new Map<string, any>();
+  const yahooMap = new Map<string, unknown>();
   for (const q of yahooQuotes) {
     yahooMap.set(q.symbol, q);
   }
@@ -164,12 +162,12 @@ async function main() {
     if (isin && SYMBOL_MAPPINGS[isin]) {
       yahooSymbol = SYMBOL_MAPPINGS[isin];
     } else if (isin?.startsWith('CA')) {
-      yahooSymbol = pos.security.symbol + '.TO';
+      yahooSymbol = `${pos.security.symbol}.TO`;
     }
 
     const quote = yahooMap.get(yahooSymbol);
     if (!quote?.regularMarketPrice) {
-      console.log('No quote for ' + pos.security.symbol + ' (' + yahooSymbol + ')');
+      console.log(`No quote for ${pos.security.symbol} (${yahooSymbol})`);
       continue;
     }
 
@@ -212,7 +210,7 @@ async function main() {
     totalEur += Number(pos.marketValue) * fxRate;
   }
 
-  console.log('\n=== TOTAL EUR VALUE: EUR ' + totalEur.toFixed(2) + ' ===');
+  console.log(`\n=== TOTAL EUR VALUE: EUR ${totalEur.toFixed(2)} ===`);
   await prisma.$disconnect();
 }
 

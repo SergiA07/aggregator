@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
 import { DatabaseService } from '../../shared/database';
-import { DegiroParser, TradeRepublicParser } from './application/parsers';
+import {
+  DegiroParser,
+  IbkrParser,
+  SabadellParser,
+  TradeRepublicParser,
+} from './application/parsers';
 import {
   AccountsService,
+  CostBasisService,
+  LotService,
   PositionsService,
+  PriceUpdateService,
   SecuritiesService,
   TransactionsService,
 } from './application/services';
@@ -18,12 +26,19 @@ import {
   TRANSACTION_REPOSITORY,
   TransactionRepository,
 } from './infrastructure/repositories';
-import { OpenFigiService } from './infrastructure/services';
+import {
+  FinnhubService,
+  JustEtfService,
+  OpenFigiService,
+  YahooFinanceService,
+} from './infrastructure/services';
 import {
   AccountsController,
   ImportController,
   PositionsController,
+  PricesController,
   SecuritiesController,
+  TradeRepublicController,
   TransactionsController,
 } from './presentation/controllers';
 
@@ -31,9 +46,11 @@ import {
   controllers: [
     AccountsController,
     PositionsController,
+    PricesController,
     TransactionsController,
     SecuritiesController,
     ImportController,
+    TradeRepublicController,
   ],
   providers: [
     // Repository bindings using factory providers for proper DI
@@ -60,21 +77,31 @@ import {
 
     // Services
     AccountsService,
+    CostBasisService,
+    LotService,
     PositionsService,
     TransactionsService,
     SecuritiesService,
     OpenFigiService,
+    FinnhubService,
+    YahooFinanceService,
+    JustEtfService,
+    PriceUpdateService,
 
     // Parsers (injectable with logging)
     DegiroParser,
+    IbkrParser,
+    SabadellParser,
     TradeRepublicParser,
     {
       provide: CSV_PARSERS,
-      useFactory: (degiro: DegiroParser, tradeRepublic: TradeRepublicParser) => [
-        degiro,
-        tradeRepublic,
-      ],
-      inject: [DegiroParser, TradeRepublicParser],
+      useFactory: (
+        degiro: DegiroParser,
+        ibkr: IbkrParser,
+        sabadell: SabadellParser,
+        tradeRepublic: TradeRepublicParser,
+      ) => [degiro, ibkr, sabadell, tradeRepublic],
+      inject: [DegiroParser, IbkrParser, SabadellParser, TradeRepublicParser],
     },
 
     // Use cases
@@ -82,9 +109,13 @@ import {
   ],
   exports: [
     AccountsService,
+    CostBasisService,
+    LotService,
     PositionsService,
     TransactionsService,
     SecuritiesService,
+    PriceUpdateService,
+    YahooFinanceService,
     ImportTransactionsUseCase,
   ],
 })

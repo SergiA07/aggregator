@@ -74,12 +74,18 @@ Required in `.env` at monorepo root:
 - `SUPABASE_URL` - Supabase project URL
 - `SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_KEY` - Supabase service role key
+- `PYTHON_SERVICE_URL` - Python service URL (default: `http://localhost:8000`)
+- `PYTHON_SERVICE_API_KEY` - API key for Python service authentication
+
+Optional:
+- `FINNHUB_API_KEY` - Finnhub API key for US stock prices (free tier: 60 req/min). Get one at https://finnhub.io/
 
 ## API Endpoints
 
 - Health: `GET /health`
 - Swagger docs: `GET /api/docs`
 - All API routes prefixed with `/api/v1/`
+- Trade Republic sync: `POST /api/v1/trade-republic/*` (proxies to Python service)
 
 ## Key Conventions
 

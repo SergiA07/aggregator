@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@repo/database';
-import { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '@/shared/database';
+import { decimalToNumberOrZero } from '@/shared/utils';
 import type {
   CreateTransactionData,
   ITransactionRepository,
@@ -46,8 +47,8 @@ export class TransactionRepository implements ITransactionRepository {
     return this.db.transaction.findMany({
       where,
       include: {
-        account: true,
-        security: true,
+        account: { select: { id: true, institution: true, name: true } },
+        security: { select: { id: true, symbol: true, name: true } },
       },
       orderBy: { date: 'desc' },
     });
@@ -57,8 +58,8 @@ export class TransactionRepository implements ITransactionRepository {
     return this.db.transaction.findFirst({
       where: { id, userId },
       include: {
-        account: true,
-        security: true,
+        account: { select: { id: true, institution: true, name: true } },
+        security: { select: { id: true, symbol: true, name: true } },
       },
     });
   }
@@ -76,12 +77,15 @@ export class TransactionRepository implements ITransactionRepository {
         amount: data.amount,
         fees: data.fees ?? 0,
         currency: data.currency ?? 'EUR',
+        description: data.description,
+        category: data.category,
         notes: data.notes,
         externalId: data.externalId,
+        fingerprint: data.fingerprint,
       },
       include: {
-        account: true,
-        security: true,
+        account: { select: { id: true, institution: true, name: true } },
+        security: { select: { id: true, symbol: true, name: true } },
       },
     });
   }
@@ -94,10 +98,21 @@ export class TransactionRepository implements ITransactionRepository {
     try {
       return await this.db.transaction.update({
         where: { id, userId },
-        data,
+        data: {
+          date: data.date,
+          type: data.type,
+          quantity: data.quantity,
+          price: data.price,
+          amount: data.amount,
+          fees: data.fees,
+          currency: data.currency,
+          description: data.description,
+          category: data.category,
+          notes: data.notes,
+        },
         include: {
-          account: true,
-          security: true,
+          account: { select: { id: true, institution: true, name: true } },
+          security: { select: { id: true, symbol: true, name: true } },
         },
       });
     } catch (error) {
@@ -148,7 +163,7 @@ export class TransactionRepository implements ITransactionRepository {
     // Build stats from aggregated results
     const stats: TransactionStats = {
       totalTransactions: totals._count,
-      totalFees: totals._sum.fees?.toNumber() ?? 0,
+      totalFees: decimalToNumberOrZero(totals._sum.fees),
       totalBuys: 0,
       totalSells: 0,
       totalDividends: 0,
@@ -159,7 +174,7 @@ export class TransactionRepository implements ITransactionRepository {
 
     for (const group of byType) {
       const count = group._count.id;
-      const amount = group._sum.amount?.toNumber() ?? 0;
+      const amount = decimalToNumberOrZero(group._sum.amount);
 
       switch (group.type) {
         case 'buy':

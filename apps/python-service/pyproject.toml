@@ -1,7 +1,7 @@
 [project]
 name = "python-service"
 version = "0.1.0"
-description = "Add your description here"
+description = "Portfolio aggregator Python services - scraping, transcripts, Trade Republic sync"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -11,4 +11,5 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "uvicorn>=0.38.0",
     "youtube-transcript-api>=1.2.3",
+    "pytr>=0.2.5",
 ]

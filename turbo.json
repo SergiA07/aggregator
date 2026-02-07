@@ -13,7 +13,8 @@
     "VITE_SUPABASE_URL",
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "PORT",
-    "FRONTEND_URL"
+    "FRONTEND_URL",
+    "FINNHUB_API_KEY"
   ],
   "tasks": {
     "build": {

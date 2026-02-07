@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '@/shared/database';
+import { decimalToNumberOrZero } from '@/shared/utils';
 import type {
   IPositionRepository,
   PositionSummaryStats,
@@ -14,8 +15,8 @@ export class PositionRepository implements IPositionRepository {
     return this.db.position.findMany({
       where: { userId },
       include: {
-        account: true,
-        security: true,
+        account: { select: { id: true, institution: true, name: true } },
+        security: { select: { id: true, symbol: true, name: true } },
       },
       orderBy: { marketValue: 'desc' },
     });
@@ -25,7 +26,7 @@ export class PositionRepository implements IPositionRepository {
     return this.db.position.findMany({
       where: { userId, accountId },
       include: {
-        security: true,
+        security: { select: { id: true, symbol: true, name: true } },
       },
       orderBy: { marketValue: 'desc' },
     });
@@ -43,9 +44,9 @@ export class PositionRepository implements IPositionRepository {
     });
 
     return {
-      totalValue: result._sum.marketValue?.toNumber() ?? 0,
-      totalCost: result._sum.totalCost?.toNumber() ?? 0,
-      totalPnl: result._sum.unrealizedPnl?.toNumber() ?? 0,
+      totalValue: decimalToNumberOrZero(result._sum.marketValue),
+      totalCost: decimalToNumberOrZero(result._sum.totalCost),
+      totalPnl: decimalToNumberOrZero(result._sum.unrealizedPnl),
       positionCount: result._count,
     };
   }

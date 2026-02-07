@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './modules/auth';
+import { OverviewModule } from './modules/overview';
 import { PortfolioModule } from './modules/portfolio';
 import { ConfigModule, type Env } from './shared/config';
 import { DatabaseModule } from './shared/database';
@@ -16,6 +17,7 @@ import { HealthModule } from './shared/health';
     ConfigModule,
     DatabaseModule,
     AuthModule,
+    OverviewModule,
     PortfolioModule,
     HealthModule,
     // Rate limiting: 100 requests per 60 seconds per IP

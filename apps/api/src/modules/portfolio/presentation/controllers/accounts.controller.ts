@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
+  type AddValuationInput,
+  addValuationSchema,
   type CreateAccountInput,
   createAccountSchema,
   type UpdateAccountInput,
@@ -74,5 +76,43 @@ export class AccountsController {
     const deleted = await this.accountsService.delete(user.id, id);
     assertFound(deleted, 'Account not found');
     return { message: 'Account deleted' };
+  }
+
+  @Post(':id/valuations')
+  @ApiOperation({ summary: 'Add a valuation to a pension/manual account' })
+  @ApiResponse({ status: 201, description: 'Valuation added successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body or account type' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async addValuation(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(addValuationSchema)) dto: AddValuationInput,
+  ) {
+    const result = await this.accountsService.addValuation(user.id, id, dto);
+    assertFound(result, 'Account not found');
+    return result;
+  }
+
+  @Get(':id/valuations')
+  @ApiOperation({ summary: 'Get valuation history for an account' })
+  @ApiResponse({ status: 200, description: 'Valuation history returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async getValuations(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    const account = await this.accountsService.findOne(user.id, id);
+    assertFound(account, 'Account not found');
+    return this.accountsService.getValuations(user.id, id);
+  }
+
+  @Get(':id/performance')
+  @ApiOperation({ summary: 'Get account with YTD performance metrics' })
+  @ApiResponse({ status: 200, description: 'Account with performance returned successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing auth token' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async getAccountWithPerformance(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    const result = await this.accountsService.getWithPerformance(user.id, id);
+    assertFound(result, 'Account not found');
+    return result;
   }
 }

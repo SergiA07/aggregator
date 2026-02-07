@@ -39,6 +39,7 @@ export const en = {
     goToDashboard: 'Go to Dashboard',
     showDetails: 'Show error details',
     pleaseWait: 'Please wait...',
+    more: 'More options',
   },
 
   // =========================================================================
@@ -46,6 +47,8 @@ export const en = {
   // =========================================================================
   nav: {
     overview: 'Overview',
+    dashboard: 'Dashboard',
+    investments: 'Investments',
     positions: 'Positions',
     transactions: 'Transactions',
     collapse: 'Collapse',
@@ -97,6 +100,75 @@ export const en = {
       mainAccount: 'Main Account',
     },
     recentTransactions: 'Recent Transactions',
+  },
+
+  // =========================================================================
+  // OVERVIEW PAGE
+  // =========================================================================
+  overview: {
+    loadError: 'Failed to load overview. Please try refreshing the page.',
+    netWorth: {
+      title: 'Net Worth',
+      cash: 'Cash',
+      invested: 'Invested',
+      pnl: 'Unrealized P&L',
+    },
+    stats: {
+      cash: 'Cash',
+      invested: 'Invested',
+      unrealizedPnl: 'Unrealized P&L',
+      ytdChange: 'YTD Change',
+      accounts: 'Accounts',
+    },
+    allocation: {
+      byType: 'Allocation by Type',
+      byInstitution: 'Allocation by Institution',
+    },
+    accountType: {
+      broker: 'Broker',
+      bank: 'Bank',
+      pension: 'Pension',
+      crypto: 'Crypto',
+      real_estate: 'Real Estate',
+      other: 'Other',
+    },
+    accounts: {
+      title: 'All Accounts',
+      empty: 'No accounts yet. Import your first account to get started.',
+      loadError: 'Failed to load accounts.',
+      inactive: 'Inactive',
+      lastUpdate: 'Updated',
+      updateBalance: 'Update balance',
+      importCSV: 'Import CSV',
+    },
+    activity: {
+      title: 'Recent Activity',
+      empty: 'No recent activity.',
+      loadError: 'Failed to load recent activity.',
+    },
+  },
+
+  // =========================================================================
+  // INVESTMENTS
+  // =========================================================================
+  investments: {
+    title: 'Investments',
+    tabs: {
+      positions: 'Positions',
+      accounts: 'Accounts',
+    },
+    accounts: {
+      loadError: 'Failed to load accounts.',
+      empty: 'No broker accounts yet. Import your first account to get started.',
+      totalInvested: 'Total Invested',
+      unrealizedPnl: 'Unrealized P&L',
+      ytdChange: 'YTD Change',
+      ytdPercent: 'YTD %',
+      lastUpdate: 'Updated',
+      totalValue: 'Total',
+      change: 'Change',
+      allTime: 'All Time',
+    },
   },
 
   // =========================================================================
@@ -166,8 +238,87 @@ export const en = {
   },
 
   // =========================================================================
-  // IMPORT MODAL
+  // ADD DATA MODAL (formerly Import Modal)
   // =========================================================================
+  addData: {
+    title: 'Add Data',
+    description: 'Import from your broker or add a manual account.',
+
+    // Data source selection
+    dataSource: 'Data Source',
+    importFromBroker: 'Import from Broker/Bank',
+    importFromBrokerDesc: 'Upload CSV or sync via API',
+    manualAccount: 'Manual Account',
+    manualAccountDesc: 'Pension fund, cash, etc.',
+
+    // Import type
+    importType: 'Import Type',
+    investmentAccount: 'Investment Account',
+    bankAccount: 'Bank Account',
+    selectBroker: 'Select Broker/Bank',
+    howToExport: dt('How to export from {broker}:', { broker: {} }),
+    importMethod: 'Import Method',
+    uploadFile: 'Upload File',
+    pasteCSV: 'Paste CSV',
+    clickToUpload: 'Click to upload CSV file',
+    dragAndDrop: 'or drag and drop',
+    pasteHere: 'Paste your CSV content here...',
+    importing: 'Importing...',
+    importData: 'Import Data',
+    syncViaAPI: 'Sync via API (Recommended)',
+
+    // Manual account form
+    accountType: 'Account Type',
+    pensionFund: 'Pension Fund',
+    pensionFundDesc: 'Caser, Indexa, etc.',
+    otherAccount: 'Other',
+    otherAccountDesc: 'Cash at home, etc.',
+    pensionProvider: 'Pension Provider',
+    selectProvider: 'Select provider',
+    providerName: 'Provider Name',
+    enterProviderName: 'Enter provider name',
+    accountName: 'Account Name',
+    accountNamePlaceholder: 'e.g., Plan de Pensiones',
+    otherAccountNamePlaceholder: 'e.g., Efectivo casa',
+    institutionLabel: 'Description',
+    institutionPlaceholder: 'e.g., Cash at home, Safe deposit',
+    notes: 'Notes (optional)',
+    notesPlaceholder: 'Any additional notes...',
+    createAccount: 'Create Account',
+    creating: 'Creating...',
+
+    // Validation
+    validating: 'Validating...',
+    validFormat: dt('Valid {broker} format', { broker: {} }),
+    validCSV: 'Valid CSV format',
+    formatWithWarnings: dt('{broker} format with warnings', { broker: {} }),
+    csvWithWarnings: 'CSV format with warnings',
+    invalidFile: 'Invalid file',
+    rows: 'rows',
+    errors: 'Errors:',
+    warnings: 'Warnings:',
+
+    // Preview
+    hidePreview: 'Hide preview',
+    showPreview: dt('Preview ({shown:number} of {total:number} rows)', {
+      shown: {},
+      total: {},
+    }),
+    moreColumns: dt('+{count:number} more', { count: {} }),
+
+    // Result
+    success: 'Import Successful!',
+    accountCreated: 'Account Created!',
+    completedWithErrors: 'Import Completed with Errors',
+    broker: dt('Broker: {name}', { name: {} }),
+    transactionsCount: 'Transactions',
+    positionsCount: 'Positions',
+    securitiesCount: 'Securities',
+    warningsCount: dt('Warnings ({count:number})', { count: {} }),
+    andMore: dt('...and {count:number} more', { count: {} }),
+  },
+
+  // Keep 'import' for backwards compatibility (can be removed later)
   import: {
     title: 'Import Data',
     description: 'Upload your broker CSV file to import transactions.',
@@ -216,6 +367,23 @@ export const en = {
   },
 
   // =========================================================================
+  // VALUATION MODAL
+  // =========================================================================
+  valuation: {
+    title: 'Update Valuation',
+    description: dt('Enter the current value for {name}', { name: {} }),
+    currentValue: dt('Current value: {value}', { value: {} }),
+    amount: dt('Current Value ({currency})', { currency: {} }),
+    date: 'Valuation Date',
+    notes: 'Notes (optional)',
+    notesPlaceholder: 'e.g., Monthly update, performance review...',
+    save: 'Save Valuation',
+    saving: 'Saving...',
+    valued: 'Valued',
+    ytd: 'YTD',
+  },
+
+  // =========================================================================
   // ERRORS
   // =========================================================================
   errors: {
@@ -225,6 +393,25 @@ export const en = {
     unauthorized: 'You must be signed in to view this page.',
     network: 'Network error. Please check your connection.',
     failedToLoad: dt('Failed to load {page}', { page: {} }),
+  },
+
+  // =========================================================================
+  // TABLE PAGINATION
+  // =========================================================================
+  table: {
+    pagination: {
+      showing: dt('Showing {from:number}-{to:number} of {total:number}', {
+        from: {},
+        to: {},
+        total: {},
+      }),
+      rowsPerPage: 'Rows per page',
+      page: dt('Page {current:number} of {total:number}', { current: {}, total: {} }),
+      goToFirst: 'Go to first page',
+      goToPrevious: 'Go to previous page',
+      goToNext: 'Go to next page',
+      goToLast: 'Go to last page',
+    },
   },
 
   // =========================================================================

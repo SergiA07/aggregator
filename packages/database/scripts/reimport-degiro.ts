@@ -8,7 +8,6 @@
  *   DATABASE_URL="postgresql://..." bun run packages/database/scripts/reimport-degiro.ts
  */
 
-import { readFileSync } from 'node:fs';
 import { prisma } from '../src';
 
 const CSV_PATH = '/Users/sergiayora/Code/projects/my-aggregator-monorepo/.csv/Transactions.csv';

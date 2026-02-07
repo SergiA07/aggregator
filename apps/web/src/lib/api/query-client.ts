@@ -36,6 +36,8 @@ export const queryClient = new QueryClient({
       retry: 1,
       // Refetch when window regains focus
       refetchOnWindowFocus: true,
+      // Refetch stale data when component mounts (e.g., navigation)
+      refetchOnMount: 'always',
     },
   },
 });

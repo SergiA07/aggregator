@@ -1,8 +1,20 @@
 import type { Position } from '@repo/shared-types';
 import { useQuery } from '@tanstack/react-query';
-import { PieChart } from 'lucide-react';
+import type { SortingState } from '@tanstack/react-table';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ArrowDown, ArrowUp, ArrowUpDown, PieChart } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { DataTablePagination } from '@/components/composed/data-table-pagination';
 import { EmptyState } from '@/components/composed/empty-state';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -14,14 +26,168 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { positionListOptions } from '@/lib/api/queries/positions';
+import { positionListOptions, positionSummaryOptions } from '@/lib/api/queries/positions';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatters';
 
+const columnHelper = createColumnHelper<Position>();
+
 export function PositionsTable() {
   const { t } = useTranslation();
   const { data: positions, isLoading, error } = useQuery(positionListOptions());
+  // Use backend summary for totals - no frontend calculations
+  const { data: summary } = useQuery(positionSummaryOptions());
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor((row) => row.security?.symbol, {
+        id: 'symbol',
+        header: ({ column }) => (
+          <SortableHeader column={column}>{t('positions.table.symbol')}</SortableHeader>
+        ),
+        cell: (info) => (
+          <div>
+            <span className="font-medium">{info.getValue()}</span>
+            {info.row.original.security?.isin && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                {info.row.original.security.isin}
+              </span>
+            )}
+          </div>
+        ),
+      }),
+      columnHelper.accessor((row) => row.security?.name, {
+        id: 'name',
+        header: ({ column }) => (
+          <SortableHeader column={column}>{t('positions.table.name')}</SortableHeader>
+        ),
+        cell: (info) => (
+          <span className="max-w-xs truncate text-muted-foreground">{info.getValue()}</span>
+        ),
+      }),
+      columnHelper.accessor('quantity', {
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.quantity')}
+          </SortableHeader>
+        ),
+        cell: (info) => <div className="text-right">{formatNumber(info.getValue(), 4)}</div>,
+      }),
+      columnHelper.accessor('avgCost', {
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.avgCost')}
+          </SortableHeader>
+        ),
+        cell: (info) => (
+          <div className="text-right text-muted-foreground">
+            {formatCurrency(info.getValue(), info.row.original.currency)}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('marketPrice', {
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.price')}
+          </SortableHeader>
+        ),
+        cell: (info) => {
+          const source = info.row.original.source;
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <span className="text-muted-foreground">
+                {formatCurrency(info.getValue(), info.row.original.currency)}
+              </span>
+              {source && <PriceSourceIndicator source={source} />}
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('marketValue', {
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.value')}
+          </SortableHeader>
+        ),
+        cell: (info) => (
+          <div className="text-right font-medium">
+            {formatCurrency(info.getValue(), info.row.original.currency)}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('unrealizedPnl', {
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.pnl')}
+          </SortableHeader>
+        ),
+        cell: (info) => {
+          const isPositive = (info.getValue() || 0) >= 0;
+          return (
+            <div
+              className={cn(
+                'text-right font-medium',
+                isPositive ? 'text-green-500' : 'text-red-500',
+              )}
+            >
+              {formatCurrency(info.getValue(), info.row.original.currency)}
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('unrealizedPnlPercent', {
+        id: 'pnlPercent',
+        header: ({ column }) => (
+          <SortableHeader column={column} className="justify-end">
+            {t('positions.table.pnlPercent')}
+          </SortableHeader>
+        ),
+        cell: (info) => {
+          const value = info.getValue() ?? 0;
+          const isPositive = value >= 0;
+          return (
+            <div
+              className={cn(
+                'text-right font-medium',
+                isPositive ? 'text-green-500' : 'text-red-500',
+              )}
+            >
+              {formatPercent(value)}
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor((row) => row.account?.institution, {
+        id: 'account',
+        header: ({ column }) => (
+          <SortableHeader column={column}>{t('positions.table.account')}</SortableHeader>
+        ),
+        cell: (info) => <Badge variant="secondary">{info.getValue()}</Badge>,
+      }),
+    ],
+    [t],
+  );
+
+  const table = useReactTable({
+    data: positions ?? [],
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 30,
+      },
+    },
+  });
+
+  // Totals come from backend summary - no frontend calculations
 
   if (isLoading) {
     return (
@@ -57,105 +223,122 @@ export function PositionsTable() {
     );
   }
 
-  // Calculate totals
-  const totalValue = positions.reduce((sum, p) => sum + (p.marketValue || 0), 0);
-  const totalCost = positions.reduce((sum, p) => sum + p.totalCost, 0);
-  const totalPnl = positions.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
-
   return (
     <Card>
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>{t('positions.table.symbol')}</TableHead>
-            <TableHead>{t('positions.table.name')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.quantity')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.avgCost')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.price')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.value')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.pnl')}</TableHead>
-            <TableHead className="text-right">{t('positions.table.pnlPercent')}</TableHead>
-            <TableHead>{t('positions.table.account')}</TableHead>
-          </TableRow>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
-          {positions.map((position: Position) => {
-            const pnlPercent =
-              position.totalCost > 0
-                ? ((position.unrealizedPnl || 0) / position.totalCost) * 100
-                : 0;
-            const isPositive = (position.unrealizedPnl || 0) >= 0;
-
-            return (
-              <TableRow key={position.id}>
-                <TableCell>
-                  <span className="font-medium">{position.security?.symbol}</span>
-                  {position.security?.isin && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {position.security.isin}
-                    </span>
-                  )}
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
-                <TableCell className="max-w-xs truncate text-muted-foreground">
-                  {position.security?.name}
-                </TableCell>
-                <TableCell className="text-right">{formatNumber(position.quantity, 4)}</TableCell>
-                <TableCell className="text-right text-muted-foreground">
-                  {formatCurrency(position.avgCost, position.currency)}
-                </TableCell>
-                <TableCell className="text-right text-muted-foreground">
-                  {formatCurrency(position.marketPrice, position.currency)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(position.marketValue, position.currency)}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    'text-right font-medium',
-                    isPositive ? 'text-green-500' : 'text-red-500',
-                  )}
-                >
-                  {formatCurrency(position.unrealizedPnl, position.currency)}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    'text-right font-medium',
-                    isPositive ? 'text-green-500' : 'text-red-500',
-                  )}
-                >
-                  {formatPercent(pnlPercent)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{position.account?.broker}</Badge>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+              ))}
+            </TableRow>
+          ))}
         </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={5}>{t('positions.table.total')}</TableCell>
-            <TableCell className="text-right font-medium">{formatCurrency(totalValue)}</TableCell>
-            <TableCell
-              className={cn(
-                'text-right font-medium',
-                totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
-              )}
-            >
-              {formatCurrency(totalPnl)}
-            </TableCell>
-            <TableCell
-              className={cn(
-                'text-right font-medium',
-                totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
-              )}
-            >
-              {formatPercent(totalCost > 0 ? (totalPnl / totalCost) * 100 : 0)}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableFooter>
+        {summary && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={5}>{t('positions.table.total')}</TableCell>
+              <TableCell className="text-right font-medium">
+                {formatCurrency(summary.totalValue)}
+              </TableCell>
+              <TableCell
+                className={cn(
+                  'text-right font-medium',
+                  summary.totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
+                )}
+              >
+                {formatCurrency(summary.totalPnl)}
+              </TableCell>
+              <TableCell
+                className={cn(
+                  'text-right font-medium',
+                  summary.totalPnl >= 0 ? 'text-green-500' : 'text-red-500',
+                )}
+              >
+                {formatPercent(summary.pnlPercentage)}
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          </TableFooter>
+        )}
       </Table>
+      <DataTablePagination table={table} />
     </Card>
+  );
+}
+
+interface SortableHeaderProps {
+  column: {
+    getIsSorted: () => false | 'asc' | 'desc';
+    toggleSorting: (desc?: boolean) => void;
+  };
+  children: React.ReactNode;
+  className?: string;
+}
+
+function SortableHeader({ column, children, className }: SortableHeaderProps) {
+  const sorted = column.getIsSorted();
+
+  return (
+    <div className={cn('flex', className)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 px-2 data-[state=open]:bg-accent"
+        onClick={() => column.toggleSorting(sorted === 'asc')}
+      >
+        {children}
+        {sorted === 'asc' ? (
+          <ArrowUp className="ml-1.5 size-3.5" />
+        ) : sorted === 'desc' ? (
+          <ArrowDown className="ml-1.5 size-3.5" />
+        ) : (
+          <ArrowUpDown className="ml-1.5 size-3.5 opacity-50" />
+        )}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Small indicator showing the price data source
+ * Color coding: green=finnhub (primary), blue=yahoo, purple=justetf, gray=cached
+ */
+function PriceSourceIndicator({ source }: { source: string }) {
+  const colorMap: Record<string, string> = {
+    finnhub: 'bg-green-500',
+    yahoo: 'bg-blue-500',
+    justetf: 'bg-purple-500',
+    cached: 'bg-gray-400',
+  };
+
+  const labelMap: Record<string, string> = {
+    finnhub: 'Finnhub',
+    yahoo: 'Yahoo',
+    justetf: 'justETF',
+    cached: 'Cached',
+  };
+
+  return (
+    <span
+      className={cn('inline-block size-2 rounded-full', colorMap[source] || 'bg-gray-400')}
+      title={`Price source: ${labelMap[source] || source}`}
+    />
   );
 }

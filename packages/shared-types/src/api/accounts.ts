@@ -5,22 +5,33 @@
 export interface Account {
   id: string;
   userId: string;
-  broker: string;
-  accountId: string;
-  accountName?: string | null;
-  currency: string;
+  /** @deprecated Use institution instead */
+  broker?: string;
+  type: 'broker' | 'bank' | 'pension' | 'crypto' | 'real_estate' | 'other';
+  institution: string;
+  name: string;
+  externalId?: string | null;
+  baseCurrency: string;
+  isActive: boolean;
+  lastImportAt: string | null;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateAccountInput {
-  broker: string;
-  accountId: string;
-  accountName?: string;
-  currency?: string;
+  type?: 'broker' | 'bank' | 'pension' | 'crypto' | 'real_estate' | 'other';
+  institution: string;
+  name: string;
+  externalId?: string;
+  baseCurrency?: string;
+  isActive?: boolean;
+  notes?: string;
 }
 
 export interface UpdateAccountInput {
-  accountName?: string;
-  currency?: string;
+  name?: string;
+  baseCurrency?: string;
+  isActive?: boolean;
+  notes?: string;
 }

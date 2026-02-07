@@ -52,20 +52,18 @@ export function AccountsGrid({ accounts, isLoading, error }: AccountsGridProps) 
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <span className="text-primary font-bold text-sm">
-                  {account.broker.charAt(0).toUpperCase()}
+                  {account.institution.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
-                <p className="font-medium capitalize">{account.broker.replace('-', ' ')}</p>
-                <p className="text-sm text-muted-foreground">
-                  {account.accountName || t('dashboard.accounts.mainAccount')}
-                </p>
+                <p className="font-medium capitalize">{account.institution.replace('-', ' ')}</p>
+                <p className="text-sm text-muted-foreground">{account.name}</p>
               </div>
             </div>
           </CardContent>
           <CardFooter className="justify-between text-sm">
             <span className="text-muted-foreground">{t('common.currency')}</span>
-            <span>{account.currency}</span>
+            <span>{account.baseCurrency}</span>
           </CardFooter>
         </Card>
       ))}

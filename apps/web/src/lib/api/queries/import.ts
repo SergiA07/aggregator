@@ -15,8 +15,9 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../client';
+import { api, type TRImportData } from '../client';
 import { accountKeys } from './accounts';
+import { overviewKeys } from './overview';
 import { positionKeys } from './positions';
 import { transactionKeys } from './transactions';
 
@@ -48,6 +49,7 @@ export function useUploadFile() {
       queryClient.invalidateQueries({ queryKey: accountKeys.all });
       queryClient.invalidateQueries({ queryKey: positionKeys.all });
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: overviewKeys.all });
     },
   });
 }
@@ -71,6 +73,33 @@ export function useImportCSV() {
       queryClient.invalidateQueries({ queryKey: accountKeys.all });
       queryClient.invalidateQueries({ queryKey: positionKeys.all });
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: overviewKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook for importing Trade Republic data (from API sync)
+ *
+ * This is used after fetching data from the Python service.
+ * The mutation handles the final import to the database.
+ */
+export function useImportTradeRepublic() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: TRImportData) => api.tradeRepublic.importData(data),
+
+    meta: {
+      errorMessage: 'Failed to import Trade Republic data',
+      successMessage: 'Trade Republic data imported successfully',
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      queryClient.invalidateQueries({ queryKey: positionKeys.all });
+      queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+      queryClient.invalidateQueries({ queryKey: overviewKeys.all });
     },
   });
 }

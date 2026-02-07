@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Security } from '@repo/database';
 import { Prisma } from '@repo/database';
-import { DatabaseService } from '../../../../shared/database';
+import { DatabaseService } from '@/shared/database';
 import type {
   CreateSecurityData,
   GetOrCreateSecurityData,

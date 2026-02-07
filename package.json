@@ -24,6 +24,7 @@
     "db:migrate:deploy": "turbo db:migrate:deploy",
     "db:migrate:status": "turbo db:migrate:status",
     "db:studio": "turbo db:studio",
+    "db:seed": "cd packages/database && bun run db:seed",
     "prepare": "husky"
   },
   "devDependencies": {

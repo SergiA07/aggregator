@@ -75,3 +75,33 @@ export function formatDate(
   const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
+
+/**
+ * Format a date as relative time (e.g., "2 hours ago", "yesterday")
+ * @param date - Date to format
+ * @param locale - Locale for formatting (default: en)
+ */
+export function formatRelativeDate(date: Date, locale = DEFAULT_LOCALE): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  if (diffDays > 30) {
+    return formatDate(date, { dateStyle: 'medium' }, locale);
+  }
+  if (diffDays >= 1) {
+    return rtf.format(-diffDays, 'day');
+  }
+  if (diffHours >= 1) {
+    return rtf.format(-diffHours, 'hour');
+  }
+  if (diffMins >= 1) {
+    return rtf.format(-diffMins, 'minute');
+  }
+  return rtf.format(-diffSecs, 'second');
+}

@@ -283,7 +283,28 @@ Routes are NOT prefixed with `/api/v1/`:
 | `/positions` | PositionsController |
 | `/securities` | SecuritiesController |
 | `/import` | ImportController |
+| `/trade-republic` | TradeRepublicController |
 | `/api/docs` | Swagger UI |
+
+### Trade Republic Integration
+
+The `TradeRepublicController` proxies requests to the Python service for Trade Republic authentication:
+
+```typescript
+// Proxies to Python service, keeping API key server-side
+@Post('login/init')
+async initLogin(@Body() dto: TRLoginInitDto) {
+  return fetch(`${this.pythonServiceUrl}/trade-republic/login/init`, {
+    headers: { 'X-API-Key': this.pythonServiceApiKey },
+    body: JSON.stringify(dto),
+  });
+}
+```
+
+This pattern:
+- Keeps the Python service API key on the server (not exposed to frontend)
+- Validates input with NestJS DTOs before forwarding
+- Logs all sync attempts for audit
 
 ## DTOs and Validation
 
@@ -414,3 +435,78 @@ export class AccountRepository {
 - `apps/api/src/shared/` - Cross-cutting concerns (database, filters)
 - `packages/shared-types/` - Types shared between API and frontend
 - `packages/database/` - Prisma client and schema
+
+## Price Data Sources
+
+The API uses multiple external services for price data. Each has different strengths:
+
+### Data Source Strategy
+
+| Source | Use Case | Strengths | Limitations |
+|--------|----------|-----------|-------------|
+| **Yahoo Finance** | Historical prices, real-time quotes | Free, good historical data, supports many exchanges | Some European ETFs have bad data (stale prices) |
+| **justETF** | Real-time ETF prices | Accurate European ETF prices by ISIN | No historical data API, EUR-centric |
+| **Finnhub** | Real-time US stock quotes | Official API, reliable | Rate limited (60/min free), no European coverage |
+
+### Current Implementation
+
+```
+infrastructure/services/
+├── yahoo-finance.service.ts   # Historical + real-time prices
+├── justetf.service.ts         # Real-time ETF prices (fallback)
+└── finnhub.service.ts         # Real-time US stocks (optional)
+```
+
+**Price Update Flow:**
+1. Real-time prices: Try Yahoo Finance first, fallback to justETF for ETFs
+2. Historical prices (YTD): Yahoo Finance only (justETF has no historical API)
+
+### Symbol Mapping
+
+European securities often need specific Yahoo Finance symbols. These are mapped in `price-update.service.ts`:
+
+```typescript
+const SYMBOL_MAPPINGS: Record<string, string> = {
+  // ETFs - Trade in USD on London Stock Exchange
+  IE00B4ND3602: 'IGLN.L',  // iShares Physical Gold (London, USD)
+  IE00B4NCWG09: 'PHAG.L',  // iShares Physical Silver (London, USD)
+  JE00B1VS3002: 'PHPD.L',  // WisdomTree Palladium (London, USD)
+  JE00B1VS2W53: 'PHPT.L',  // WisdomTree Platinum (London, USD)
+
+  // European stocks need exchange suffix
+  DE000PAG9113: 'P911.DE', // Porsche (XETRA)
+  ES0109067019: 'AMS.MC',  // Amadeus IT (Madrid)
+  DK0062498333: 'NOVO-B.CO', // Novo Nordisk (Copenhagen)
+};
+```
+
+### Known Issues & Workarounds
+
+| Issue | Affected Securities | Solution |
+|-------|---------------------|----------|
+| PHAG.AS returns stale prices | iShares Silver (IE00B4NCWG09) | Use PHAG.L instead |
+| Stuttgart (.SG) symbols fail | WisdomTree ETCs | Use London (.L) equivalents |
+| Yahoo returns USD for LSE ETFs | IGLN.L, PHAG.L, etc. | Convert to EUR using FX rates |
+
+### Currency Conversion
+
+Yahoo Finance returns prices in the exchange's trading currency:
+- `.L` (London) → Often USD for commodity ETFs
+- `.DE` (XETRA) → EUR
+- `.PA` (Paris) → EUR
+- `.MC` (Madrid) → EUR
+
+The `getHistoricalPricesForDate()` method converts prices to the position's currency before storing.
+
+**FX Rate Handling:**
+Historical prices are converted using the **FX rate at the historical date**, not today's rate. This ensures accurate YTD/custom window calculations regardless of subsequent FX movements.
+
+The `getHistoricalFxRatesToEur()` method in YahooFinanceService fetches historical FX rates from Yahoo Finance for the target date.
+
+### Adding New Securities
+
+When adding a new European security:
+1. Check if Yahoo Finance has data: `GET /prices/history/{symbol}`
+2. Verify prices are realistic (not stale/zero volume)
+3. Add ISIN → Yahoo symbol mapping if needed
+4. Update `securities.yahoo_symbol` in database

@@ -1,4 +1,4 @@
-import type { Transaction } from '@repo/database';
+import type { Transaction, TransactionType } from '@repo/database';
 
 // DI token for NestJS
 export const TRANSACTION_REPOSITORY = 'TRANSACTION_REPOSITORY';
@@ -7,41 +7,50 @@ export const TRANSACTION_REPOSITORY = 'TRANSACTION_REPOSITORY';
 export interface TransactionFilters {
   accountId?: string;
   securityId?: string;
-  type?: string;
+  type?: TransactionType;
+  types?: TransactionType[];
   startDate?: Date;
   endDate?: Date;
+  category?: string;
+  minAmount?: number;
+  maxAmount?: number;
 }
 
 // Transaction with relations for API responses
 export interface TransactionWithRelations extends Transaction {
-  account?: { id: string; broker: string; accountName: string | null };
-  security?: { id: string; symbol: string; name: string };
+  account?: { id: string; institution: string; name: string };
+  security?: { id: string; symbol: string; name: string } | null;
 }
 
 // Data types for repository methods
 export interface CreateTransactionData {
   accountId: string;
-  securityId: string;
+  securityId?: string; // Optional: not needed for bank/pension transactions
   date: Date;
-  type: string;
-  quantity: number;
-  price: number;
+  type: TransactionType;
+  quantity?: number; // Optional: not needed for cash transactions
+  price?: number; // Optional: not needed for cash transactions
   amount: number;
   fees?: number;
   currency?: string;
+  description?: string;
+  category?: string;
   notes?: string;
   externalId?: string;
+  fingerprint?: string;
 }
 
 export interface UpdateTransactionData {
   date?: Date;
-  type?: string;
-  quantity?: number;
-  price?: number;
+  type?: TransactionType;
+  quantity?: number | null;
+  price?: number | null;
   amount?: number;
   fees?: number;
   currency?: string;
-  notes?: string;
+  description?: string | null;
+  category?: string | null;
+  notes?: string | null;
 }
 
 // Stats result type

@@ -415,20 +415,48 @@ See [.claude/rules/web-testing.md](../.claude/rules/web-testing.md) for full doc
 
 ### Python Service (FastAPI) - Port 8000
 
-Utility service for operations not well-suited for JavaScript.
+Utility service for operations not well-suited for JavaScript, including Trade Republic integration.
 
 #### Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
+| POST | `/trade-republic/login/init` | Start Trade Republic 2FA login |
+| POST | `/trade-republic/login/complete` | Complete login and fetch data |
+| POST | `/trade-republic/login/resend` | Resend verification code |
+| DELETE | `/trade-republic/session/{id}` | Cancel pending session |
 | POST | `/scrape/url` | Scrape web page content |
 | GET | `/scrape/sources` | List news sources |
 | POST | `/youtube/transcript` | Get video transcript |
 | POST | `/youtube/batch` | Batch transcript fetch |
 
+#### Trade Republic Sync Flow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │────▶│  NestJS API │────▶│   Python    │────▶│    Trade    │
+│   Modal     │     │   Proxy     │     │   Service   │     │  Republic   │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+                                              │ pytr library
+                                              ▼
+                                        ┌─────────────┐
+                                        │  WebSocket  │
+                                        │     API     │
+                                        └─────────────┘
+```
+
+1. User enters phone + PIN in frontend modal
+2. NestJS proxies to Python service (keeps API key server-side)
+3. Python uses `pytr` library to connect to Trade Republic's WebSocket API
+4. User receives 2FA code on Trade Republic app
+5. After verification, Python fetches transactions, positions, and cash balances
+6. Data returned to NestJS for import into database
+
 #### Use Cases
 
+- **Trade Republic Sync**: Portfolio data via private API (pytr library)
 - Scrape financial news from Seeking Alpha, Yahoo Finance, Reuters
 - Extract YouTube video transcripts for analysis
 - Future: ML-based categorization, sentiment analysis
@@ -444,12 +472,12 @@ Utility service for operations not well-suited for JavaScript.
 │   Account   │───────│  Position   │───────│  Security   │
 └─────────────┘       └─────────────┘       └─────────────┘
       │                     │                     │
-      │                     │                     │
-      ▼                     ▼                     ▼
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│ Transaction │       │    User     │       │PriceHistory │
-└─────────────┘       │ (Supabase)  │       └─────────────┘
-                      └─────────────┘
+      ├───AccountBalance    │                     │
+      │                     ▼                     ▼
+      ▼               ┌─────────────┐       ┌─────────────┐
+┌─────────────┐       │    User     │       │PriceHistory │
+│ Transaction │       │ (Supabase)  │       └─────────────┘
+└─────────────┘       └─────────────┘
                             │
                             ▼
                       ┌─────────────┐       ┌─────────────┐
@@ -463,17 +491,23 @@ Utility service for operations not well-suited for JavaScript.
 
 | Table | Description | Key Fields |
 |-------|-------------|------------|
-| **Account** | Broker accounts | broker, accountId, currency |
+| **Account** | Broker accounts | type, institution, baseCurrency |
+| **AccountBalance** | Cash balances per currency | accountId, currency, balance |
 | **Position** | Current holdings | quantity, avgCost, marketValue, unrealizedPnl |
-| **Transaction** | Trade history | date, type, quantity, price, fees |
+| **Transaction** | Trade history | date, type, quantity, price, fees, fingerprint |
 | **BankAccount** | Bank accounts | iban, bankName, balance |
 | **BankTransaction** | Bank movements | date, amount, description, category |
+
+**Notes:**
+- `AccountBalance` stores cash per currency (e.g., Trade Republic EUR cash)
+- `Transaction.fingerprint` prevents duplicate imports (hash of key fields)
+- Transactions can have null `securityId` (for interest/fee transactions)
 
 #### Shared (Service Role Managed)
 
 | Table | Description | Key Fields |
 |-------|-------------|------------|
-| **Security** | Stocks/ETFs/Bonds | symbol, isin, name, securityType |
+| **Security** | Stocks/ETFs/Bonds | symbol, isin, name, securityType, yahooSymbol |
 | **PriceHistory** | OHLCV data | date, open, high, low, close, volume |
 
 ---

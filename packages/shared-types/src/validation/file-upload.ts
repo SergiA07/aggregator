@@ -8,15 +8,17 @@ export const FILE_UPLOAD = {
   MAX_SIZE: 10 * 1024 * 1024,
 
   /** Allowed file extensions */
-  ALLOWED_EXTENSIONS: ['.csv', '.txt'] as const,
+  ALLOWED_EXTENSIONS: ['.csv', '.txt', '.xls', '.xlsx'] as const,
 
-  /** Allowed MIME types for CSV/text files */
+  /** Allowed MIME types for CSV/text/Excel files */
   ALLOWED_MIME_TYPES: [
     'text/csv',
     'text/plain',
     'application/csv',
-    'application/vnd.ms-excel',
+    'application/vnd.ms-excel', // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
     'text/comma-separated-values',
+    'application/octet-stream', // Fallback for binary files (XLS when mime detection fails)
   ] as const,
 } as const;
 

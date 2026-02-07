@@ -1,5 +1,5 @@
 import { Link, useMatchRoute } from '@tanstack/react-router';
-import { LayoutDashboard, PieChart, Receipt } from 'lucide-react';
+import { Home, LayoutDashboard, PieChart, Receipt } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
@@ -31,8 +31,9 @@ export function BottomNav() {
   const { t } = useTranslation();
 
   const navItems = [
-    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.overview') },
-    { to: '/positions', icon: PieChart, label: t('nav.positions') },
+    { to: '/overview', icon: Home, label: t('nav.overview') },
+    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { to: '/investments', icon: PieChart, label: t('nav.investments') },
     { to: '/transactions', icon: Receipt, label: t('nav.transactions') },
   ];
 

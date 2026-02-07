@@ -78,22 +78,26 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger/OpenAPI setup
-  const config = new DocumentBuilder()
-    .setTitle('Portfolio Aggregator API')
-    .setDescription('API for managing investment portfolios')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // Swagger/OpenAPI setup - only enable in development
+  if (!isProd) {
+    const config = new DocumentBuilder()
+      .setTitle('Portfolio Aggregator API')
+      .setDescription('API for managing investment portfolios')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = configService.get('PORT');
   const nodeEnv = configService.get('NODE_ENV');
   await app.listen({ port, host: '0.0.0.0' });
   console.log(`API running on port ${port} (${nodeEnv})`);
-  console.log(`Swagger docs available at /api/docs`);
+  if (!isProd) {
+    console.log(`Swagger docs available at /api/docs`);
+  }
 }
 
 bootstrap();

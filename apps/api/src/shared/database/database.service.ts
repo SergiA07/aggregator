@@ -19,6 +19,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return prisma.account;
   }
 
+  get accountBalance() {
+    return prisma.accountBalance;
+  }
+
   get security() {
     return prisma.security;
   }
@@ -41,6 +45,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   get bankTransaction() {
     return prisma.bankTransaction;
+  }
+
+  get lot() {
+    return prisma.lot;
+  }
+
+  get lotDisposal() {
+    return prisma.lotDisposal;
   }
 
   // Expose $transaction for multi-model operations

@@ -9,6 +9,10 @@ export const router = createRouter({
     queryClient,
   },
   defaultErrorComponent: ErrorFallback,
+  // Preload routes on hover/focus for instant navigation
+  defaultPreload: 'intent',
+  // Let TanStack Query manage staleness (route loaders use prefetchQuery)
+  defaultPreloadStaleTime: 0,
 });
 
 declare module '@tanstack/react-router' {

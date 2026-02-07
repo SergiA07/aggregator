@@ -5,7 +5,7 @@ export const POSITION_REPOSITORY = 'POSITION_REPOSITORY';
 
 // Position with relations for API responses
 export interface PositionWithRelations extends Position {
-  account?: { id: string; broker: string; accountName: string | null };
+  account?: { id: string; institution: string; name: string };
   security?: { id: string; symbol: string; name: string };
 }
 

@@ -1,5 +1,5 @@
 import { Link, useMatchRoute } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight, LayoutDashboard, PieChart, Receipt } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, LayoutDashboard, PieChart, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/lib/i18n';
@@ -53,8 +53,9 @@ export function Sidebar({ className }: SidebarProps) {
   const { sidebarCollapsed, toggleSidebar } = usePreferences();
 
   const navItems = [
-    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.overview') },
-    { to: '/positions', icon: PieChart, label: t('nav.positions') },
+    { to: '/overview', icon: Home, label: t('nav.overview') },
+    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { to: '/investments', icon: PieChart, label: t('nav.investments') },
     { to: '/transactions', icon: Receipt, label: t('nav.transactions') },
   ];
 
