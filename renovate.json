@@ -8,7 +8,9 @@
     {
       "customType": "regex",
       "description": "Update Bun version in GitHub Actions workflows",
-      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/"
+      ],
       "matchStrings": ["bun-version:\\s*[\"']?(?<currentValue>[\\d.]+)[\"']?"],
       "depNameTemplate": "oven-sh/bun",
       "datasourceTemplate": "github-releases"
@@ -17,23 +19,34 @@
   "packageRules": [
     {
       "description": "Group TanStack packages",
-      "matchPackagePatterns": ["^@tanstack/"],
-      "groupName": "TanStack"
+      "groupName": "TanStack",
+      "matchPackageNames": [
+        "/^@tanstack//"
+      ]
     },
     {
       "description": "Group Supabase packages",
-      "matchPackagePatterns": ["^@supabase/"],
-      "groupName": "Supabase"
+      "groupName": "Supabase",
+      "matchPackageNames": [
+        "/^@supabase//"
+      ]
     },
     {
       "description": "Group NestJS packages",
-      "matchPackagePatterns": ["^@nestjs/"],
-      "groupName": "NestJS"
+      "groupName": "NestJS",
+      "matchPackageNames": [
+        "/^@nestjs//"
+      ]
     },
     {
       "description": "Group testing packages",
-      "matchPackagePatterns": ["vitest", "playwright", "@testing-library/", "msw"],
-      "groupName": "testing"
+      "groupName": "testing",
+      "matchPackageNames": [
+        "/vitest/",
+        "/playwright/",
+        "/@testing-library//",
+        "/msw/"
+      ]
     },
     {
       "description": "Group GitHub Actions",
@@ -47,8 +60,10 @@
     },
     {
       "description": "Group Biome",
-      "matchPackagePatterns": ["^@biomejs/"],
-      "groupName": "Biome"
+      "groupName": "Biome",
+      "matchPackageNames": [
+        "/^@biomejs//"
+      ]
     },
     {
       "description": "Group Docker base images",
